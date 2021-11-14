@@ -1,4 +1,6 @@
 /*
+This is the c configuration file for the keymap
+
 Copyright 2012 Jun Wako <wakojun@gmail.com>
 Copyright 2015 Jack Humbert
 
@@ -18,29 +20,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "config_common.h"
+#define VIAL_KEYBOARD_UID {0xD4, 0xAB, 0x98, 0xD1, 0xF7, 0xE3, 0xBE, 0x1C}
+#define VIAL_UNLOCK_COMBO_ROWS { 0, 0 }
+#define VIAL_UNLOCK_COMBO_COLS { 0, 1 }
 
-#define PRODUCT_ID 0x3536
-#define DEVICE_VER 0x0001
-#define PRODUCT    Dactyl-Manuform (5x6)
+#define USE_SERIAL
 
-/* key matrix size */
-// Rows are doubled-up
-#define MATRIX_ROWS 12
-#define MATRIX_COLS 6
+#define EE_HANDS
+//#define MASTER_LEFT
+//#define MASTER_RIGHT
 
-// wiring of each half
-#define MATRIX_COL_PINS { D4, C6, D7, E6, B4, B5 }
-#define MATRIX_ROW_PINS { F6, F7, B1, B3, B2, B6 }
-
-#define DIODE_DIRECTION COL2ROW
-
-// WS2812 RGB LED strip input and number of LEDs
+// Underglow
 #define RGB_DI_PIN D1
-#define RGBLED_NUM 18
+#define RGBLED_NUM 18    // Number of LEDs
+#define RGBLED_SPLIT { 9, 9 }
+#define RGBLIGHT_SLEEP
+#define RGBLIGHT_LIMIT_VAL 150
 
-/* define if matrix has ghost */
-//#define MATRIX_HAS_GHOST
+//#define RGBLIGHT_ANIMATIONS
+#define RGBLIGHT_EFFECT_STATIC_LIGHT
+#define RGBLIGHT_EFFECT_BREATHING
+#define RGBLIGHT_EFFECT_RAINBOW_MOOD
+#define RGBLIGHT_EFFECT_RAINBOW_SWIRL
+#define RGBLIGHT_DEFAULT_MODE RGBLIGHT_MODE_RAINBOW_MOOD
 
-/* number of backlight levels */
-// #define BACKLIGHT_LEVELS 3
+

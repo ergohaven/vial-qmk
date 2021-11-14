@@ -1,4 +1,6 @@
 /*
+This is the c configuration file for the keymap
+
 Copyright 2012 Jun Wako <wakojun@gmail.com>
 Copyright 2015 Jack Humbert
 
@@ -18,29 +20,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "config_common.h"
+#define VIAL_KEYBOARD_UID {0xD2, 0xEB, 0xAF, 0x59, 0x88, 0x2F, 0x9C, 0x04}
 
-#define PRODUCT_ID 0x3536
-#define DEVICE_VER 0x0001
-#define PRODUCT    Dactyl-Manuform (5x6)
+//#define VIAL_UNLOCK_COMBO_ROWS { 1, 1 }
+//#define VIAL_UNLOCK_COMBO_COLS { 6, 7 }
 
-/* key matrix size */
-// Rows are doubled-up
-#define MATRIX_ROWS 12
-#define MATRIX_COLS 6
+/* Use I2C or Serial, not both */
 
-// wiring of each half
-#define MATRIX_COL_PINS { D4, C6, D7, E6, B4, B5 }
-#define MATRIX_ROW_PINS { F6, F7, B1, B3, B2, B6 }
+#define USE_SERIAL
+// #define USE_I2C
 
-#define DIODE_DIRECTION COL2ROW
+/* Select hand configuration */
 
-// WS2812 RGB LED strip input and number of LEDs
-#define RGB_DI_PIN D1
-#define RGBLED_NUM 18
+// #define MASTER_LEFT
+// #define MASTER_RIGHT
+#define EE_HANDS
 
-/* define if matrix has ghost */
-//#define MATRIX_HAS_GHOST
+/* Encoder support */
+#define ENCODERS_PAD_A { F5 }
+#define ENCODERS_PAD_B { F4 }
+#define ENCODERS_PAD_A_RIGHT { F4 }
+#define ENCODERS_PAD_B_RIGHT { F5 }
+#define ENCODER_RESOLUTION 2
+#define ENCODER_DIRECTION_FLIP
 
-/* number of backlight levels */
-// #define BACKLIGHT_LEVELS 3
