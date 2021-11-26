@@ -32,8 +32,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // Underglow
 #define RGB_DI_PIN D1
-#define RGBLED_NUM 18    // Number of LEDs
-#define RGBLED_SPLIT { 9, 9 }
+#define RGBLED_NUM 24    // Number of LEDs
+#define RGBLED_SPLIT { 12, 12 }
 #define RGBLIGHT_SLEEP
 #define RGBLIGHT_LIMIT_VAL 150
 
