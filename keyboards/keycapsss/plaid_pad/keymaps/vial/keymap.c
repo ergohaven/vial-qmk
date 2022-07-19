@@ -64,8 +64,9 @@ void keyboard_post_init_user(void) {
 
 // Rev3 and above only
 #ifdef OLED_ENABLE
-void oled_task_user(void) {
+bool oled_task_user(void) {
   oled_write_ln_P(PSTR("Plaid-Pad ///////////"), false);
+  return false;
 }
 #endif
 
@@ -117,3 +118,10 @@ Rev1.1                      Rev1
     return true;
 }
 #endif
+
+const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][2] = {
+    [0] = { ENCODER_CCW_CW(KC_TRNS, KC_TRNS), ENCODER_CCW_CW(KC_TRNS, KC_TRNS) },
+    [1] = { ENCODER_CCW_CW(KC_TRNS, KC_TRNS), ENCODER_CCW_CW(KC_TRNS, KC_TRNS) },
+    [2] = { ENCODER_CCW_CW(KC_TRNS, KC_TRNS), ENCODER_CCW_CW(KC_TRNS, KC_TRNS) },
+    [3] = { ENCODER_CCW_CW(KC_TRNS, KC_TRNS), ENCODER_CCW_CW(KC_TRNS, KC_TRNS) },
+};

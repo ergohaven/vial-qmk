@@ -144,21 +144,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#define NO_ACTION_TAPPING
 //#define NO_ACTION_ONESHOT
 
-/* disable these deprecated features by default */
-#define NO_ACTION_MACRO
-#define NO_ACTION_FUNCTION
-
 /* Bootmagic Lite key configuration */
 //#define BOOTMAGIC_LITE_ROW 0
 //#define BOOTMAGIC_LITE_COLUMN 0
 // for via
 #define DYNAMIC_KEYMAP_LAYER_COUNT 7
 
-#define VIAL_KEYBOARD_UID {0xD6, 0x68, 0xF2, 0x55, 0x9B, 0x48, 0x07, 0x6E}
-#define VIAL_UNLOCK_COMBO_ROWS { 0, 4 }
-#define VIAL_UNLOCK_COMBO_COLS { 0, 0 }
-
-//for encoder
 //left encoder
 #define ENCODERS_PAD_A { F5 }
 #define ENCODERS_PAD_B { F4 }
@@ -167,16 +158,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define ENCODERS_PAD_A_RIGHT { F4 }
 #define ENCODERS_PAD_B_RIGHT { F5 }
 
-//default trans keycode.
-#define VIAL_ENCODER_DEFAULT { KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS,KC_TRNS}
-
-//overwrite default tapping behaviour
-#define IGNORE_MOD_TAP_INTERRUPT
 //RGB Underglow
 #define RGB_DI_PIN B6
-#define RGBLED_NUM 17
-#define RGBLIGHT_SPLIT
-#define RGBLIGHT_EFFECT_KNIGHT
-
-//EE Handness
-#define EE_HANDS
+#define RGBLED_NUM 10

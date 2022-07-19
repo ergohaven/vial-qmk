@@ -4,14 +4,12 @@ on:
   push:
   workflow_dispatch:
   pull_request:
-    paths:
-    - 'keyboards/**'
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    container: qmkfm/base_container
+    container: qmkfm/qmk_cli
 
     steps:
     - uses: actions/checkout@v2
