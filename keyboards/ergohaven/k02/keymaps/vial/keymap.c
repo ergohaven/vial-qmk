@@ -1,5 +1,4 @@
 #include QMK_KEYBOARD_H
-
 #include <stdio.h>
 char wpm_str[4];
 
@@ -27,6 +26,13 @@ char wpm_str[4];
 #define ADJUST    MO(_ADJUST)
 #define PREVWRD   LCTL(KC_LEFT)
 #define NEXTWRD   LCTL(KC_RIGHT)
+
+enum custom_keycodes {
+    NEXTSEN = USER00,
+    PREDL, 
+    BRACES,
+    PARENTH
+};
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         [_QWERTY] = LAYOUT_all( \
@@ -318,3 +324,43 @@ void rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
     }
 }
 
+
+
+bool process_record_user(uint16_t keycode, keyrecord_t* record) {
+    switch (keycode) {
+    case NEXTSEN:  // Next sentence macro.
+      if (record->event.pressed) {
+        SEND_STRING(". ");
+        add_oneshot_mods(MOD_BIT(KC_LSFT));  // Set one-shot mod for shift.
+      }
+      return false;
+
+    case PREDL:  // Next sentence macro.
+      if (record->event.pressed) {
+        SEND_STRING("/ ");
+        add_oneshot_mods(MOD_BIT(KC_LSFT));  // Set one-shot mod for shift.
+      }
+      return false;
+
+       case BRACES:
+            if (record->event.pressed) {
+                uint8_t shifted = get_mods() & (MOD_MASK_SHIFT);
+                    if (shifted) {
+                        unregister_code(KC_LSFT);
+                        unregister_code(KC_RSFT);
+                        SEND_STRING("{}"SS_TAP(X_LEFT));
+                    }
+                    else {
+                        SEND_STRING("[]"SS_TAP(X_LEFT));
+                    }
+            }
+            break;
+
+        case PARENTH:
+            if (record->event.pressed) {
+                SEND_STRING("()");
+                tap_code(KC_LEFT);
+            }
+            break;
+}
+}
