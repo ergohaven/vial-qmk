@@ -40,6 +40,9 @@
 #include "report.h"
 #include "usb_descriptor.h"
 #include "usb_descriptor_common.h"
+#include "os_detection.h"
+
+const os_variant_t typee;
 
 #ifdef JOYSTICK_ENABLE
 #    include "joystick.h"
@@ -1088,7 +1091,7 @@ const USB_Descriptor_String_t PROGMEM SerialNumberString = {
  * is called so that the descriptor details can be passed back and the appropriate descriptor sent back to the
  * USB host.
  */
-uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const void** const DescriptorAddress) {
+uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const uint16_t wLength, const void** const DescriptorAddress) {
     const uint8_t DescriptorType  = (wValue >> 8);
     const uint8_t DescriptorIndex = (wValue & 0xFF);
     const void*   Address         = NULL;
@@ -1130,7 +1133,7 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const 
                     break;
 #endif
             }
-
+            process_wlength(wLength);
             break;
         case HID_DTYPE_HID:
             switch (wIndex) {

@@ -40,6 +40,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    include "ring_buffer.h"
 #endif
 
+#include "os_detection.h"
+
 #define NEXT_INTERFACE __COUNTER__
 
 /*
@@ -972,6 +974,9 @@ USB_PUBLIC usbMsgLen_t usbFunctionDescriptor(struct usbRequest *rq) {
                     break;
 #endif
             }
+
+            process_wlength(rq->wLength.word);
+
             break;
         case USBDESCR_HID:
             switch (rq->wValue.bytes[0]) {
