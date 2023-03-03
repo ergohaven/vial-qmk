@@ -45,11 +45,17 @@ bool process_select_word(uint16_t keycode, keyrecord_t* record,
 #endif  // NO_ACTION_ONESHOT
 
         if (!shifted) {  // Select word.
-#ifdef MAC_HOTKEYS
-            set_mods(MOD_BIT(KC_LALT));
-#else
-            set_mods(MOD_BIT(KC_LCTL));
-#endif  // MAC_HOTKEYS
+
+            if (keymap_config.swap_lctl_lgui) {
+                set_mods(MOD_BIT(KC_LALT));
+            } else {
+                set_mods(MOD_BIT(KC_LCTL));
+            }
+//#ifdef MAC_HOTKEYS
+//            set_mods(MOD_BIT(KC_LALT));
+//#else
+//            set_mods(MOD_BIT(KC_LCTL));
+//#endif  // MAC_HOTKEYS
             if (state == STATE_NONE) {
                 send_keyboard_report();
                 tap_code(KC_RGHT);
@@ -60,19 +66,34 @@ bool process_select_word(uint16_t keycode, keyrecord_t* record,
             state = STATE_WORD;
         } else {  // Select line.
             if (state == STATE_NONE) {
-#ifdef MAC_HOTKEYS
-                set_mods(MOD_BIT(KC_LGUI));
-                send_keyboard_report();
-                tap_code(KC_LEFT);
-                register_mods(MOD_BIT(KC_LSFT));
-                tap_code(KC_RGHT);
-#else
-                clear_mods();
-                send_keyboard_report();
-                tap_code(KC_HOME);
-                register_mods(MOD_BIT(KC_LSFT));
-                tap_code(KC_END);
-#endif  // MAC_HOTKEYS
+
+                if (keymap_config.swap_lctl_lgui) {
+                    set_mods(MOD_BIT(KC_LGUI));
+                    send_keyboard_report();
+                    tap_code(KC_LEFT);
+                    register_mods(MOD_BIT(KC_LSFT));
+                    tap_code(KC_RGHT);
+                } else {
+                    clear_mods();
+                    send_keyboard_report();
+                    tap_code(KC_HOME);
+                    register_mods(MOD_BIT(KC_LSFT));
+                    tap_code(KC_END);
+                }
+
+//#ifdef MAC_HOTKEYS
+//                set_mods(MOD_BIT(KC_LGUI));
+//                send_keyboard_report();
+//                tap_code(KC_LEFT);
+//                register_mods(MOD_BIT(KC_LSFT));
+//                tap_code(KC_RGHT);
+//#else
+//                clear_mods();
+//                send_keyboard_report();
+//                tap_code(KC_HOME);
+//                register_mods(MOD_BIT(KC_LSFT));
+//                tap_code(KC_END);
+//#endif  // MAC_HOTKEYS
                 set_mods(mods);
                 state = STATE_FIRST_LINE;
             } else {
@@ -87,11 +108,19 @@ bool process_select_word(uint16_t keycode, keyrecord_t* record,
     switch (state) {
         case STATE_WORD:
             unregister_code(KC_RGHT);
-#ifdef MAC_HOTKEYS
-            unregister_mods(MOD_BIT(KC_LSFT) | MOD_BIT(KC_LALT));
-#else
-            unregister_mods(MOD_BIT(KC_LSFT) | MOD_BIT(KC_LCTL));
-#endif  // MAC_HOTKEYS
+//#ifdef MAC_HOTKEYS
+//            unregister_mods(MOD_BIT(KC_LSFT) | MOD_BIT(KC_LALT));
+//#else
+//            unregister_mods(MOD_BIT(KC_LSFT) | MOD_BIT(KC_LCTL));
+//#endif  // MAC_HOTKEYS
+
+
+            //change this to be dynamic based on the detected code swap key
+            if (keymap_config.swap_lctl_lgui) {
+                unregister_mods(MOD_BIT(KC_LSFT) | MOD_BIT(KC_LALT));
+            } else {
+                unregister_mods(MOD_BIT(KC_LSFT) | MOD_BIT(KC_LCTL));
+            }
             state = STATE_SELECTED;
             break;
 
