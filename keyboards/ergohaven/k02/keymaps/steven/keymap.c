@@ -1,6 +1,9 @@
 #include QMK_KEYBOARD_H
 #include <stdio.h>
 #include "features/select_word.h"
+#include "steven.h"
+#include "os_detection.h"
+
 char wpm_str[4];
 
 #define _QWERTY 0
@@ -36,14 +39,6 @@ enum custom_keycodes {
     SELECT_WORD
 };
 
-//for os detection
-enum {
-    OS_UNSURE,
-    OS_LINUX,
-    OS_WINDOWS,
-    OS_MACOS,
-    OS_IOS,
-} os_variant_t;
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         [_QWERTY] = LAYOUT_all( \
@@ -93,9 +88,28 @@ static void print_status_narrow(void) {
     oled_write_ln_P(PSTR("MODE\n"), false);
     oled_write_ln_P(PSTR(""), false);
     if (keymap_config.swap_lctl_lgui) {
-        oled_write_ln_P(PSTR("Mac"), false);
+        oled_write_ln_P(PSTR("Mac\n"), false);
     } else {
-        oled_write_ln_P(PSTR("Win"), false);
+        oled_write_ln_P(PSTR("Win\n"), false);
+    }
+
+    os_variant_t os_type = detected_host_os();
+    switch (os_type) {
+        case OS_LINUX:
+            oled_write_ln_P(PSTR("Linux"), false);
+            break;
+        case OS_WINDOWS:
+            oled_write_ln_P(PSTR("Win"), false);
+            break;
+        case OS_MACOS:
+            oled_write_ln_P(PSTR("MAC"), false);
+            break;
+        case OS_IOS:
+            oled_write_ln_P(PSTR("MAC"), false);
+            break;
+        default:
+            oled_write_ln_P(PSTR("TBD"), false);
+            break;
     }
 
     oled_write_P(PSTR("\n\n\n"), false);
@@ -157,8 +171,9 @@ static void print_status_narrow(void) {
             oled_write_ln_P(PSTR("Undef"), false);
     }
     oled_write_P(PSTR("\n\n"), false);
-    led_t led_usb_state = host_keyboard_led_state();
-    oled_write_ln_P(PSTR("CPSLK"), led_usb_state.caps_lock);
+    //disable printing caps state
+//    led_t led_usb_state = host_keyboard_led_state();
+//    oled_write_ln_P(PSTR("CPSLK"), led_usb_state.caps_lock);
 }
 
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
