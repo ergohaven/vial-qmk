@@ -177,6 +177,10 @@ static void print_status_narrow(void) {
 }
 
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
+    if (!is_keyboard_master()) {
+        return OLED_ROTATION_180;  // dont flip the non primary screen
+
+    }
     return OLED_ROTATION_270;
 }
 
@@ -316,19 +320,28 @@ static void render_anim(void) {
 bool oled_task_user(void) {
     if (is_keyboard_master()) {
         print_status_narrow();
-    } else {
-//        render_anim();
-        oled_write_ln_P(PSTR("  \n"), false);
-        oled_write_ln_P(PSTR(" S C\n"), false);
-        oled_write_ln_P(PSTR(" t u\n"), false);
-        oled_write_ln_P(PSTR(" e r\n"), false);
-        oled_write_ln_P(PSTR(" v r\n"), false);
-        oled_write_ln_P(PSTR(" e a\n"), false);
-        oled_write_ln_P(PSTR(" n n\n"), false);
 
+        //move the wp, to the left screen
         oled_set_cursor(0,12);
         sprintf(wpm_str, "WPM\n%03d", get_current_wpm());
         oled_write(wpm_str, false);
+    } else {
+//        render_anim();
+//        oled_write_ln_P(PSTR("  \n"), false);
+//        oled_write_ln_P(PSTR(" S C\n"), false);
+//        oled_write_ln_P(PSTR(" t u\n"), false);
+//        oled_write_ln_P(PSTR(" e r\n"), false);
+//        oled_write_ln_P(PSTR(" v r\n"), false);
+//        oled_write_ln_P(PSTR(" e a\n"), false);
+//        oled_write_ln_P(PSTR(" n n\n"), false);
+
+        render_anim();
+        oled_write_ln_P(PSTR("  \n"), false);
+        oled_write_ln_P(PSTR("Steven\n"), false);
+        oled_write_ln_P(PSTR("Curran\n"), false);
+        oled_scroll_right();
+        oled_scroll_set_speed(4);
+
     }
 }
 
