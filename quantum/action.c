@@ -2,12 +2,12 @@
 Copyright 2012,2013 Jun Wako <wakojun@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or
-(at your option) any later version.
+                                                                     it under the terms of the GNU General Public License as published by
+                                                                         the Free Software Foundation, either version 2 of the License, or
+                                         (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
+                                         This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
@@ -54,6 +54,10 @@ int retro_tapping_counter = 0;
 
 #if defined(AUTO_SHIFT_ENABLE) && defined(RETRO_SHIFT) && !defined(NO_ACTION_TAPPING)
 #    include "process_auto_shift.h"
+#endif
+
+#ifdef BILATERAL_COMBINATIONS
+#    include "quantum.h"
 #endif
 
 #ifdef IGNORE_MOD_TAP_INTERRUPT_PER_KEY
@@ -103,19 +107,19 @@ void action_exec(keyevent_t event) {
 
 #ifndef NO_ACTION_ONESHOT
     if (keymap_config.oneshot_enable) {
-if (QS_oneshot_timeout > 0) {
-        if (has_oneshot_layer_timed_out()) {
-            clear_oneshot_layer_state(ONESHOT_OTHER_KEY_PRESSED);
-        }
-        if (has_oneshot_mods_timed_out()) {
-            clear_oneshot_mods();
-        }
+        if (QS_oneshot_timeout > 0) {
+            if (has_oneshot_layer_timed_out()) {
+                clear_oneshot_layer_state(ONESHOT_OTHER_KEY_PRESSED);
+            }
+            if (has_oneshot_mods_timed_out()) {
+                clear_oneshot_mods();
+            }
 #        ifdef SWAP_HANDS_ENABLE
-        if (has_oneshot_swaphands_timed_out()) {
-            clear_oneshot_swaphands();
-        }
+            if (has_oneshot_swaphands_timed_out()) {
+                clear_oneshot_swaphands();
+            }
 #        endif
-}
+        }
     }
 #endif
 
@@ -307,6 +311,222 @@ void register_button(bool pressed, enum mouse_buttons button) {
 }
 #endif
 
+#ifdef BILATERAL_COMBINATIONS
+#    ifndef BILATERAL_COMBINATIONS_LIMIT_CHORD_TO_N_KEYS
+#        define BILATERAL_COMBINATIONS_LIMIT_CHORD_TO_N_KEYS 8 /* modifier state is stored as a single byte in the format (GASC)R(GASC)L */
+#    endif
+#    ifndef BILATERAL_COMBINATIONS_DELAY_MODS_THAT_MATCH
+#        define BILATERAL_COMBINATIONS_DELAY_MODS_THAT_MATCH (~0) /* all mods */
+#    endif
+#    ifndef BILATERAL_COMBINATIONS_DELAY_MATCHED_MODS_BY
+#        define BILATERAL_COMBINATIONS_DELAY_MATCHED_MODS_BY (~0) /* infinity */
+#    endif
+#    ifndef BILATERAL_COMBINATIONS_ALLOW_CROSSOVER_AFTER
+#        define BILATERAL_COMBINATIONS_ALLOW_CROSSOVER_AFTER (~0) /* infinity */
+#    endif
+#    ifndef BILATERAL_COMBINATIONS_ALLOW_SAMESIDED_AFTER
+#        define BILATERAL_COMBINATIONS_ALLOW_SAMESIDED_AFTER (~0) /* infinity */
+#    endif
+#    ifndef BILATERAL_COMBINATIONS_TYPING_STREAK_TIMEOUT
+#        define BILATERAL_COMBINATIONS_TYPING_STREAK_TIMEOUT 0    /* disabled */
+#    endif
+#    ifndef BILATERAL_COMBINATIONS_TYPING_STREAK_MODMASK
+#        define BILATERAL_COMBINATIONS_TYPING_STREAK_MODMASK (~0) /* all mods */
+#    endif
+static struct {
+    bool active;
+    keypos_t key;
+    uint8_t code;
+    uint8_t mods;
+    keypos_t chord_keys[BILATERAL_COMBINATIONS_LIMIT_CHORD_TO_N_KEYS];
+    uint8_t chord_taps[BILATERAL_COMBINATIONS_LIMIT_CHORD_TO_N_KEYS];
+    uint8_t chord_mods;
+    uint8_t chord_size;
+    bool left;
+    bool flushed;
+    uint16_t time;
+    deferred_token defermods;
+} bilateral_combinations = { false };
+
+static bool bilateral_combinations_left(keypos_t key) {
+#    ifdef SPLIT_KEYBOARD
+    return key.row < MATRIX_ROWS / 2;
+#    else
+    if (MATRIX_COLS > MATRIX_ROWS) {
+        return key.col < MATRIX_COLS / 2;
+    } else {
+        return key.row < MATRIX_ROWS / 2;
+    }
+#    endif
+}
+
+static void bilateral_combinations_chord_add(keypos_t key, uint8_t mods, uint8_t code) {
+    if (bilateral_combinations.chord_size < BILATERAL_COMBINATIONS_LIMIT_CHORD_TO_N_KEYS) {
+        bilateral_combinations.chord_keys[bilateral_combinations.chord_size] = key;
+        bilateral_combinations.chord_taps[bilateral_combinations.chord_size] = code;
+        bilateral_combinations.chord_size++;
+    }
+    bilateral_combinations.chord_mods |= mods;
+}
+
+static void bilateral_combinations_chord_del(keypos_t key, uint8_t mods, uint8_t code) {
+    bool found = false;
+    for (uint8_t k = 0; k < bilateral_combinations.chord_size; k++) {
+        if (found) {
+            /* shift the later keys in the chord over to the left */
+            bilateral_combinations.chord_keys[k-1] = bilateral_combinations.chord_keys[k];
+            bilateral_combinations.chord_taps[k-1] = bilateral_combinations.chord_taps[k];
+        }
+        else if (KEYEQ(key, bilateral_combinations.chord_keys[k])) {
+            found = true;
+        }
+    }
+    if (found) {
+        bilateral_combinations.chord_size--;
+    }
+    bilateral_combinations.chord_mods &= ~mods;
+}
+
+static void bilateral_combinations_apply_chord_mods(void) {
+    dprint("BILATERAL_COMBINATIONS: apply_chord_mods\n");
+    if (!bilateral_combinations.flushed) {
+        register_mods(bilateral_combinations.chord_mods);
+    }
+}
+
+static void bilateral_combinations_flush_chord_mods(void) {
+    dprint("BILATERAL_COMBINATIONS: flush_chord_mods\n");
+    bilateral_combinations_apply_chord_mods();
+    bilateral_combinations.flushed = true;
+}
+
+static void bilateral_combinations_flush_chord_taps(void) {
+    dprint("BILATERAL_COMBINATIONS: flush_chord_taps\n");
+    if (!bilateral_combinations.flushed) {
+        bilateral_combinations.flushed = true;
+
+        /* cancel mods added by chord keys */
+        clear_mods();
+
+        /* replay chord as individual taps */
+        for (uint8_t k = 0; k < bilateral_combinations.chord_size; k++) {
+            tap_code(bilateral_combinations.chord_taps[k]);
+        }
+    }
+}
+
+static uint32_t bilateral_combinations_defermods_callback(uint32_t trigger_time, void *cb_arg) {
+    dprint("BILATERAL_COMBINATIONS: defermods\n");
+    if (bilateral_combinations.active) {
+        bilateral_combinations_apply_chord_mods();
+        bilateral_combinations.defermods = INVALID_DEFERRED_TOKEN;
+    }
+    return 0;
+}
+
+static void bilateral_combinations_defermods_cancel(void) {
+    if (bilateral_combinations.defermods != INVALID_DEFERRED_TOKEN) {
+        cancel_deferred_exec(bilateral_combinations.defermods);
+        bilateral_combinations.defermods = INVALID_DEFERRED_TOKEN;
+    }
+}
+
+static void bilateral_combinations_defermods_schedule(uint8_t mods) {
+    if (!(mods & BILATERAL_COMBINATIONS_DELAY_MODS_THAT_MATCH)) {
+        register_mods(mods);
+        return;
+    }
+
+    if (bilateral_combinations.defermods != INVALID_DEFERRED_TOKEN) {
+        return; /* piggyback onto already scheduled callback */
+    }
+
+    bilateral_combinations.defermods = defer_exec(BILATERAL_COMBINATIONS_DELAY_MATCHED_MODS_BY, bilateral_combinations_defermods_callback, NULL);
+}
+
+static void bilateral_combinations_hold(action_t action, keyevent_t event, uint8_t mods) {
+    dprint("BILATERAL_COMBINATIONS: hold\n");
+    if (!bilateral_combinations.active) {
+#    if BILATERAL_COMBINATIONS_TYPING_STREAK_TIMEOUT
+        if (TIMER_DIFF_16(event.time, bilateral_combinations.time) < BILATERAL_COMBINATIONS_TYPING_STREAK_TIMEOUT
+            && (mods & BILATERAL_COMBINATIONS_TYPING_STREAK_MODMASK))
+        {
+            tap_code(action.layer_tap.code);
+            return; /* don't activate: we're in the middle of a typing streak! */
+        }
+#    endif
+        bilateral_combinations.active = true;
+        bilateral_combinations.key = event.key;
+        bilateral_combinations.code = action.key.code;
+        bilateral_combinations.mods = mods;
+        bilateral_combinations.chord_mods = 0; /* for chord_add() */
+        bilateral_combinations.chord_size = 0; /* for chord_add() */
+        bilateral_combinations.left = bilateral_combinations_left(event.key);
+        bilateral_combinations.flushed = false;
+    }
+    /* new key being held is on the other side of the keyboard: make it a tap! */
+    else if (bilateral_combinations_left(event.key) != bilateral_combinations.left) {
+        bilateral_combinations_flush_chord_taps();
+        tap_code(action.layer_tap.code);
+        return; /* skip defermods */
+    }
+    bilateral_combinations.time = event.time;
+    bilateral_combinations_chord_add(event.key, mods, action.layer_tap.code);
+    bilateral_combinations_defermods_schedule(mods);
+}
+
+static void bilateral_combinations_release(action_t action, keyevent_t event, uint8_t mods) {
+    dprint("BILATERAL_COMBINATIONS: release\n");
+    if (bilateral_combinations.active) {
+        /* original key: clear out bilateral combinations */
+        if (KEYEQ(event.key, bilateral_combinations.key)) {
+            bilateral_combinations.active = false;
+            bilateral_combinations_defermods_cancel();
+        }
+        /* different key but same modifier: ignore release */
+        else if (mods == bilateral_combinations.mods) {
+            return; /* skip unregister_mods() */
+        }
+
+        bilateral_combinations_chord_del(event.key, mods, action.layer_tap.code);
+    }
+    unregister_mods(mods);
+}
+
+static void bilateral_combinations_tap(keyevent_t event) {
+    dprint("BILATERAL_COMBINATIONS: tap\n");
+    if (bilateral_combinations.active) {
+        uint16_t threshold = 0;
+
+        if (bilateral_combinations_left(event.key) == bilateral_combinations.left) {
+            threshold += BILATERAL_COMBINATIONS_ALLOW_SAMESIDED_AFTER;
+        }
+        else {
+            threshold += BILATERAL_COMBINATIONS_ALLOW_CROSSOVER_AFTER;
+        }
+
+        if (threshold > 0) {
+            if ((bilateral_combinations.chord_mods & BILATERAL_COMBINATIONS_DELAY_MODS_THAT_MATCH)
+                && bilateral_combinations.chord_mods == bilateral_combinations.mods)
+            {
+                threshold = MAX(threshold, BILATERAL_COMBINATIONS_DELAY_MATCHED_MODS_BY);
+            }
+            if (TIMER_DIFF_16(event.time, bilateral_combinations.time) > threshold) {
+                bilateral_combinations_flush_chord_mods();
+                return; /* skip flush_chord_taps() */
+            }
+        }
+
+        bilateral_combinations_flush_chord_taps();
+    }
+#   if BILATERAL_COMBINATIONS_TYPING_STREAK_TIMEOUT
+    else {
+        bilateral_combinations.time = event.time;
+    }
+#   endif
+}
+#endif /* BILATERAL_COMBINATIONS */
+
 /** \brief Take an action and processes it.
  *
  * FIXME: Needs documentation.
@@ -347,6 +567,12 @@ void process_action(keyrecord_t *record, action_t action) {
                     }
                     send_keyboard_report();
                 }
+#ifdef BILATERAL_COMBINATIONS
+                if (!(IS_MOD(action.key.code) || action.key.code == KC_NO)) {
+                    // regular keycode tap during mod-tap hold
+                    bilateral_combinations_tap(event);
+                }
+#endif
                 register_code(action.key.code);
             } else {
                 unregister_code(action.key.code);
@@ -415,13 +641,13 @@ void process_action(keyrecord_t *record, action_t action) {
                                 unregister_mods(mods);
                             } else if (tap_count == 1) {
                                 // Retain Oneshot mods
-if (QS_oneshot_tap_toggle > 1) {
-                                if (mods & get_mods()) {
-                                    clear_oneshot_mods();
-                                    set_oneshot_locked_mods(~mods & get_oneshot_locked_mods());
-                                    unregister_mods(mods);
+                                if (QS_oneshot_tap_toggle > 1) {
+                                    if (mods & get_mods()) {
+                                        clear_oneshot_mods();
+                                        set_oneshot_locked_mods(~mods & get_oneshot_locked_mods());
+                                        unregister_mods(mods);
+                                    }
                                 }
-}
                             } else if (QS_oneshot_tap_toggle > 1 && tap_count == QS_oneshot_tap_toggle) {
                                 // Toggle Oneshot Layer
                             } else {
@@ -459,12 +685,21 @@ if (QS_oneshot_tap_toggle > 1) {
                             } else
 #    endif
                             {
+#    ifdef BILATERAL_COMBINATIONS
+                                // mod-tap tap
+                                bilateral_combinations_tap(event);
+#    endif
                                 dprint("MODS_TAP: Tap: register_code\n");
                                 register_code(action.key.code);
                             }
                         } else {
                             dprint("MODS_TAP: No tap: add_mods\n");
+#    ifdef BILATERAL_COMBINATIONS
+                            // mod-tap hold
+                            bilateral_combinations_hold(action, event, mods);
+#    else
                             register_mods(mods);
+#    endif
                         }
                     } else {
                         if (tap_count > 0) {
@@ -477,7 +712,12 @@ if (QS_oneshot_tap_toggle > 1) {
                             unregister_code(action.key.code);
                         } else {
                             dprint("MODS_TAP: No tap: add_mods\n");
+#    ifdef BILATERAL_COMBINATIONS
+                            // mod-tap release
+                            bilateral_combinations_release(action, event, mods);
+#    else
                             unregister_mods(mods);
+#    endif
                         }
                     }
                     break;
@@ -619,36 +859,36 @@ if (QS_oneshot_tap_toggle > 1) {
                             layer_off(action.layer_tap.val);
                         }
                     } else {
-if (QS_oneshot_tap_toggle > 1) {
-                        do_release_oneshot = false;
-                        if (event.pressed) {
-                            if (get_oneshot_layer_state() == ONESHOT_TOGGLED) {
-                                reset_oneshot_layer();
-                                layer_off(action.layer_tap.val);
-                                break;
-                            } else if (tap_count < QS_oneshot_tap_toggle) {
+                        if (QS_oneshot_tap_toggle > 1) {
+                            do_release_oneshot = false;
+                            if (event.pressed) {
+                                if (get_oneshot_layer_state() == ONESHOT_TOGGLED) {
+                                    reset_oneshot_layer();
+                                    layer_off(action.layer_tap.val);
+                                    break;
+                                } else if (tap_count < QS_oneshot_tap_toggle) {
+                                    layer_on(action.layer_tap.val);
+                                    set_oneshot_layer(action.layer_tap.val, ONESHOT_START);
+                                }
+                            } else {
+                                if (tap_count >= QS_oneshot_tap_toggle) {
+                                    reset_oneshot_layer();
+                                    set_oneshot_layer(action.layer_tap.val, ONESHOT_TOGGLED);
+                                } else {
+                                    clear_oneshot_layer_state(ONESHOT_PRESSED);
+                                }
+                            }
+                        } else {
+                            if (event.pressed) {
                                 layer_on(action.layer_tap.val);
                                 set_oneshot_layer(action.layer_tap.val, ONESHOT_START);
-                            }
-                        } else {
-                            if (tap_count >= QS_oneshot_tap_toggle) {
-                                reset_oneshot_layer();
-                                set_oneshot_layer(action.layer_tap.val, ONESHOT_TOGGLED);
                             } else {
                                 clear_oneshot_layer_state(ONESHOT_PRESSED);
+                                if (tap_count > 1) {
+                                    clear_oneshot_layer_state(ONESHOT_OTHER_KEY_PRESSED);
+                                }
                             }
                         }
-} else {
-                        if (event.pressed) {
-                            layer_on(action.layer_tap.val);
-                            set_oneshot_layer(action.layer_tap.val, ONESHOT_START);
-                        } else {
-                            clear_oneshot_layer_state(ONESHOT_PRESSED);
-                            if (tap_count > 1) {
-                                clear_oneshot_layer_state(ONESHOT_OTHER_KEY_PRESSED);
-                            }
-                        }
-}
                     }
                     break;
 #        endif
@@ -656,6 +896,10 @@ if (QS_oneshot_tap_toggle > 1) {
                     /* tap key */
                     if (event.pressed) {
                         if (tap_count > 0) {
+#        ifdef BILATERAL_COMBINATIONS
+                            // layer-tap tap
+                            bilateral_combinations_tap(event);
+#        endif
                             dprint("KEYMAP_TAP_KEY: Tap: register_code\n");
                             register_code(action.layer_tap.code);
                         } else {
