@@ -18,7 +18,7 @@ jobs:
 
     steps:
     - name: (actions) Checkout Vial repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         persist-credentials: false
 
@@ -34,7 +34,7 @@ jobs:
 
     steps:
     - name: (actions) Checkout Vial repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         persist-credentials: false
         submodules: recursive
@@ -72,7 +72,7 @@ jobs:
 
     steps:
     - name: (actions) Checkout Vial repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         persist-credentials: false
         submodules: recursive
