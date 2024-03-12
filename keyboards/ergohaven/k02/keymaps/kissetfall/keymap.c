@@ -10,41 +10,41 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
          KC_TAB,  KC_Q,  KC_W,    KC_E,    KC_R,    KC_T,                                KC_Y,  KC_U,    KC_I,    KC_O,   KC_P,    KC_GRV,
          KC_LALT, KC_A,  KC_S,    KC_D,    KC_F,    KC_G,                                KC_H,  KC_J,    KC_K,    KC_L,   KC_SCLN, KC_ENT,
          KC_ESC,  KC_Z,  KC_X,    KC_C,    KC_V,    KC_B,                                KC_N,  KC_M,    KC_COMM, KC_DOT, KC_QUOT, KC_MPLY,
-                         KC_VOLD, KC_VOLU, KC_LCTL, LOWER, KC_SPC,              KC_BSPC, RAISE, KC_RSFT, PREVWRD, NEXTWRD 
-                                               
+                         KC_VOLD, KC_VOLU, KC_LCTL, LOWER, KC_SPC,              KC_BSPC, RAISE, KC_RSFT, PREVWRD, NEXTWRD
+
       ),
-    
+
       [_LOWER] = LAYOUT(
-    
+
          _______, _______, _______, _______, _______, _______,                           _______, _______, _______, _______, _______,  _______,
          _______, KC_3,    KC_2,    KC_1,    KC_0,    KC_4,                              KC_7,    KC_6,    KC_5,    KC_9,    KC_8,     _______,
          KC_ENT,  KC_LSFT, APP_S,   KC_DEL,  ALT_TAB, LANG,                              KC_HOME, KC_LEFT, KC_DOWN, KC_UP,   KC_RIGHT, _______,
          _______, SLV_N,   SLV_SX,  APP_C,   SLV_SW,  SLV_H,                             KC_END,  KC_HOME, CTRLDN,  CTRLUP,  KC_END,  _______,
-                           KC_MPRV, KC_MNXT, _______, _______, _______,         _______, ADJUST, _______,  KC_PGDN, KC_PGUP 
-    
+                           KC_MPRV, KC_MNXT, _______, _______, _______,         _______, ADJUST, _______,  KC_PGDN, KC_PGUP
+
       ),
-    
+
          [_RAISE] = LAYOUT(
          _______, _______, _______, KC_AT,   _______, _______,                           _______, _______, KC_CIRC, _______, _______, _______,
          _______, _______, KC_TILD, KC_EQL,  KC_PLUS, _______,                           _______, KC_LPRN, KC_UNDS, KC_RPRN, _______, _______,
          _______, KC_BSLS, KC_DLR,  KC_MINS, KC_HASH, KC_EXLM,                           KC_QUES, KC_LBRC, KC_PERC, KC_RBRC, KC_AMPR, _______,
          _______, _______, KC_ASTR, KC_COLN, KC_SLSH, _______,                           _______, KC_LCBR, KC_PIPE, KC_RCBR, _______, _______,
-                           _______, _______, _______, ADJUST,  _______,         _______, _______, _______, _______, _______ 
+                           _______, _______, _______, ADJUST,  _______,         _______, _______, _______, _______, _______
       ),
-    
+
       [_ADJUST] = LAYOUT(
         QK_BOOT, _______, _______, _______, _______, _______,                            _______, _______, _______, _______, _______, _______,
         _______, _______, _______, _______, DF(0),   DF(4),                              _______, _______, _______, _______, _______, _______,
         _______, _______, _______, _______, _______, _______,                            KC_CAPS, _______, KC_BRID, KC_BRIU, _______, _______,
         _______, _______, _______, _______, _______, _______,                            KC_PSCR, _______, _______, _______, _______, _______,
-                          _______, _______, _______, _______, _______,          _______, _______, _______, _______, _______                            
+                          _______, _______, _______, _______, _______,          _______, _______, _______, _______, _______
        ),
       [_FOUR] = LAYOUT(
         SLV_L,   SLV_M,   SLV_N,   SLV_O,   SLV_P,   SLV_Y,                              _______, _______, _______, _______, _______, _______,
         _______, _______, _______, _______, _______, _______,                            _______, _______, _______, _______, _______, _______,
         _______, _______, _______, _______, _______, _______,                            _______, _______, _______, _______, _______, _______,
         _______, _______, _______, _______, _______, _______,                            _______, _______, _______, _______, _______, _______,
-                          _______, _______, _______, _______, _______,          _______, _______, _______, _______, _______                            
+                          _______, _______, _______, _______, _______,          _______, _______, _______, _______, _______
        )
 };
 
@@ -53,7 +53,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
   if (!is_keyboard_master()) {
     return OLED_ROTATION_180;  // bongocat, ergohaven dark/light
-    // return OLED_ROTATION_270;  // luna 
+    // return OLED_ROTATION_270;  // luna
   }
     else {
     return OLED_ROTATION_270;  // flips the display 180 degrees if offhand
@@ -65,7 +65,7 @@ void render_layer_state(void) {
     // Print current mode
     oled_write_ln_P(PSTR("K:02\n"), false);
     /* oled_write_P(PSTR("\n"), false); */
-    oled_write_ln_P(PSTR("v3.1\n"), false);
+    oled_write_ln_P(PSTR("v3.2\n"), false);
     oled_write_P(PSTR("\n"), false);
     oled_write_ln_P(PSTR("MODE\n"), false);
     if (keymap_config.swap_lctl_lgui) {

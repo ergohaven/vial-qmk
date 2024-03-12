@@ -26,14 +26,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
          _______, _______, KC_ASTR, KC_COLN, KC_SLSH, _______,                                           _______, KC_PIPE, KC_TILD, KC_AMPR, _______,  _______,
                            _______, _______, _______, ADJUST, _______, _______,        _______, _______, _______, _______, _______, _______ \
         ),
-    
+
       [_ADJUST] = LAYOUT(
         QK_BOOT, _______, _______, _______, _______, _______,                                            _______, _______, _______, _______, _______, _______,
         _______, _______, _______, _______, _______, _______,                                            _______, _______, _______, _______, DM_PLY1, DM_REC1,
         _______, _______, _______, _______, _______, _______,                                            _______, KC_VOLD, KC_MUTE, KC_VOLU, DM_PLY2, DM_REC2,
         _______, _______, _______, _______, _______, CG_TOGG,                                            _______, KC_MPRV, KC_MPLY, KC_MNXT, _______, DM_RSTP,
-                          _______, _______, _______, _______, _______, _______,        _______, _______, _______,  _______, _______, _______                  
-                                                                          
+                          _______, _______, _______, _______, _______, _______,        _______, _______, _______,  _______, _______, _______
+
        ),
 };
 
@@ -51,10 +51,10 @@ const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][NUM_DIRECTIONS] = {
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
   if (!is_keyboard_master()) {
     return OLED_ROTATION_270;  // bongocat, ergohaven_dark/light
-    // return OLED_ROTATION_270;  // luna 
+    // return OLED_ROTATION_270;  // luna
      }
     else {
-    return OLED_ROTATION_270;  
+    return OLED_ROTATION_270;
     }
   return rotation;
 }
@@ -63,7 +63,7 @@ void render_layer_state(void) {
     // Print current mode
     oled_write_ln_P(PSTR("K:03\n"), false);
     /* oled_write_P(PSTR("\n"), false); */
-    oled_write_ln_P(PSTR("v3.1\n"), false);
+    oled_write_ln_P(PSTR("v3.2\n"), false);
     oled_write_P(PSTR("\n"), false);
     oled_write_ln_P(PSTR("MODE\n"), false);
     if (keymap_config.swap_lctl_lgui) {
@@ -161,10 +161,10 @@ const rgblight_segment_t PROGMEM my_layer3_layer[] = RGBLIGHT_LAYER_SEGMENTS(
 
 // Now define the array of layers. Later layers take precedence
 const rgblight_segment_t* const PROGMEM my_rgb_layers[] = RGBLIGHT_LAYERS_LIST(
-    my_base_layer,    
-    my_layer1_layer,    
-    my_layer2_layer,    
-    my_layer3_layer     
+    my_base_layer,
+    my_layer1_layer,
+    my_layer2_layer,
+    my_layer3_layer
 );
 
 

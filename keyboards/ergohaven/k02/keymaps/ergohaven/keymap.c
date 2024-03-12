@@ -31,14 +31,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
          _______, _______, KC_ASTR, KC_COLN, KC_SLSH, _______,                          _______, KC_PIPE, KC_TILD, KC_AMPR, _______,  QK_RBT,
                            _______, _______, _______, ADJUST, _______,         _______, _______, _______, _______, _______ \
         ),
-    
+
       [_ADJUST] = LAYOUT(
         _______, _______, _______, _______, _______, _______,                           _______, _______, _______, _______, _______, _______,
         _______, _______, _______, _______, _______, _______,                           _______, _______, _______, _______, DM_PLY1, DM_REC1,
         RGB_TOG, RGB_HUI, RGB_SAI, RGB_VAI, _______, _______,                           _______, KC_VOLD, KC_MUTE, KC_VOLU, DM_PLY2, DM_REC2,
         RGB_MOD, RGB_HUD, RGB_SAD, RGB_VAD, _______, CG_TOGG,                           _______, KC_MPRV, KC_MPLY, KC_MNXT, _______, DM_RSTP,
-                          _______, _______, _______, _______, _______,         _______, _______,  _______, _______, _______                  
-                                                                          
+                          _______, _______, _______, _______, _______,         _______, _______,  _______, _______, _______
+
        ),
 };
 
@@ -47,10 +47,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
   if (!is_keyboard_master()) {
     return OLED_ROTATION_180;  // bongocat, ergohaven_dark/light
-    // return OLED_ROTATION_270;  // luna 
+    // return OLED_ROTATION_270;  // luna
      }
     else {
-    return OLED_ROTATION_270;  
+    return OLED_ROTATION_270;
     }
   return rotation;
 }
@@ -59,7 +59,7 @@ void render_layer_state(void) {
     // Print current mode
     oled_write_ln_P(PSTR("K:02\n"), false);
     /* oled_write_P(PSTR("\n"), false); */
-    oled_write_ln_P(PSTR("v3.1\n"), false);
+    oled_write_ln_P(PSTR("v3.2\n"), false);
     oled_write_P(PSTR("\n"), false);
     oled_write_ln_P(PSTR("MODE\n"), false);
     if (keymap_config.swap_lctl_lgui) {
