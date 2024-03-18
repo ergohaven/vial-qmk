@@ -5,20 +5,25 @@ static uint8_t cur_lang = LANG_EN;
 static uint8_t tg_mode = TG_SFT_ALT;
 
 void set_lang(uint8_t lang) {
-    if (cur_lang != lang) {
-        if (tg_mode == TG_GUI_SPC) {
-            add_oneshot_mods(MOD_BIT_LGUI);
-            tap_code(KC_SPC);
-        } else if (tg_mode == TG_SFT_CTL) {
-            register_mods(MOD_BIT_LSHIFT | MOD_BIT_LCTRL);
-            unregister_mods(MOD_BIT_LSHIFT | MOD_BIT_LCTRL);
-        } else if (tg_mode == TG_SFT_ALT) {
-            register_mods(MOD_BIT_LSHIFT | MOD_BIT_LALT);
-            unregister_mods(MOD_BIT_LSHIFT | MOD_BIT_LALT);
-        }
+    if (cur_lang == lang) return;
 
-        cur_lang = lang;
+    switch (lang) {
+        case TG_MACRO30:
+            dynamic_keymap_macro_send(QK_MACRO_30 - QK_MACRO);
+            break;
+        case TG_MACRO31:
+            dynamic_keymap_macro_send(QK_MACRO_31 - QK_MACRO);
+            break;
+        case TG_SFT_ALT:
+            register_code(KC_LALT);
+            register_code(KC_LSFT);
+            unregister_code(KC_LSFT);
+            unregister_code(KC_LALT);
+        default:
+            break;
     }
+
+    cur_lang = lang;
 }
 
 void lang_toggle(void) {
@@ -97,12 +102,12 @@ bool process_record_lang(uint16_t keycode, keyrecord_t* record) {
             if (record->event.pressed) set_lang(LANG_RU);
             return false;
 
-        case LG_SET_GUI_SPC:
-            tg_mode = TG_GUI_SPC;
+        case LG_SET_M30:
+            tg_mode = TG_MACRO30;
             return false;
 
-        case LG_SET_SFT_CTL:
-            tg_mode = TG_SFT_CTL;
+        case LG_SET_M31:
+            tg_mode = TG_MACRO31;
             return false;
 
         case LG_SET_SFT_ALT:

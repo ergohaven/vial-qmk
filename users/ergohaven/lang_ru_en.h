@@ -6,8 +6,8 @@ enum lang_ru_en_custom_keycodes {
     LG_SYNC,
     LG_SET_EN,
     LG_SET_RU,
-    LG_SET_GUI_SPC,
-    LG_SET_SFT_CTL,
+    LG_SET_M30,
+    LG_SET_M31,
     LG_SET_SFT_ALT,
 
     // symbols exist in russian and english layout
@@ -42,7 +42,7 @@ enum lang_ru_en_custom_keycodes {
 
 enum { LANG_EN = 0, LANG_RU };
 
-enum { TG_GUI_SPC = 0, TG_SFT_CTL, TG_SFT_ALT };
+enum { TG_MACRO30 = 0, TG_MACRO31, TG_SFT_ALT };
 
 bool process_record_lang(uint16_t keycode, keyrecord_t *record);
 

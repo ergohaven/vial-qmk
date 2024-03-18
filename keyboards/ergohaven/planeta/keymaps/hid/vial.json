@@ -53,17 +53,17 @@
         "shortName": "RuEn\nRu"
         },
 
-        {"name": "LG_SET_GUI_SPC",
-        "title": "Set toggle languge to Win+Space",
-        "shortName": "RuEn\nWinSpc"
-        },
-        {"name": "LG_SET_SFT_CTL",
-        "title": "Set toggle languge to Shift+Control",
-        "shortName": "RuEn\nSftCtl"
-        },
         {"name": "LG_SET_SFT_ALT",
         "title": "Set toggle languge to Shift+Alt",
         "shortName": "RuEn\nSftAlt"
+        },
+        {"name": "LG_M20",
+        "title": "Set toggle languge to M20",
+        "shortName": "RuEn\nM31"
+        },
+        {"name": "LG_M21_M22",
+        "title": "Set toggle languge to M21 for english layout and M22 for russian layout",
+        "shortName": "RuEn\nM21_22"
         },
 
         {"name": "LG_DOT",
