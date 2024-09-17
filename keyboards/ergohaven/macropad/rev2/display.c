@@ -5,7 +5,8 @@
 #include "hid.h"
 #include "ergohaven.h"
 
-LV_FONT_DECLARE(ergohaven_symbols)
+LV_FONT_DECLARE(ergohaven_symbols);
+LV_IMG_DECLARE(Infostart);
 
 #define EH_SYMBOL_VOLUME_MUTE "\xEF\x9A\xA9"
 #define EH_SYMBOL_DIVIDE "\xEF\x94\xA9"
@@ -61,12 +62,6 @@ static lv_obj_t *screen_splash;
 static lv_obj_t *screen_hid;
 static lv_obj_t *screen_layout;
 static lv_obj_t *screen_volume;
-
-/* splash screen content */
-static lv_obj_t *label_company;
-static lv_obj_t *label_product;
-static lv_obj_t *label_subproduct;
-static lv_obj_t *label_version;
 
 /* hid screen content */
 static lv_obj_t *label_time;
@@ -169,28 +164,9 @@ void init_screen_splash(void) {
     lv_obj_add_style(screen_splash, &style_screen, 0);
     use_flex_column(screen_splash);
 
-    label_company = lv_label_create(screen_splash);
-    lv_label_set_text(label_company, "Ergohaven");
-    lv_obj_set_style_text_color(label_company, lv_palette_main(LV_PALETTE_TEAL), 0);
-    lv_obj_set_style_pad_top(label_company, 10, 0);
-
-    label_product = lv_label_create(screen_splash);
-    lv_label_set_text(label_product, "M4CR0Pad");
-    lv_obj_set_style_text_font(label_product, &lv_font_montserrat_40, LV_PART_MAIN);
-    lv_obj_set_style_pad_top(label_product, 40, 0);
-    lv_obj_set_style_pad_bottom(label_product, 0, 0);
-
-    label_subproduct = lv_label_create(screen_splash);
-    lv_label_set_long_mode(label_subproduct, LV_LABEL_LONG_WRAP);
-    lv_obj_set_width(label_subproduct, lv_pct(95));
-    lv_obj_set_style_text_align(label_subproduct, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_set_style_pad_top(label_subproduct, 0, 0);
-    lv_label_set_text(label_subproduct, "Next-generation universal macropad");
-    lv_obj_set_style_pad_bottom(label_subproduct, 40, 0);
-
-    label_version = lv_label_create(screen_splash);
-    lv_label_set_text(label_version, "v" EH_VERSION_STR);
-    lv_obj_set_style_text_color(label_version, lv_palette_main(LV_PALETTE_TEAL), 0);
+    lv_obj_t *img = lv_img_create(screen_splash);
+    lv_img_set_src(img, &Infostart);
+    lv_obj_align(img, LV_ALIGN_CENTER, 0, 0);
 }
 
 void init_screen_hid(void) {

@@ -53,6 +53,8 @@
 #define LV_USE_SWITCH 0
 #undef LV_USE_TABLE
 #define LV_USE_TABLE 0
+#undef LV_USE_IMAGE
+#define LV_USE_IMAGE 1
 
 /* disable extra components */
 #undef LV_USE_CHART
