@@ -728,13 +728,13 @@ const char *keycode_to_str(uint16_t keycode) {
     else if (ctrl && alt)
         mod_str = "Ctl Alt\n";
     else if (ctrl)
-        mod_str = "Ctl\n";
+        mod_str = "Ctl ";
     else if (shift)
-        mod_str = "Sft\n";
+        mod_str = "Sft ";
     else if (alt)
-        mod_str = "Alt\n";
+        mod_str = "Alt ";
     else if (gui)
-        mod_str = "Gui\n";
+        mod_str = "Gui ";
     else
         mod_str = "";
     static char buf[32];
