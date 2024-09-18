@@ -149,6 +149,7 @@ void init_screen_layout(void) {
         lv_obj_set_size(obj, 77, 40);
         lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
         lv_obj_add_style(obj, &style_screen, 0);
+        lv_obj_set_style_border_width(obj, 1, 0);
 
         key_labels[i] = lv_label_create(obj);
         lv_obj_center(key_labels[i]);
