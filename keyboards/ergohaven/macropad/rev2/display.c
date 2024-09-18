@@ -81,8 +81,6 @@ static lv_obj_t *label_layer_small;
 static lv_obj_t *arc_volume;
 static lv_obj_t *label_volume_arc;
 
-/* media screen content */
-
 /* public function to be used in keymaps */
 bool is_display_enabled(void) {
     return display_enabled;
@@ -178,6 +176,7 @@ void init_screen_hid(void) {
     screen_hid = lv_obj_create(NULL);
     lv_obj_add_style(screen_hid, &style_screen, 0);
     use_flex_column(screen_hid);
+    lv_obj_set_scrollbar_mode(screen_hid, LV_SCROLLBAR_MODE_OFF);
 
     label_time = lv_label_create(screen_hid);
     lv_label_set_text(label_time, "HH:MM");
@@ -755,6 +754,8 @@ uint16_t get_encoder_keycode(int layer, int encoder, bool clockwise) {
     return keycode;
 }
 
+static int update_layer_index = 0;
+
 void display_process_layer_state(uint8_t layer) {
     if (!display_enabled) return;
 
@@ -766,18 +767,23 @@ void display_process_layer_state(uint8_t layer) {
     sprintf(buf, EH_SYMBOL_LAYER " %s", layer_name);
     lv_label_set_text(label_layer, buf);
 
-    for (int i = 0; i < 15; i++) {
-        uint16_t keycode = KC_TRANSPARENT;
-        if (i < 12)
-            keycode = get_keycode(layer, i / 3 + 1, i % 3);
-        else if (i == 13)
-            keycode = get_keycode(layer, 0, 2);
-        else if (i == 12)
-            keycode = get_encoder_keycode(layer, 0, false);
-        else if (i == 14)
-            keycode = get_encoder_keycode(layer, 0, true);
-        lv_label_set_text(key_labels[i], keycode_to_str(keycode));
-    }
+    update_layer_index = 0;
+}
+
+void update_layer_task(void) {
+    if (update_layer_index >= 15) return;
+    uint8_t  layer   = get_highest_layer(layer_state | default_layer_state);
+    uint16_t keycode = KC_TRANSPARENT;
+    if (update_layer_index < 12)
+        keycode = get_keycode(layer, update_layer_index / 3 + 1, update_layer_index % 3);
+    else if (update_layer_index == 13)
+        keycode = get_keycode(layer, 0, 2);
+    else if (update_layer_index == 12)
+        keycode = get_encoder_keycode(layer, 0, false);
+    else if (update_layer_index == 14)
+        keycode = get_encoder_keycode(layer, 0, true);
+    lv_label_set_text(key_labels[update_layer_index], keycode_to_str(keycode));
+    update_layer_index += 1;
 }
 
 void update_screen_state(void) {
@@ -808,6 +814,8 @@ void update_screen_state(void) {
 
 void display_housekeeping_task(void) {
     if (!display_enabled) return;
+
+    update_layer_task();
 
     struct hid_data_t *hid_data   = get_hid_data();
     bool               hid_active = display_process_hid_data(hid_data);
