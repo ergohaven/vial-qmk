@@ -88,7 +88,14 @@ void set_lang(uint8_t lang) {
         default:
             break;
     }
-    cur_lang = lang;
+    set_cur_lang(lang);
+}
+
+void set_cur_lang(uint8_t lang) {
+    if (cur_lang != lang) {
+        cur_lang = lang;
+        on_change_lang_cb(cur_lang);
+    }
 }
 
 void set_ruen_toggle_mode(uint8_t mode) {
@@ -112,17 +119,11 @@ bool get_ruen_mac_layout(void) {
 }
 
 void lang_toggle(void) {
-    if (cur_lang == LANG_EN)
-        set_lang(LANG_RU);
-    else
-        set_lang(LANG_EN);
+    set_lang((cur_lang == LANG_EN) ? LANG_RU : LANG_EN);
 }
 
 void lang_sync(void) {
-    if (cur_lang == LANG_EN)
-        cur_lang = LANG_RU;
-    else
-        cur_lang = LANG_EN;
+    set_cur_lang((cur_lang == LANG_EN) ? LANG_RU : LANG_EN);
 }
 
 uint8_t get_cur_lang(void) {
@@ -367,4 +368,7 @@ void housekeeping_task_ruen(void) {
             cur_lang = LANG_RU;
         hid_data->layout_changed = false;
     }
+}
+
+__attribute__((weak)) void on_change_lang_cb(uint8_t lang) {
 }

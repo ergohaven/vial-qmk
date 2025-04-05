@@ -76,6 +76,10 @@ void housekeeping_task_ruen(void);
 
 uint8_t get_cur_lang(void);
 
+void set_lang(uint8_t lang);
+
+void set_cur_lang(uint8_t lang);
+
 void set_ruen_toggle_mode(uint8_t mode);
 
 uint8_t get_ruen_toggle_mode(void);
@@ -87,3 +91,5 @@ bool get_ruen_mac_layout(void);
 void kb_settings_ruen_init(void);
 
 void kb_settings_ruen_reset(void);
+
+void on_change_lang_cb(uint8_t lang);
