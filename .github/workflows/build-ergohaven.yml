@@ -39,6 +39,7 @@ jobs:
         qmk compile -kb ergohaven/hpd/rev2 -km v2_ball_enc
         qmk compile -kb ergohaven/hpd/rev2 -km v2_touch_enc
         qmk compile -kb ergohaven/hpd/rev2 -km v2_enc_enc
+        qmk compile -kb ergohaven/hpd/rev2 -km v2_enc_joy
         qmk compile -kb ergohaven/k02 -km v1
         qmk compile -kb ergohaven/remnant -km v1
         qmk compile -kb ergohaven/planeta/rev1 -km v1
