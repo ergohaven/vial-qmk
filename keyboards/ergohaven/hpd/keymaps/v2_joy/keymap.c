@@ -90,7 +90,7 @@ int get_dpi(uint8_t dpi_mode) {
 void via_set_layout_options_kb(uint32_t value) {
     dprintf("via_set_layout_options_kb %lx\n", value);
     vial_config.raw = value;
-    pointing_device_set_cpi(get_dpi(vial_config.dpi_mode));
+    // pointing_device_set_cpi(get_dpi(vial_config.dpi_mode));
     set_scroll_sens(SCROLL_TABLE[vial_config.scroll_mode]);
     set_sniper_sens(SNIPER_TABLE[vial_config.sniper_mode]);
     set_text_sens(TEXT_TABLE[vial_config.text_mode]);
