@@ -67,33 +67,21 @@ typedef union {
         uint8_t text_mode : 3;
         uint8_t scroll_mode : 3;
         uint8_t sniper_mode : 2;
-        uint8_t dpi_mode : 4;
-        uint8_t auto_mouse_layer : 4;
     };
 } vial_config_t;
 
 static vial_config_t vial_config;
 
-const int     DPI_TABLE[15]    = {100, 200, 300, 400, 500, 600, 800, 1000, 1200, 1600, 2000, 2500, 3200, 4000, 5000};
 const int32_t SNIPER_TABLE[15] = {2, 3, 4, 5};
 const int32_t SCROLL_TABLE[15] = {6, 8, 11, 16, 23, 32, 45, 64};
 const int32_t TEXT_TABLE[15]   = {6, 8, 11, 16, 23, 32, 45, 64};
 
-int get_dpi(uint8_t dpi_mode) {
-    if (dpi_mode < ARRAY_SIZE(DPI_TABLE))
-        return DPI_TABLE[dpi_mode];
-    else
-        return DPI_TABLE[0];
-}
-
 void via_set_layout_options_kb(uint32_t value) {
     dprintf("via_set_layout_options_kb %lx\n", value);
     vial_config.raw = value;
-    // pointing_device_set_cpi(get_dpi(vial_config.dpi_mode));
     set_scroll_sens(SCROLL_TABLE[vial_config.scroll_mode]);
     set_sniper_sens(SNIPER_TABLE[vial_config.sniper_mode]);
     set_text_sens(TEXT_TABLE[vial_config.text_mode]);
-    set_automouse(vial_config.auto_mouse_layer);
 }
 
 void keyboard_post_init_user(void) {
