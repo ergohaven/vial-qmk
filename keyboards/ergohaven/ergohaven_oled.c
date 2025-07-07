@@ -132,10 +132,18 @@ void render_status_modern(void) {
 
     oled_set_cursor(0, 8);
     uint8_t mods = get_mods() | get_oneshot_mods();
-    oled_write_P(mods & MOD_MASK_SHIFT ? PSTR("SFT\07\10") : PSTR("SFT\05\06"), false);
-    oled_write_P(mods & MOD_MASK_CTRL ? PSTR("CTL\07\10") : PSTR("CTL\05\06"), false);
-    oled_write_P(mods & MOD_MASK_ALT ? PSTR("ALT\07\10") : PSTR("ALT\05\06"), false);
-    oled_write_P(mods & MOD_MASK_GUI ? PSTR("GUI\07\10") : PSTR("GUI\05\06"), false);
+
+    if (split_get_mac()) {
+        oled_write_P(mods & MOD_MASK_GUI ? PSTR("CMD\07\10") : PSTR("CMD\05\06"), false);
+        oled_write_P(mods & MOD_MASK_SHIFT ? PSTR("SFT\07\10") : PSTR("SFT\05\06"), false);
+        oled_write_P(mods & MOD_MASK_ALT ? PSTR("OPT\07\10") : PSTR("OPT\05\06"), false);
+        oled_write_P(mods & MOD_MASK_CTRL ? PSTR("CTL\07\10") : PSTR("CTL\05\06"), false);
+    } else {
+        oled_write_P(mods & MOD_MASK_SHIFT ? PSTR("SFT\07\10") : PSTR("SFT\05\06"), false);
+        oled_write_P(mods & MOD_MASK_CTRL ? PSTR("CTL\07\10") : PSTR("CTL\05\06"), false);
+        oled_write_P(mods & MOD_MASK_ALT ? PSTR("ALT\07\10") : PSTR("ALT\05\06"), false);
+        oled_write_P(mods & MOD_MASK_GUI ? PSTR("GUI\07\10") : PSTR("GUI\05\06"), false);
+    }
 
     char buf[16];
     int  wpm = get_current_wpm();
