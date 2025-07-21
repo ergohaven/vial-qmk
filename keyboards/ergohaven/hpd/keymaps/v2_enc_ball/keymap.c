@@ -53,11 +53,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 #ifdef ENCODER_MAP_ENABLE
 const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][NUM_DIRECTIONS] = {
-    [0] = {ENCODER_CCW_CW(KC_VOLD, KC_VOLU)},
-    [1] = {ENCODER_CCW_CW(_______, _______)},
-    [2] = {ENCODER_CCW_CW(_______, _______)},
-    [3] = {ENCODER_CCW_CW(_______, _______)},
-    [4] = {ENCODER_CCW_CW(_______, _______)},
+    [0] = {ENCODER_CCW_CW(KC_VOLD, KC_VOLU)}, [1] = {ENCODER_CCW_CW(_______, _______)}, [2] = {ENCODER_CCW_CW(_______, _______)}, [3] = {ENCODER_CCW_CW(_______, _______)}, [4] = {ENCODER_CCW_CW(_______, _______)},
 };
 #endif
 
@@ -68,6 +64,7 @@ typedef union {
         uint8_t scroll_mode : 3;
         uint8_t sniper_mode : 2;
         uint8_t dpi_mode : 4;
+        bool    sticky_pointing_mode : 1;
         bool    invert_scroll : 1;
         bool    acceleration : 1;
     };
@@ -96,6 +93,7 @@ void via_set_layout_options_kb(uint32_t value) {
     set_text_sens(TEXT_TABLE[vial_config.text_mode]);
     set_invert_scroll(vial_config.invert_scroll);
     set_acceleration(vial_config.acceleration);
+    set_sticky_pointing_mode(vial_config.sticky_pointing_mode);
 }
 
 void keyboard_post_init_user(void) {

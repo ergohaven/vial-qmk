@@ -39,6 +39,8 @@ void set_invert_scroll(bool invert);
 
 void set_acceleration(bool acc);
 
+void set_sticky_pointing_mode(bool next_sticky_mode);
+
 void set_orientation(orientation_t orientation);
 
 void set_pointing_mode(pointing_mode_t mode);
