@@ -68,6 +68,7 @@ typedef union {
         uint8_t scroll_mode : 3;
         uint8_t sniper_mode : 2;
         uint8_t dpi_mode : 3;
+        bool    sticky_pointing_mode : 1;
         bool    invert_scroll : 1;
     };
 } vial_config_t;
