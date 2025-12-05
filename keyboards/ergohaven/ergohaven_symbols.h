@@ -23,3 +23,11 @@
 #define EH_SYMBOL_GLOBE "\xEF\x82\xAC"
 #define EH_SYMBOL_LAYER "\xEF\x97\xBD"
 #define EH_SYMBOL_MAC "\xEF\x85\xB9"
+#define CUST_SYMBOL_DISPLAY "\xEE\x85\xA3" //0xe163
+#define CUST_SYMBOL_FIRE "\xEF\x81\xAD" //0xf06d
+#define CUST_SYMBOL_TOGGLEOFF "\xEF\x88\x84" //0xf204
+#define CUST_SYMBOL_TOGGLEON "\xEF\x88\x85" //0xf205
+#define CUST_SYMBOL_CONTROL "\xEE\xAB\xA6" // 0xeae6
+#define CUST_SYMBOL_COMMAND "\xEE\xAB\xA7" // 0xeae7
+#define CUST_SYMBOL_OPTION "\xEE\xAB\xA8" // 0xeae8
+#define CUST_SYMBOL_SHIFT "\xEF\x82\x9B" // 0xf09b

@@ -93,7 +93,7 @@ tags
 *.avi
 *.mp4
 *.mpeg
-*.ttf
+# *.ttf
 *.otf
 
 # Things Travis sees

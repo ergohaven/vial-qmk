@@ -6,6 +6,13 @@
 #include "ergohaven_ruen.h"
 #include "ergohaven_pointing.h"
 
+enum {
+    QK_MACRO_99  = 0x7763,
+    QK_MACRO_100 = 0x7764,
+    QK_MACRO_101 = 0x7765,
+    QK_MACRO_102 = 0x7766
+};
+
 const char *basic_keycode_to_str(uint16_t keycode) {
     static char buf[16];
     switch (keycode) {
@@ -271,7 +278,7 @@ const char *basic_keycode_to_str(uint16_t keycode) {
         case KC_LEFT_ALT:
             return "Alt";
         case KC_LEFT_GUI:
-            return "Gui";
+            return CUST_SYMBOL_COMMAND; //"Gui";
         case KC_RIGHT_CTRL:
             return "Ctrl";
         case KC_RIGHT_SHIFT:
@@ -279,7 +286,7 @@ const char *basic_keycode_to_str(uint16_t keycode) {
         case KC_RIGHT_ALT:
             return "Alt";
         case KC_RIGHT_GUI:
-            return "Gui";
+            return CUST_SYMBOL_COMMAND; // "Gui";
 
         default:
             return "Unkn";
@@ -288,6 +295,20 @@ const char *basic_keycode_to_str(uint16_t keycode) {
 
 const char *special_keycode_to_str(uint16_t keycode) {
     static char buf[32];
+    // remap for mac
+    if (split_get_mac()) {
+        switch (keycode) {
+        case C(KC_Z):
+            return EH_SYMBOL_ROTATE_LEFT "\n" CUST_SYMBOL_COMMAND "+Z";
+        case C(KC_X):
+            return LV_SYMBOL_CUT "\n" CUST_SYMBOL_COMMAND "+X";
+        case C(KC_C):
+            return LV_SYMBOL_COPY "\n" CUST_SYMBOL_COMMAND "+C";
+        case C(KC_V):
+            return LV_SYMBOL_PASTE "\n" CUST_SYMBOL_COMMAND "+V";
+        };
+    }
+
     switch (keycode) {
         case KC_TILD:
             return "~";
@@ -367,7 +388,16 @@ const char *special_keycode_to_str(uint16_t keycode) {
             return buf;
         }
 
-        case QK_MACRO ... QK_MACRO_MAX:
+
+        case QK_MACRO_100:
+            return CUST_SYMBOL_TOGGLEON " " CUST_SYMBOL_TOGGLEOFF;
+        case QK_MACRO_101:
+            return CUST_SYMBOL_TOGGLEOFF " " CUST_SYMBOL_TOGGLEON;
+        case QK_MACRO_102:
+            return CUST_SYMBOL_TOGGLEOFF " " CUST_SYMBOL_TOGGLEOFF;
+
+        // Чтобы можно было назначить иконки выше на диапазон от 100 до 108
+        case QK_MACRO ... QK_MACRO_99: //QK_MACRO_MAX:
             sprintf(buf, "M%d", keycode - QK_MACRO);
             return buf;
         case QK_TAP_DANCE ... QK_TAP_DANCE_MAX:
@@ -411,7 +441,7 @@ const char *special_keycode_to_str(uint16_t keycode) {
         case EH_USR2:
             return "Mode\nUser 2";
         case EH_USR3:
-            return "Mode\nUser 3";
+            return CUST_SYMBOL_DISPLAY; //return "Mode\nUser 3";
 
         case LG_TOGGLE:
             return "RuEn\nToggle";
@@ -517,38 +547,77 @@ const char *keycode_to_str(uint16_t keycode) {
     bool        alt               = mods & MOD_MASK_ALT;
     bool        gui               = mods & MOD_MASK_GUI;
     char       *mod_str;
-    if (ctrl && shift && alt && gui)
-        mod_str = "CSAG\n";
-    else if (shift && alt && gui)
-        mod_str = "SAG\n";
-    else if (ctrl && alt && gui)
-        mod_str = "CAG\n";
-    else if (ctrl && shift && gui)
-        mod_str = "CSG\n";
-    else if (ctrl && shift && alt)
-        mod_str = "CSA\n";
-    else if (alt && gui)
-        mod_str = "Alt Gui\n";
-    else if (shift && gui)
-        mod_str = "Sft Gui\n";
-    else if (shift && alt)
-        mod_str = "Sft Alt\n";
-    else if (ctrl && gui)
-        mod_str = "Ctl Gui\n";
-    else if (ctrl && shift)
-        mod_str = "Ctl Sft\n";
-    else if (ctrl && alt)
-        mod_str = "Ctl Alt\n";
-    else if (ctrl)
-        mod_str = "Ctl\n";
-    else if (shift)
-        mod_str = "Sft\n";
-    else if (alt)
-        mod_str = "Alt\n";
-    else if (gui)
-        mod_str = "Gui\n";
-    else
-        mod_str = "";
+
+    if (split_get_mac()) {
+
+        if (ctrl && shift && alt && gui)
+            mod_str = "CSAG\n";
+        else if (shift && alt && gui)
+            mod_str = CUST_SYMBOL_SHIFT CUST_SYMBOL_OPTION CUST_SYMBOL_COMMAND "\n";
+        else if (ctrl && alt && gui)
+            mod_str = CUST_SYMBOL_CONTROL CUST_SYMBOL_OPTION CUST_SYMBOL_COMMAND "\n";
+        else if (ctrl && shift && gui)
+            mod_str = CUST_SYMBOL_CONTROL CUST_SYMBOL_SHIFT CUST_SYMBOL_COMMAND "\n";
+        else if (ctrl && shift && alt)
+            mod_str = CUST_SYMBOL_CONTROL CUST_SYMBOL_SHIFT CUST_SYMBOL_OPTION "\n";
+        else if (alt && gui)
+            mod_str = CUST_SYMBOL_OPTION CUST_SYMBOL_COMMAND  "\n";
+        else if (shift && gui)
+            mod_str = CUST_SYMBOL_SHIFT CUST_SYMBOL_COMMAND  "\n";
+        else if (shift && alt)
+            mod_str = CUST_SYMBOL_SHIFT CUST_SYMBOL_OPTION "\n" ;
+        else if (ctrl && gui)
+            mod_str = CUST_SYMBOL_CONTROL CUST_SYMBOL_COMMAND "\n";
+        else if (ctrl && shift)
+            mod_str = CUST_SYMBOL_SHIFT CUST_SYMBOL_CONTROL  "\n";
+        else if (ctrl && alt)
+            mod_str = CUST_SYMBOL_CONTROL CUST_SYMBOL_OPTION "\n";
+        else if (ctrl)
+            mod_str = CUST_SYMBOL_CONTROL "\n";
+        else if (shift)
+            mod_str = CUST_SYMBOL_SHIFT "\n";
+        else if (alt)
+            mod_str = CUST_SYMBOL_OPTION "\n";
+        else if (gui)
+            mod_str = CUST_SYMBOL_COMMAND "\n";
+        else
+            mod_str = "";
+
+    } else {
+        if (ctrl && shift && alt && gui)
+            mod_str = "CSAG\n";
+        else if (shift && alt && gui)
+            mod_str = "SAG\n";
+        else if (ctrl && alt && gui)
+            mod_str = "CAG\n";
+        else if (ctrl && shift && gui)
+            mod_str = "CSG\n";
+        else if (ctrl && shift && alt)
+            mod_str = "CSA\n";
+        else if (alt && gui)
+            mod_str = "Alt Gui\n";
+        else if (shift && gui)
+            mod_str = "Sft Gui\n";
+        else if (shift && alt)
+            mod_str = "Sft Alt\n";
+        else if (ctrl && gui)
+            mod_str = "Ctl Gui\n";
+        else if (ctrl && shift)
+            mod_str = "Ctl Sft\n";
+        else if (ctrl && alt)
+            mod_str = "Ctl Alt\n";
+        else if (ctrl)
+            mod_str = "Ctl\n";
+        else if (shift)
+            mod_str = "Sft\n";
+        else if (alt)
+            mod_str = "Alt\n";
+        else if (gui)
+            mod_str = "Gui\n";
+        else
+            mod_str = "";
+    }
+
     static char buf[32];
     sprintf(buf, "%s%s", mod_str, basic_keycode_str);
     return buf;
