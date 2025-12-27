@@ -11,8 +11,39 @@ jobs:
   build-ergohaven:
     name: Build Ergohaven keymaps
     runs-on: ubuntu-latest
-    # fixme: delete sha256 when upstream works
-    container: ghcr.io/qmk/qmk_cli:latest@sha256:cd048bb28902adbde8c950b65ede93d058b398b380c6d28556c5f104b35f8840
+    container: ghcr.io/qmk/qmk_cli:latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { kb: ergohaven/k03/rev1, km: v1_v2}
+          - { kb: ergohaven/k03/rev3, km: v3}
+          - { kb: ergohaven/imperial44/rev1, km: v1_v2}
+          - { kb: ergohaven/imperial44/rev3, km: v3}
+          - { kb: ergohaven/velvet/rev1, km: v1}
+          - { kb: ergohaven/velvet/rev2, km: v2}
+          - { kb: ergohaven/velvet/rev3, km: v3}
+          - { kb: ergohaven/hpd/rev1, km: v1}
+          - { kb: ergohaven/hpd/rev2, km: v2}
+          - { kb: ergohaven/hpd/rev2, km: v2_enc_ball}
+          - { kb: ergohaven/hpd/rev2, km: v2_enc_touch}
+          - { kb: ergohaven/hpd/rev2, km: v2_ball_enc}
+          - { kb: ergohaven/hpd/rev2, km: v2_touch_enc}
+          - { kb: ergohaven/hpd/rev2, km: v2_enc_enc}
+          - { kb: ergohaven/hpd/rev2, km: v2_enc_joy}
+          - { kb: ergohaven/k02, km: v1}
+          - { kb: ergohaven/remnant, km: v1}
+          - { kb: ergohaven/planeta/rev1, km: v1}
+          - { kb: ergohaven/planeta, km: v2}
+          - { kb: ergohaven/macropad/rev1, km: v1}
+          - { kb: ergohaven/macropad/rev2, km: v2}
+          - { kb: ergohaven/macropad/rev2, km: v2_ccw}
+          - { kb: ergohaven/trackball, km: v1}
+          - { kb: ergohaven/trackball, km: v2}
+          - { kb: ergohaven/k03pro/rev1/43mm, km: v1}
+          - { kb: ergohaven/k03pro/rev1/65mm, km: v1}
+          - { kb: ergohaven/k03pro/rev2, km: v2}
 
     steps:
     - name: (actions) Checkout Vial repo
@@ -20,6 +51,16 @@ jobs:
       with:
         persist-credentials: false
         submodules: recursive
+
+    - name: Prepare variables
+      shell: bash
+      env:
+          kb: ${{ matrix.kb }}
+          km: ${{ matrix.km }}
+      run: |
+          set -x
+          OUTPUT="${kb//\//_}_${km}"
+          echo "OUTPUT=${OUTPUT}" >> $GITHUB_ENV
 
     - name: Build
       id: build
@@ -39,7 +80,6 @@ jobs:
         qmk compile -kb ergohaven/hpd/rev2 -km v2_ball_enc
         qmk compile -kb ergohaven/hpd/rev2 -km v2_touch_enc
         qmk compile -kb ergohaven/hpd/rev2 -km v2_enc_enc
-        qmk compile -kb ergohaven/hpd/rev2 -km v2_enc_joy
         qmk compile -kb ergohaven/k02 -km v1
         qmk compile -kb ergohaven/remnant -km v1
         qmk compile -kb ergohaven/planeta/rev1 -km v1
@@ -58,4 +98,16 @@ jobs:
       id: upload
       with:
         path: "*.uf2"
-        name: ergohaven_fw
+        name: ${{ env.OUTPUT }}
+
+  merge:
+    runs-on: ubuntu-latest
+    needs: build-ergohaven
+    name: Merge Output Artifacts
+    steps:
+      - name: Merge Artifacts
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: ergohaven_fw
+          pattern: ergohaven_*
+          delete-merged: true

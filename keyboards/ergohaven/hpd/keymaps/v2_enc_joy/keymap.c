@@ -2,15 +2,33 @@
 #include "ergohaven.h"
 #include "ergohaven_pointing.h"
 
+#undef LAYOUT
+#define LAYOUT(k0A, k0B, k0C, k0D, k0E, k0F, k6F, k6E, k6D, k6C, k6B, k6A, k1A, k1B, k1C, k1D, k1E, k1F, k7F, k7E, k7D, k7C, k7B, k7A, k2A, k2B, k2C, k2D, k2E, k2F, k8F, k8E, k8D, k8C, k8B, k8A, k3A, k3B, k3C, k3D, k3E, k3F, k9F, k9E, k9D, k9C, k9B, k9A, k4C, k4D, k4E, k4F, k4A, k4B, kAB, kAA, kAF, kAE, kAD, kAC, k5G, kBA, kBB, kBG, kBC, kBD) { \
+	 {k0A, k0B, k0C, k0D, k0E, k0F, KC_NO}, \
+	 {k1A, k1B, k1C, k1D, k1E, k1F, KC_NO}, \
+	 {k2A, k2B, k2C, k2D, k2E, k2F, KC_NO}, \
+	 {k3A, k3B, k3C, k3D, k3E, k3F, KC_NO}, \
+	 {k4A, k4B, k4C, k4D, k4E, k4F, KC_NO}, \
+	 {KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, k5G}, \
+	 {k6A, k6B, k6C, k6D, k6E, k6F, KC_NO}, \
+	 {k7A, k7B, k7C, k7D, k7E, k7F, KC_NO}, \
+	 {k8A, k8B, k8C, k8D, k8E, k8F, KC_NO}, \
+	 {k9A, k9B, k9C, k9D, k9E, k9F, KC_NO}, \
+	 {kAA, kAB, kAC, kAD, kAE, kAF, KC_NO}, \
+	 {kBA, kBB, kBC, kBD, KC_NO, KC_NO, kBG} \
+}
+
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_BASE] = LAYOUT(
-        KC_GRV,   KC_1,   KC_2,    KC_3,     KC_4,     KC_5,                                              KC_6,  KC_7,     KC_8,     KC_9,   KC_0,    KC_BSPC,
-        KC_ESC,   KC_Q,   KC_W,    KC_E,     KC_R,     KC_T,                                              KC_Y,  KC_U,     KC_I,     KC_O,   KC_P,    KC_BSLS,
-        KC_TAB,   KC_A,   KC_S,    KC_D,     KC_F,     KC_G,                                              KC_H,  KC_J,     KC_K,     KC_L,   KC_SCLN, KC_QUOT,
-        KC_LSFT,  KC_Z,   KC_X,    KC_C,     KC_V,     KC_B,                                              KC_N,  KC_M,     KC_COMM,  KC_DOT, KC_SLSH, KC_RSFT,
+        KC_GRV,  KC_1,    KC_2,    KC_3,     KC_4,     KC_5,                                              KC_6,  KC_7,     KC_8,     KC_9,   KC_0,    KC_BSPC,
+        KC_ESC,  KC_Q,    KC_W,    KC_E,     KC_R,     KC_T,                                              KC_Y,  KC_U,     KC_I,     KC_O,   KC_P,    KC_BSLS,
+        KC_TAB,  KC_A,    KC_S,    KC_D,     KC_F,     KC_G,                                              KC_H,  KC_J,     KC_K,     KC_L,   KC_SCLN, KC_QUOT,
+        KC_LSFT, KC_Z,    KC_X,    KC_C,     KC_V,     KC_B,                                              KC_N,  KC_M,     KC_COMM,  KC_DOT, KC_SLSH, KC_RSFT,
                           KC_PGDN, KC_PGUP,  KC_LCTL,  LOWER, KC_LALT, KC_SPACE,         KC_ENT, KC_RGUI, RAISE, KC_RCTL,  KC_LBRC,  KC_RBRC,
-                                                                       KC_MUTE,          MS_BTN1
+                                                                       KC_MUTE,          XXXXXXX,
+                                                                                XXXXXXX, MS_BTN1, XXXXXXX,
+                                                                                         XXXXXXX
     ),
 
     [_LOWER] = LAYOUT(
@@ -19,7 +37,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         _______, _______, KC_LEFT, KC_DOWN, KC_RIGHT, KC_ENT,                                             _______, KC_4,    KC_5,    KC_6,   _______, _______,
         _______, _______, PREVWRD, KC_CAPS, NEXTWRD,  KC_DEL,                                             KC_PSCR, KC_1,    KC_2,    KC_3,   _______, _______,
                           _______, _______, _______, _______, _______, _______,         _______, _______, ADJUST, _______, KC_0, _______,
-                                                                       _______,         _______
+                                                                       KC_MUTE,          KC_UP,
+                                                                                KC_LEFT, KC_ENT, KC_RIGHT,
+                                                                                         KC_DOWN
     ),
 
     [_RAISE] = LAYOUT(
@@ -27,8 +47,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         _______, _______, KC_LT,   KC_EQL,  KC_GT,   KC_GRV,                                              _______, KC_LBRC, KC_UNDS, KC_RBRC, _______,  _______,
         _______, KC_BSLS, KC_LPRN, KC_MINS, KC_RPRN, KC_PLUS,                                             KC_PERC, KC_LCBR, KC_SCLN, KC_RCBR, KC_EXLM,  _______,
         _______, _______, KC_ASTR, KC_COLN, KC_SLSH, _______,                                             _______, KC_PIPE, KC_TILD, KC_AMPR, _______,  _______,
-                          _______, _______, _______, ADJUST, _______, _______,         _______, _______, _______, _______, _______, _______,
-                                                                      _______,         _______
+                          _______, _______, _______, ADJUST, _______, _______,          _______, _______, _______, _______, _______, _______,
+                                                                       KC_MUTE,         _______,
+                                                                               _______, _______, _______,
+                                                                                        _______
     ),
 
     [_ADJUST] = LAYOUT(
@@ -37,7 +59,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         _______, _______, _______, _______, _______, _______,                                              _______, KC_VOLD, KC_MUTE, KC_VOLU, DM_PLY2, DM_REC2,
         _______, _______, _______, _______, _______, _______,                                              _______, KC_MPRV, KC_MPLY, KC_MNXT, _______, DM_RSTP,
                           _______, _______, _______, _______, _______, _______,          _______, _______, _______, _______, _______, _______,
-                                                                       _______,          _______
+                                                                       KC_MUTE,          _______,
+                                                                                _______, _______, _______,
+                                                                                         _______
     ),
 
     [_FOUR] = LAYOUT(
@@ -46,7 +70,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         _______, EH_SCR,  KC_BTN3, KC_BTN2, KC_BTN1, EH_SNP,                                               _______, _______, _______, _______, _______, _______,
         _______, _______, _______, _______, _______, EH_TXT,                                               _______, _______, _______, _______, _______, _______,
                           _______, _______, _______, _______, _______, _______,          _______, _______, _______, _______, _______, _______,
-                                                                       _______,          _______
+                                                                       KC_MUTE,          XXXXXXX,
+                                                                                XXXXXXX, MS_BTN1, XXXXXXX,
+                                                                                         XXXXXXX
     ),
 };
 // clang-format on
@@ -74,7 +100,7 @@ static vial_config_t vial_config;
 
 const int32_t SNIPER_TABLE[15] = {2, 3, 4, 5};
 const int32_t SCROLL_TABLE[15] = {6, 8, 11, 16, 23, 32, 45, 64};
-const int32_t TEXT_TABLE[15]   = {6, 8, 11, 16, 23, 32, 45, 64};
+const int32_t TEXT_TABLE[15]   = {32, 45, 64, 90, 128, 180, 250, 360};
 
 void via_set_layout_options_kb(uint32_t value) {
     dprintf("via_set_layout_options_kb %lx\n", value);

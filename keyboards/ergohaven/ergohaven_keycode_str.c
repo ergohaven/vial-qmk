@@ -3,6 +3,8 @@
 #include "keycodes.h"
 #include "ergohaven.h"
 #include "ergohaven_symbols.h"
+#include "ergohaven_ruen.h"
+#include "ergohaven_pointing.h"
 
 const char *basic_keycode_to_str(uint16_t keycode) {
     static char buf[16];
@@ -331,11 +333,20 @@ const char *special_keycode_to_str(uint16_t keycode) {
             return "?";
         case QK_BOOT:
             return LV_SYMBOL_KEYBOARD "Rst";
+        case QK_LAYER_LOCK:
+            return EH_SYMBOL_LAYER "Lock";
+        case QK_TRI_LAYER_LOWER:
+            return EH_SYMBOL_LAYER "Tri\nLower";
+        case QK_TRI_LAYER_UPPER:
+            return EH_SYMBOL_LAYER "Tri\nUpper";
         case QK_TO ... QK_TO_MAX:
             sprintf(buf, "TO\n" EH_SYMBOL_LAYER "%d", keycode - QK_TO);
             return buf;
         case QK_MOMENTARY ... QK_MOMENTARY_MAX:
             sprintf(buf, "MO\n" EH_SYMBOL_LAYER "%d", keycode - QK_MOMENTARY);
+            return buf;
+        case QK_PERSISTENT_DEF_LAYER ... QK_PERSISTENT_DEF_LAYER_MAX:
+            sprintf(buf, "PDF\n" EH_SYMBOL_LAYER "%d", keycode - QK_PERSISTENT_DEF_LAYER);
             return buf;
         case QK_DEF_LAYER ... QK_DEF_LAYER_MAX:
             sprintf(buf, "DF\n" EH_SYMBOL_LAYER "%d", keycode - QK_DEF_LAYER);
@@ -355,20 +366,14 @@ const char *special_keycode_to_str(uint16_t keycode) {
             sprintf(buf, EH_SYMBOL_LAYER "%d\n%s", layer, basic_keycode_to_str(kc));
             return buf;
         }
-        case WPREV:
-            return "Win\n" EH_SYMBOL_ANGLES_LEFT;
-        case WNEXT:
-            return "Win\n" EH_SYMBOL_ANGLES_RIGHT;
-        case LAYER_NEXT:
-            return EH_SYMBOL_LAYER EH_SYMBOL_ANGLES_RIGHT;
-        case LAYER_PREV:
-            return EH_SYMBOL_LAYER EH_SYMBOL_ANGLES_LEFT;
+
         case QK_MACRO ... QK_MACRO_MAX:
             sprintf(buf, "M%d", keycode - QK_MACRO);
             return buf;
         case QK_TAP_DANCE ... QK_TAP_DANCE_MAX:
             sprintf(buf, "TD%d", keycode - QK_TAP_DANCE);
             return buf;
+
         case C(KC_Z):
             return EH_SYMBOL_ROTATE_LEFT "\nCtl Z";
         case C(KC_X):
@@ -377,6 +382,124 @@ const char *special_keycode_to_str(uint16_t keycode) {
             return LV_SYMBOL_COPY "\nCtl C";
         case C(KC_V):
             return LV_SYMBOL_PASTE "\nCtl V";
+
+        case EH_PRINFO:
+            return "Print\nInfo";
+        case WRD_PRV:
+            return "Word\n" EH_SYMBOL_ANGLES_LEFT;
+        case WRD_NXT:
+            return "Word\n" EH_SYMBOL_ANGLES_RIGHT;
+        case WPREV:
+            return "Win\n" EH_SYMBOL_ANGLES_LEFT;
+        case WNEXT:
+            return "Win\n" EH_SYMBOL_ANGLES_RIGHT;
+        case LAYER_NEXT:
+            return EH_SYMBOL_LAYER EH_SYMBOL_ANGLES_RIGHT;
+        case LAYER_PREV:
+            return EH_SYMBOL_LAYER EH_SYMBOL_ANGLES_LEFT;
+
+        case EH_LED_BL:
+            return "Tg Led\nBlinks";
+        case EH_SNP:
+            return "Sniper\nMode";
+        case EH_SCR:
+            return "Scroll\nMode";
+        case EH_TXT:
+            return "Text\nMode";
+        case EH_USR1:
+            return "Mode\nUser 1";
+        case EH_USR2:
+            return "Mode\nUser 2";
+        case EH_USR3:
+            return "Mode\nUser 3";
+
+        case LG_TOGGLE:
+            return "RuEn\nToggle";
+        case LG_SYNC:
+            return "RuEn\nSync";
+        case LG_SET_EN:
+            return "RuEn\nEn";
+        case LG_SET_RU:
+            return "RuEn\nRu";
+        case LG_SET_M0:
+            return "RuEn\nM0";
+        case LG_SET_M1M2:
+            return "RuEn\nM1M2";
+        case LG_SET_DFLT:
+            return "RuEn\nDflt";
+        case LG_DOT:
+            return "RuEn\n.";
+        case LG_COMMA:
+            return "RuEn\n,";
+        case LG_SCLN:
+            return "RuEn\n;";
+        case LG_COLON:
+            return "RuEn\n:";
+        case LG_DQUO:
+            return "RuEn\n\"";
+        case LG_QUES:
+            return "RuEn\n?";
+        case LG_SLASH:
+            return "RuEn\n/";
+        case LG_LBR:
+            return "RuEn\n[";
+        case LG_RBR:
+            return "RuEn\n]";
+        case LG_LCBR:
+            return "RuEn\n{";
+        case LG_RCBR:
+            return "RuEn\n}";
+        case LG_LT:
+            return "RuEn\n<";
+        case LG_GT:
+            return "RuEn\n>";
+        case LG_GRAVE:
+            return "RuEn\n`";
+        case LG_TILD:
+            return "RuEn\n~";
+        case LG_AT:
+            return "RuEn\n@";
+        case LG_HASH:
+            return "RuEn\n#";
+        case LG_DLR:
+            return "RuEn\n$";
+        case LG_CIRC:
+            return "RuEn\n^";
+        case LG_AMPR:
+            return "RuEn\n&";
+        case LG_PIPE:
+            return "RuEn\n|";
+        case LG_QUOTE:
+            return "RuEn\n'";
+        case LG_NUM:
+            return "RuEn\n№";
+        case LG_WORD:
+            return "RuEn\nword";
+        case LG_MOD:
+            return "RuEn\nMod";
+        case LG_STORE:
+            return "RuEn\nStore";
+        case LG_REVERT:
+            return "RuEn\nRevert";
+        case LG_PERC:
+            return "RuEn\n%";
+        case LG_TG_MAC:
+            return "RuEn\nMac Tg";
+        case LG_RU_BE:
+            return "RuEn\nБ";
+        case LG_RU_YU:
+            return "RuEn\nЮ";
+        case LG_RU_ZHE:
+            return "RuEn\nЖ";
+        case LG_RU_E:
+            return "RuEn\nЭ";
+        case LG_RU_KHA:
+            return "RuEn\nХ";
+        case LG_RU_HRD_SGN:
+            return "RuEn\nЪ";
+        case LG_RU_YO:
+            return "RuEn\nЁ";
+
         default:
             return "";
     }

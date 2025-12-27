@@ -37,6 +37,8 @@ void set_automouse(uint8_t layer);
 
 void set_invert_scroll(bool invert);
 
+void set_acceleration(bool acc);
+
 void set_orientation(orientation_t orientation);
 
 void set_pointing_mode(pointing_mode_t mode);

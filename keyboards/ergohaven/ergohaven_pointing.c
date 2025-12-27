@@ -30,6 +30,12 @@ void set_orientation(orientation_t o) {
     orientation = o;
 }
 
+static bool acceleration = false;
+
+void set_acceleration(bool acc) {
+    acceleration = acc;
+}
+
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
 
 void set_automouse(uint8_t layer) {
@@ -264,12 +270,40 @@ report_mouse_t pointing_device_task_user(report_mouse_t mrpt) {
             break;
     }
 
-    int32_t divisor = sens[MIN(pmode, POINTING_MODE_TEXT)];
+    if (acceleration)
+    {
+        mouse_xy_report_t x = mrpt.x;
+        mouse_xy_report_t y = mrpt.y;
+
+        mrpt.x = (mouse_xy_report_t)(x > 0 ? x * x / 16 + x : -x * x / 16 + x);
+        mrpt.y = (mouse_xy_report_t)(y > 0 ? y * y / 16 + y : -y * y / 16 + y);
+    }
 
     static int32_t accumulated_h = 0;
     static int32_t accumulated_v = 0;
 
+    static uint16_t kc_up    = KC_UP;
+    static uint16_t kc_down  = KC_DOWN;
+    static uint16_t kc_left  = KC_LEFT;
+    static uint16_t kc_right = KC_RIGHT;
+#ifdef EH_HPD_LAYERS
+    static uint8_t cur_layer = 255;
+    uint8_t        layer     = get_current_layer();
+    if (cur_layer != layer) {
+        kc_up     = dynamic_keymap_get_keycode(layer, 11, 0);
+        kc_left   = dynamic_keymap_get_keycode(layer, 11, 1);
+        kc_right  = dynamic_keymap_get_keycode(layer, 11, 2);
+        kc_down   = dynamic_keymap_get_keycode(layer, 11, 3);
+        cur_layer = layer;
+    }
+    if (kc_up != kc_down || kc_up != kc_left || kc_up != kc_right || kc_up != KC_NO) {
+        pmode = POINTING_MODE_TEXT;
+    }
+#endif
+
     if (pmode != POINTING_MODE_NORMAL) {
+        int32_t divisor = sens[MIN(pmode, POINTING_MODE_TEXT)];
+
         accumulated_h += mrpt.x;
         accumulated_v += mrpt.y;
 
@@ -307,16 +341,12 @@ report_mouse_t pointing_device_task_user(report_mouse_t mrpt) {
             case POINTING_MODE_USR2:
             case POINTING_MODE_USR3: {
 #ifdef EH_TRACKBALL_LAYERS
-                uint8_t  layer    = pmode - POINTING_MODE_TEXT;
-                uint16_t kc_up    = dynamic_keymap_get_keycode(layer, 0, 0);
-                uint16_t kc_down  = dynamic_keymap_get_keycode(layer, 0, 1);
-                uint16_t kc_left  = dynamic_keymap_get_keycode(layer, 1, 0);
-                uint16_t kc_right = dynamic_keymap_get_keycode(layer, 1, 1);
-#else
-                uint16_t kc_up    = KC_UP;
-                uint16_t kc_down  = KC_DOWN;
-                uint16_t kc_left  = KC_LEFT;
-                uint16_t kc_right = KC_RIGHT;
+                uint8_t layer = pmode - POINTING_MODE_TEXT;
+
+                kc_up    = dynamic_keymap_get_keycode(layer, 0, 0);
+                kc_down  = dynamic_keymap_get_keycode(layer, 0, 1);
+                kc_left  = dynamic_keymap_get_keycode(layer, 1, 0);
+                kc_right = dynamic_keymap_get_keycode(layer, 1, 1);
 #endif
                 if (abs(shift_x) > abs(shift_y)) {
                     shift_y       = 0;

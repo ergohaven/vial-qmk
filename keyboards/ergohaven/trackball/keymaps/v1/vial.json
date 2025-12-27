@@ -5,6 +5,8 @@
     },
     "layouts": {
         "labels": [
+            "Acceleration",
+            "Invert scroll",
             [ "Mode", "NumLock - Scroll, ScrollLock - Sniper", "NumLock - Sniper, ScrollLock - Scroll", "NumLock - Text, ScrollLock - Scroll", "Led blinks" ],
             [ "Orientation", "0°", "90°", "180°", "270°" ],
             [ "DPI", "400", "500", "630", "800", "1000", "1250", "1600", "2000", "2500", "3200", "4000", "5000", "6300", "8000", "8200 (max)" ],

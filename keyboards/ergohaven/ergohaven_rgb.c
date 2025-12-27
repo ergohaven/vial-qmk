@@ -32,7 +32,7 @@ void keyboard_post_init_rgb(void) {
 }
 
 void layer_state_set_rgb(layer_state_t state) {
-    for (int layer = 0; layer <= _FIFTEEN; ++layer)
+    for (int layer = 1; layer <= _FIFTEEN; ++layer)
         rgblight_set_layer_state(layer, layer_state_cmp(state, layer));
 }
 

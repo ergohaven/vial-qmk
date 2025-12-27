@@ -68,6 +68,7 @@ typedef union {
         uint8_t scroll_mode : 3;
         uint8_t sniper_mode : 2;
         uint8_t dpi_mode : 4;
+        bool    invert_scroll : 1;
     };
 } vial_config_t;
 
@@ -92,6 +93,7 @@ void via_set_layout_options_kb(uint32_t value) {
     set_scroll_sens(SCROLL_TABLE[vial_config.scroll_mode]);
     set_sniper_sens(SNIPER_TABLE[vial_config.sniper_mode]);
     set_text_sens(TEXT_TABLE[vial_config.text_mode]);
+    set_invert_scroll(vial_config.invert_scroll);
 }
 
 void keyboard_post_init_user(void) {

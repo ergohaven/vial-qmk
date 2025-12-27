@@ -1059,3 +1059,20 @@ def keymap_json(keyboard, keymap, force_layout=None):
     _extract_config_h(kb_info_json, parse_config_h_file(keymap_config))
 
     return kb_info_json
+
+
+def get_modules(keyboard, keymap_filename):
+    """Get the modules for a keyboard/keymap.
+    """
+    modules = []
+
+    kb_info_json = info_json(keyboard)
+    modules.extend(kb_info_json.get('modules', []))
+
+    if keymap_filename:
+        keymap_json = parse_configurator_json(keymap_filename)
+
+        if keymap_json:
+            modules.extend(keymap_json.get('modules', []))
+
+    return list(dict.fromkeys(modules))  # remove dupes

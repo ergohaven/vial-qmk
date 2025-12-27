@@ -18,6 +18,8 @@ typedef union {
         uint8_t dpi_mode : 4;
         uint8_t orientation : 2;
         uint8_t mode : 2;
+        bool    invert_scroll : 1;
+        bool    acceleration : 1;
     };
 } vial_config_t;
 
@@ -72,6 +74,8 @@ void via_set_layout_options_kb(uint32_t value) {
     set_sniper_sens(SNIPER_TABLE[vial_config.sniper_mode]);
     set_text_sens(TEXT_TABLE[vial_config.text_mode]);
     set_orientation(vial_config.orientation);
+    set_invert_scroll(vial_config.invert_scroll);
+    set_acceleration(vial_config.acceleration);
     update_settings(host_keyboard_led_state());
 }
 
