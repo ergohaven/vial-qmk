@@ -9,8 +9,23 @@ char layer_names[DYNAMIC_KEYMAP_LAYER_COUNT][LAYER_LABEL_SIZE];
 
 __attribute__((weak)) const char *default_layer_label(uint8_t layer) {
     static const char *PROGMEM default_layer_labels[] = {
-        "BASE", "LOWER", "RAISE", "ADJST", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN", "ELEVN", "TWLVE", "THRTN", "FRTN", "FIFTN",
-    };
+    "ABC",
+    "RUS",
+    "RU PC",
+    "ADJST",
+    "FOUR",
+    "FIVE",
+    "SIX",
+    "SEVEN",
+    "NAVNM",
+    "SYMSC",
+    "FUNCT",
+    "TRACK",
+    "GAME",
+    "GFUNC",
+    "EXTRA",
+    "SYSTM"
+};
     return default_layer_labels[layer];
 }
 
