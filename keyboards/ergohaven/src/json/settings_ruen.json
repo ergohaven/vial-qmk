@@ -1,0 +1,8 @@
+{
+    "name": "RuEn",
+    "fields": [
+        { "type": "select", "title": "RuEn Toggle Mode", "qsid": 100, "variants": ["Default", "M0", "M1M2"] },
+        { "type": "boolean", "title": "RuEn MacOS Layout", "qsid": 101, "bit": 0 },
+        { "type": "select", "title": "Unicode Input Mode", "qsid": 102, "variants": ["MacOS", "Linux", "Windows", "WinCompose"] }
+    ]
+}

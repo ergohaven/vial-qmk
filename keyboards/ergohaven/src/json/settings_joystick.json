@@ -1,0 +1,11 @@
+{
+    "name": "Joystick settings",
+    "fields": [
+        { "type": "integer", "title": "Sniper sens", "qsid": 121, "min": 1, "max": 255, "width": 1  },
+        { "type": "integer", "title": "Scroll sens", "qsid": 122, "min": 1, "max": 255, "width": 1  },
+        { "type": "integer", "title": "Text sens", "qsid": 123, "min": 1, "max": 255, "width": 1  },
+        { "type": "boolean", "title": "Invert scroll", "qsid": 124, "bit": 0 },
+        { "type": "boolean", "title": "Acceleration", "qsid": 124, "bit": 1 },
+        { "type": "boolean", "title": "Sticky mode", "qsid": 124, "bit": 2 }
+    ]
+}

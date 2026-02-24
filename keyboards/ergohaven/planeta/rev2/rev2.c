@@ -1,6 +1,7 @@
 #include "display.h"
 #include "ergohaven.h"
-#include "ergohaven_display.h"
+#include "src/display/eh_display.h"
+
 #include QMK_KEYBOARD_H
 
 const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM = LAYOUT(

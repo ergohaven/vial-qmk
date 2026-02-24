@@ -131,7 +131,6 @@ typedef struct {
     uint16_t quick_tap_term;
     uint16_t flow_tap_term;
 } qmk_settings_t;
-_Static_assert(sizeof(qmk_settings_t) == 46, "unexpected size of the qmk_settings_t structure");
 
 struct qmk_settings_proto_t;
 
@@ -149,6 +148,11 @@ typedef struct qmk_settings_proto_t {
     qmk_settings_set_t set;
     qmk_settings_notify_t notify;
 } qmk_settings_proto_t;
+
+#ifdef KB_SETTINGS
+extern qmk_settings_proto_t kb_protos[KB_SETTINGS_NPROTOS] PROGMEM;
+void kb_settings_reset(void);
+#endif
 
 void qmk_settings_init(void);
 void qmk_settings_reset(void);

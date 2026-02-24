@@ -59,3 +59,6 @@
 #define AUTO_MOUSE_DEFAULT_LAYER 4
 
 #define EH_POINTING_KEYCODES
+
+#undef PRODUCT
+#define PRODUCT "HPD v2 touch/enc"

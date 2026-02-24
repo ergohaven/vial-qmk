@@ -6,7 +6,7 @@
         "rows": 10,
         "cols": 6
     },
-#include "keyboards/ergohaven/vial_custom_keycodes.json"
+#include "keyboards/ergohaven/src/json/keycodes_all.json"
     "layouts": {
         "keymap":[
             [{"c":"#aaaaaa","x":3},"0,3",{"x":7.25},"5,2"],

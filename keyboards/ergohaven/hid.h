@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "ergohaven_pointing.h"
+#include "src/eh_pointing.h"
 
 typedef struct {
     bool    hid_changed;

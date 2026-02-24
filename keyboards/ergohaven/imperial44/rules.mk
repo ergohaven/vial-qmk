@@ -34,8 +34,9 @@ UNICODE_ENABLE = yes
 
 SRC += keyboards/ergohaven/ergohaven_rgb.c
 SRC += keyboards/ergohaven/ergohaven_main.c
-SRC += keyboards/ergohaven/ergohaven_ruen.c
-SRC += keyboards/ergohaven/ergohaven_oled.c
+SRC += keyboards/ergohaven/src/eh_settings.c
+SRC += keyboards/ergohaven/src/eh_ruen.c
+SRC += keyboards/ergohaven/src/oled/eh_oled.c
 SRC += oled/ergohaven_dark.c
 SRC += keyboards/ergohaven/hid.c
-SRC += keyboards/ergohaven/ergohaven_pointing.c
+SRC += keyboards/ergohaven/src/eh_pointing.c

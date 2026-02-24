@@ -23,5 +23,5 @@ QMK_SETTINGS = no
 DYNAMIC_KEYMAP_ENABLE = yes
 RAW_ENABLE = yes
 
-SRC += keyboards/ergohaven/ergohaven_pointing.c
+SRC += keyboards/ergohaven/src/eh_pointing.c
 SRC += keyboards/ergohaven/hid.c

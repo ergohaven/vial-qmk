@@ -1,7 +1,7 @@
 #include QMK_KEYBOARD_H
 
 #include "quantum.h"
-#include "ergohaven_pointing.h"
+#include "src/eh_pointing.h"
 
 typedef enum { NL_SCROLL_SL_SNIPER, NL_SNIPER_SL_SCROLL, NL_TEXT_SL_SCROLL, LED_BLINKS } trackball_mode_t;
 extern const int DPI_TABLE[15];

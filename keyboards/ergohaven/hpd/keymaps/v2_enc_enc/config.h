@@ -32,3 +32,6 @@
 #define RGBLIGHT_DEFAULT_VAL 50
 #define RGBLIGHT_LIMIT_VAL 150
 #define RGBLIGHT_DEFAULT_SAT 0
+
+#undef PRODUCT
+#define PRODUCT "HPD v2 enc/enc"
