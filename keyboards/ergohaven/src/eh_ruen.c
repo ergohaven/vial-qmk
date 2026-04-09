@@ -85,6 +85,19 @@ void set_lang(uint8_t lang) {
                 if (mods != 0) add_mods(mods);
             }
             break;
+        case TG_HOTKEY:
+            if (lang == LANG_EN) {
+                if (!should_revert_ru) {
+                    if (mods != 0) del_mods(mods);
+                    send_lang_hotkey(LANG_EN);
+                    if (mods != 0) add_mods(mods);
+                }
+            } else {
+                if (mods != 0) del_mods(mods);
+                send_lang_hotkey(LANG_RU);
+                if (mods != 0) add_mods(mods);
+            }
+            break;
         default:
             break;
     }
@@ -252,6 +265,10 @@ bool process_record_ruen(uint16_t keycode, keyrecord_t *record) {
             set_ruen_toggle_mode(TG_DEFAULT);
             return false;
 
+        case LG_SET_TG_HK:
+            set_ruen_toggle_mode(TG_HOTKEY);
+            return false;
+
         case LG_DOT: // .
             tap_code16(cur_lang == LANG_EN ? KC_DOT : get_ruen_mac_layout() ? S(KC_7) : KC_SLASH);
             return false;
@@ -370,5 +387,8 @@ void housekeeping_task_ruen(void) {
     }
 }
 
-__attribute__((weak)) void on_change_lang_cb(uint8_t lang) {
-}
+__attribute__((weak)) void on_change_lang_cb(uint8_t lang) {}
+
+// Default no-op: override in keymap.c to send OS-specific language hotkeys.
+// lang: LANG_EN — switch OS to English; LANG_RU — switch OS to Russian.
+__attribute__((weak)) void send_lang_hotkey(uint8_t lang) {}
