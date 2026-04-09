@@ -1,7 +1,7 @@
 #pragma once
 #include "quantum.h"
 
-#define EH_VERSION_STR "3.8.7"
+#define EH_VERSION_STR "4.0.3"
 
 #ifndef EH_SHORT_PRODUCT_NAME
 #    define EH_SHORT_PRODUCT_NAME PRODUCT
@@ -77,16 +77,8 @@ enum custom_keycodes {
 
 uint8_t get_current_layer(void);
 
-const char* layer_name(uint8_t layer);
-
-const char* layer_upper_name(uint8_t layer);
-
 uint8_t split_get_lang(void);
 
 bool split_get_mac(void);
 
 bool split_get_caps_word(void);
-
-void kb_config_update_ruen_toggle_mode(uint8_t mode);
-
-void kb_config_update_ruen_mac_layout(bool mac_layout);

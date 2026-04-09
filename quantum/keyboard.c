@@ -469,9 +469,6 @@ void quantum_init(void) {
 void keyboard_init(void) {
     timer_init();
     sync_timer_init();
-#ifdef VIA_ENABLE
-    via_init();
-#endif
 #ifdef SPLIT_KEYBOARD
     split_pre_init();
 #endif
@@ -480,6 +477,9 @@ void keyboard_init(void) {
 #endif
     matrix_init();
     quantum_init();
+#ifdef VIA_ENABLE
+    via_init();
+#endif
 #ifdef CONNECTION_ENABLE
     connection_init();
 #endif

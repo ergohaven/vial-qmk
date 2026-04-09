@@ -31,7 +31,7 @@
 
 /* disable widgets*/
 #undef LV_USE_ANIMIMG
-#define LV_USE_ANIMIMG 0
+#define LV_USE_ANIMIMG 1
 #undef LV_USE_BAR
 #define LV_USE_BAR 0
 #undef LV_USE_BTN

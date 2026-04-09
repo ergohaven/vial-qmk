@@ -1,10 +1,10 @@
 #include "display.h"
 #include "qp.h"
-#include "ergohaven_ruen.h"
+#include "src/eh_ruen.h"
 #include "hid.h"
 #include "ergohaven.h"
-#include "ergohaven_symbols.h"
-#include "ergohaven_display.h"
+#include "src/display/eh_symbols.h"
+#include "src/display/eh_display.h"
 
 extern const eh_screen_t eh_screen_layout;
 

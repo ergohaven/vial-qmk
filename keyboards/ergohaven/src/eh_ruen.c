@@ -1,5 +1,37 @@
-#include "ergohaven_ruen.h"
+#include "eh_ruen.h"
+#include "eh_settings.h"
 #include "hid.h"
+
+typedef union {
+    uint32_t raw;
+    struct {
+        uint8_t ruen_toggle_mode : 2;
+        bool    ruen_mac_layout : 1;
+    };
+} kb_settings_ruen_t;
+
+kb_settings_ruen_t kb_settings_ruen;
+
+static_assert(KB_SETTINGS_RUEN_SIZE == sizeof(kb_settings_ruen_t), "Invalid KB_SETTINGS_RUEN_SIZE");
+
+void kb_settings_ruen_update(kb_settings_ruen_t new_config) {
+    if (new_config.raw != kb_settings_ruen.raw) {
+        kb_settings_ruen = new_config;
+        dprintf("kb_settings_ruen_update %ld \n", kb_settings_ruen.raw);
+        eeconfig_update_kb_datablock(&kb_settings_ruen, KB_SETTINGS_RUEN_OFFSET, sizeof(kb_settings_ruen_t));
+    }
+}
+
+void kb_settings_ruen_init(void) {
+    eeconfig_read_kb_datablock(&kb_settings_ruen, KB_SETTINGS_RUEN_OFFSET, sizeof(kb_settings_ruen_t));
+}
+
+void kb_settings_ruen_reset(void) {
+    kb_settings_ruen_t default_config;
+    default_config.ruen_toggle_mode = TG_DEFAULT;
+    default_config.ruen_mac_layout  = false;
+    kb_settings_ruen_update(default_config);
+}
 
 static uint8_t cur_lang = LANG_EN;
 
@@ -7,19 +39,15 @@ static uint8_t stored_lang = LANG_EN;
 
 static bool should_revert_macro = false;
 
-static uint8_t tg_mode = TG_DEFAULT;
-
 static uint32_t revert_time = 0;
 
 static bool should_revert_ru = false;
 
 static bool english_word = false;
 
-static bool mac_layout = false;
-
 void set_lang(uint8_t lang) {
     uint8_t mods = get_mods();
-    switch (tg_mode) {
+    switch (get_ruen_toggle_mode()) {
         case TG_DEFAULT:
             if (cur_lang == lang) return;
             if (mods != 0) del_mods(mods);
@@ -57,53 +85,58 @@ void set_lang(uint8_t lang) {
                 if (mods != 0) add_mods(mods);
             }
             break;
+        case TG_HOTKEY:
+            if (lang == LANG_EN) {
+                if (!should_revert_ru) {
+                    if (mods != 0) del_mods(mods);
+                    send_lang_hotkey(LANG_EN);
+                    if (mods != 0) add_mods(mods);
+                }
+            } else {
+                if (mods != 0) del_mods(mods);
+                send_lang_hotkey(LANG_RU);
+                if (mods != 0) add_mods(mods);
+            }
+            break;
         default:
             break;
     }
-    cur_lang = lang;
+    set_cur_lang(lang);
+}
+
+void set_cur_lang(uint8_t lang) {
+    if (cur_lang != lang) {
+        cur_lang = lang;
+        on_change_lang_cb(cur_lang);
+    }
 }
 
 void set_ruen_toggle_mode(uint8_t mode) {
-    switch (mode) {
-        default:
-        case TG_DEFAULT:
-            tg_mode = TG_DEFAULT;
-            break;
-
-        case TG_M1M2:
-            tg_mode = TG_M1M2;
-            break;
-
-        case TG_M0:
-            tg_mode = TG_M0;
-            break;
-    }
+    kb_settings_ruen_t new_config = kb_settings_ruen;
+    new_config.ruen_toggle_mode   = mode;
+    kb_settings_ruen_update(new_config);
 }
 
 uint8_t get_ruen_toggle_mode(void) {
-    return tg_mode;
+    return kb_settings_ruen.ruen_toggle_mode;
 }
 
 void set_ruen_mac_layout(bool layout) {
-    mac_layout = layout;
+    kb_settings_ruen_t new_config = kb_settings_ruen;
+    new_config.ruen_mac_layout    = layout;
+    kb_settings_ruen_update(new_config);
 }
 
 bool get_ruen_mac_layout(void) {
-    return mac_layout;
+    return kb_settings_ruen.ruen_mac_layout;
 }
 
 void lang_toggle(void) {
-    if (cur_lang == LANG_EN)
-        set_lang(LANG_RU);
-    else
-        set_lang(LANG_EN);
+    set_lang((cur_lang == LANG_EN) ? LANG_RU : LANG_EN);
 }
 
 void lang_sync(void) {
-    if (cur_lang == LANG_EN)
-        cur_lang = LANG_RU;
-    else
-        cur_lang = LANG_EN;
+    set_cur_lang((cur_lang == LANG_EN) ? LANG_RU : LANG_EN);
 }
 
 uint8_t get_cur_lang(void) {
@@ -221,34 +254,35 @@ bool process_record_ruen(uint16_t keycode, keyrecord_t *record) {
             return false;
 
         case LG_SET_M0:
-            tg_mode = TG_M0;
-            kb_config_update_ruen_toggle_mode(tg_mode);
+            set_ruen_toggle_mode(TG_M0);
             return false;
 
         case LG_SET_M1M2:
-            tg_mode = TG_M1M2;
-            kb_config_update_ruen_toggle_mode(tg_mode);
+            set_ruen_toggle_mode(TG_M1M2);
             return false;
 
         case LG_SET_DFLT:
-            tg_mode = TG_DEFAULT;
-            kb_config_update_ruen_toggle_mode(tg_mode);
+            set_ruen_toggle_mode(TG_DEFAULT);
+            return false;
+
+        case LG_SET_TG_HK:
+            set_ruen_toggle_mode(TG_HOTKEY);
             return false;
 
         case LG_DOT: // .
-            tap_code16(cur_lang == LANG_EN ? KC_DOT : mac_layout ? S(KC_7) : KC_SLASH);
+            tap_code16(cur_lang == LANG_EN ? KC_DOT : get_ruen_mac_layout() ? S(KC_7) : KC_SLASH);
             return false;
 
         case LG_COMMA: // ,
-            tap_code16(cur_lang == LANG_EN ? KC_COMMA : mac_layout ? S(KC_6) : S(KC_SLASH));
+            tap_code16(cur_lang == LANG_EN ? KC_COMMA : get_ruen_mac_layout() ? S(KC_6) : S(KC_SLASH));
             return false;
 
         case LG_SCLN: // ;
-            tap_code16(cur_lang == LANG_EN ? KC_SCLN : mac_layout ? S(KC_8) : S(KC_4));
+            tap_code16(cur_lang == LANG_EN ? KC_SCLN : get_ruen_mac_layout() ? S(KC_8) : S(KC_4));
             return false;
 
         case LG_COLON: // :
-            tap_code16(cur_lang == LANG_EN ? KC_COLON : mac_layout ? S(KC_5) : S(KC_6));
+            tap_code16(cur_lang == LANG_EN ? KC_COLON : get_ruen_mac_layout() ? S(KC_5) : S(KC_6));
             return false;
 
         case LG_DQUO: // "
@@ -256,28 +290,28 @@ bool process_record_ruen(uint16_t keycode, keyrecord_t *record) {
             return false;
 
         case LG_QUES: // ?
-            tap_code16(cur_lang == LANG_EN || mac_layout ? KC_QUES : S(KC_7));
+            tap_code16(cur_lang == LANG_EN || get_ruen_mac_layout() ? KC_QUES : S(KC_7));
             return false;
 
         case LG_SLASH: // /
-            tap_code16(cur_lang == LANG_EN || mac_layout ? KC_SLASH : LSFT(KC_BSLS));
+            tap_code16(cur_lang == LANG_EN || get_ruen_mac_layout() ? KC_SLASH : LSFT(KC_BSLS));
             return false;
 
         case LG_PERC: // %
-            tap_code16(cur_lang == LANG_RU && mac_layout ? LSFT(KC_4) : LSFT(KC_5));
+            tap_code16(cur_lang == LANG_RU && get_ruen_mac_layout() ? LSFT(KC_4) : LSFT(KC_5));
             return false;
 
         case LG_TG_MAC:
-            mac_layout = !mac_layout;
-            kb_config_update_ruen_mac_layout(mac_layout);
+            set_ruen_mac_layout(!get_ruen_mac_layout());
             return false;
 
         case LG_EN_START ... LG_QUOTE: {
-            uint8_t lang = cur_lang;
-            set_lang(LANG_EN);
+            if (cur_lang == LANG_RU) {
+                set_lang(LANG_EN);
+                should_revert_ru = true;
+            }
             tap_code16(en_table[keycode - LG_EN_START]);
-            should_revert_ru = should_revert_ru || (cur_lang != lang);
-            revert_time      = timer_read32();
+            revert_time = timer_read32();
             return false;
         }
 
@@ -352,3 +386,9 @@ void housekeeping_task_ruen(void) {
         hid_data->layout_changed = false;
     }
 }
+
+__attribute__((weak)) void on_change_lang_cb(uint8_t lang) {}
+
+// Default no-op: override in keymap.c to send OS-specific language hotkeys.
+// lang: LANG_EN — switch OS to English; LANG_RU — switch OS to Russian.
+__attribute__((weak)) void send_lang_hotkey(uint8_t lang) {}

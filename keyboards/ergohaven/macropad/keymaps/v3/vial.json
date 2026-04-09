@@ -4,7 +4,12 @@
         "rows": 5,
         "cols": 3
     },
-#include "keyboards/ergohaven/vial_custom_keycodes.json"
+#include "keyboards/ergohaven/src/json/keycodes_all.json"
+    "settings": [
+#include "keyboards/ergohaven/src/json/settings_layer_labels.json"
+,
+#include "keyboards/ergohaven/src/json/settings_ruen.json"
+    ],
     "layouts": {
         "keymap": [
             [{"x": 1.25},"1,0","1,1","1,2"],
@@ -12,5 +17,8 @@
             ["0,2",{"x": 0.25},"3,0","3,1","3,2"],
             ["0,0\n\n\n\n\n\n\n\n\ne",{"x": 0.25},"4,0","4,1","4,2"]
         ]
+    },
+    "vial": {
+        "midi": "advanced"
     }
 }

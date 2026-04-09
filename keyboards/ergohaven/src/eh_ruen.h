@@ -11,6 +11,7 @@ enum ruen_custom_keycodes {
     LG_SET_M0,
     LG_SET_M1M2,
     LG_SET_DFLT,
+    LG_SET_TG_HK,
 
     LG_DOT,
     LG_COMMA,
@@ -66,7 +67,7 @@ enum ruen_custom_keycodes {
 
 enum { LANG_EN = 0, LANG_RU };
 
-enum { TG_DEFAULT = 0, TG_M0, TG_M1M2 };
+enum { TG_DEFAULT = 0, TG_M0, TG_M1M2, TG_HOTKEY };
 
 bool pre_process_record_ruen(uint16_t keycode, keyrecord_t *record);
 
@@ -76,10 +77,24 @@ void housekeeping_task_ruen(void);
 
 uint8_t get_cur_lang(void);
 
+void set_lang(uint8_t lang);
+
+void set_cur_lang(uint8_t lang);
+
 void set_ruen_toggle_mode(uint8_t mode);
 
 uint8_t get_ruen_toggle_mode(void);
 
+// Override in keymap.c to provide hardcoded hotkeys for TG_HOTKEY mode.
+// lang: LANG_EN or LANG_RU — send the OS hotkey that switches to that language.
+void send_lang_hotkey(uint8_t lang);
+
 void set_ruen_mac_layout(bool mac_layout);
 
 bool get_ruen_mac_layout(void);
+
+void kb_settings_ruen_init(void);
+
+void kb_settings_ruen_reset(void);
+
+void on_change_lang_cb(uint8_t lang);

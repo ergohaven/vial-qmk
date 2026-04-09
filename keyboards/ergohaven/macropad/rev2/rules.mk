@@ -37,13 +37,18 @@ UNICODE_ENABLE = yes
 
 SRC += ../display_modes.c
 SRC += ../screen_layout.c
-SRC += keyboards/ergohaven/lvgl_helpers.c
-SRC += keyboards/ergohaven/ergohaven_keycode_str.c
+SRC += keyboards/ergohaven/src/display/lvgl_helpers.c
+SRC += keyboards/ergohaven/src/display/eh_keycode_str.c
+SRC += keyboards/ergohaven/src/display/eh_display.c
+SRC += keyboards/ergohaven/src/display/eh_screen_splash.c
+SRC += keyboards/ergohaven/src/display/eh_screen_home.c
+SRC += keyboards/ergohaven/src/display/eh_screen_volume.c
+SRC += keyboards/ergohaven/src/display/eh_logo.c
+SRC += keyboards/ergohaven/src/display/fonts/eh_font_montserrat_20.c
+SRC += keyboards/ergohaven/src/display/fonts/eh_font_montserrat_28.c
+
 SRC += keyboards/ergohaven/ergohaven_main.c
-SRC += keyboards/ergohaven/ergohaven_ruen.c
-SRC += keyboards/ergohaven/ergohaven_symbols_20.c
-SRC += keyboards/ergohaven/ergohaven_symbols_28.c
+SRC += keyboards/ergohaven/src/eh_ruen.c
 SRC += keyboards/ergohaven/hid.c
-SRC += keyboards/ergohaven/ergohaven_logo.c
-SRC += keyboards/ergohaven/ergohaven_display.c
-SRC += keyboards/ergohaven/ergohaven_pointing.c
+SRC += keyboards/ergohaven/src/eh_pointing.c
+SRC += keyboards/ergohaven/src/eh_settings.c

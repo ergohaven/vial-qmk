@@ -1,6 +1,7 @@
 #include "ergohaven.h"
+#include "src/eh_settings.h"
 #include "info_config.h"
-#include "ergohaven_ruen.h"
+#include "src/eh_ruen.h"
 #include "hid.h"
 #include "transactions.h"
 #include <string.h>
@@ -113,7 +114,7 @@ void render_status_classic(void) {
 
 void render_status_modern(void) {
     oled_clear();
-    oled_write_ln(layer_upper_name(get_current_layer()), false);
+    oled_write_ln(layer_name(get_current_layer()), false);
     oled_set_cursor(0, 1);
     if (split_get_mac())
         oled_write_P(PSTR("   \01\02   \03\04"), false);

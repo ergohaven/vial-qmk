@@ -2,7 +2,7 @@
     "name": "Planeta v1",
     "lighting": "none",
     "matrix":{ "rows":5, "cols":12 },
-#include "keyboards/ergohaven/vial_custom_keycodes.json"
+#include "keyboards/ergohaven/src/json/keycodes_all.json"
     "layouts":{
         "keymap":[
             [{"c":"#aaaaaa","x":3},"0,3",{"x":7.25},"0,8"],

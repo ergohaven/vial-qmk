@@ -1,5 +1,7 @@
 #include QMK_KEYBOARD_H
 #include "ergohaven.h"
+#include "qmk_settings.h"
+#include "src/eh_ruen.h"
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [0] = LAYOUT(

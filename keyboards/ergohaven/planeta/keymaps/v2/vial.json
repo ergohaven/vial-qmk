@@ -1,7 +1,13 @@
 {
     "lighting": "qmk_backlight_rgblight",
     "matrix":{ "rows":5, "cols":12 },
-#include "keyboards/ergohaven/vial_custom_keycodes.json"
+#include "keyboards/ergohaven/src/json/keycodes_all.json"
+#include "keyboards/ergohaven/src/json/keycodes_all.json"
+    "settings": [
+#include "keyboards/ergohaven/src/json/settings_layer_labels.json"
+,
+#include "keyboards/ergohaven/src/json/settings_ruen.json"
+    ],
     "layouts":{
         "keymap":[
             [{"r":10,"rx":0.6,"ry":0},"0,0",{"y":-0.2},"0,1",{"y":-0.2},"0,2",{"y":-0.2},"0,3",{"y":0.2},"0,4",{"y":0.2},"0,5"],

@@ -10,4 +10,4 @@ RGBLIGHT_DRIVER = ws2812
 WS2812_DRIVER = vendor
 
 SRC += keyboards/ergohaven/ergohaven_rgb.c
-SRC += keyboards/ergohaven/ergohaven_pointing.c
+SRC += keyboards/ergohaven/src/eh_pointing.c

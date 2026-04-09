@@ -4,8 +4,6 @@ BOOTLOADER = rp2040
 # ALLOW_WARNINGS = yes
 # PICO_INTRINSICS_ENABLED = no
 
-DEFAULT_FOLDER = ergohaven/velvet/rev3
-
 SPLIT_KEYBOARD = yes
 SERIAL_DRIVER = vendor
 
@@ -29,6 +27,7 @@ UNICODE_COMMON = yes
 UNICODE_ENABLE = yes
 
 SRC += keyboards/ergohaven/ergohaven_main.c
-SRC += keyboards/ergohaven/ergohaven_ruen.c
+SRC += keyboards/ergohaven/src/eh_settings.c
+SRC += keyboards/ergohaven/src/eh_ruen.c
 SRC += keyboards/ergohaven/hid.c
-SRC += keyboards/ergohaven/ergohaven_pointing.c
+SRC += keyboards/ergohaven/src/eh_pointing.c

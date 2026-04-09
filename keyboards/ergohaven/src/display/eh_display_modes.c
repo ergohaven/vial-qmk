@@ -1,10 +1,10 @@
 #include "display.h"
 #include "qp.h"
-#include "ergohaven_ruen.h"
+#include "src/eh_ruen.h"
 #include "hid.h"
 #include "ergohaven.h"
-#include "ergohaven_symbols.h"
-#include "ergohaven_display.h"
+#include "eh_symbols.h"
+#include "eh_display.h"
 
 static uint32_t screen_timer = 0;
 

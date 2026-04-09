@@ -203,6 +203,14 @@ void qmk_settings_init(void) {
         if (notify)
             notify();
     }
+#ifdef KB_SETTINGS
+    for (size_t i = 0; i < KB_SETTINGS_NPROTOS; ++i) {
+        const qmk_settings_proto_t *proto = &kb_protos[i];
+        qmk_settings_notify_t notify = pgm_read_ptr(&proto->notify);
+        if (notify)
+            notify();
+    }
+#endif
 }
 
 void qmk_settings_reset(void) {
@@ -242,6 +250,10 @@ void qmk_settings_reset(void) {
 
     eeprom_settings_save();
 
+#ifdef KB_SETTINGS
+    kb_settings_reset();
+#endif
+
     /* must call clear_keyboard for the NKRO setting to not cause stuck keys */
     clear_keyboard();
     keymap_config.raw = 0;
@@ -270,12 +282,32 @@ void qmk_settings_query(uint16_t qsid_gt, void *buffer, size_t sz) {
             buffer_offset += sizeof(qsid);
         }
     }
+#ifdef KB_SETTINGS
+    for (size_t i = 0; i < KB_SETTINGS_NPROTOS; ++i) {
+        uint16_t qsid;
+
+        /* if output buffer has no space left, bail out */
+        if (buffer_offset + sizeof(qsid) > sz)
+            break;
+
+        qsid = pgm_read_word(&kb_protos[i].qsid);
+        if (qsid > qsid_gt) {
+            memcpy((char*)buffer + buffer_offset, &qsid, sizeof(qsid));
+            buffer_offset += sizeof(qsid);
+        }
+    }
+#endif
 }
 
 static const qmk_settings_proto_t *find_setting(uint16_t qsid) {
     for (size_t i = 0; i < sizeof(protos)/sizeof(*protos); ++i)
         if (pgm_read_word(&protos[i].qsid) == qsid)
             return &protos[i];
+#ifdef KB_SETTINGS
+    for (size_t i = 0; i < KB_SETTINGS_NPROTOS; ++i)
+        if (pgm_read_word(&kb_protos[i].qsid) == qsid)
+            return &kb_protos[i];
+#endif
     return NULL;
 }
 

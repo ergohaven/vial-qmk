@@ -35,7 +35,7 @@ jobs:
           - { kb: ergohaven/k02, km: v1}
           - { kb: ergohaven/remnant, km: v1}
           - { kb: ergohaven/planeta/rev1, km: v1}
-          - { kb: ergohaven/planeta, km: v2}
+          - { kb: ergohaven/planeta/rev2, km: v2}
           - { kb: ergohaven/macropad/rev1, km: v1}
           - { kb: ergohaven/macropad/rev2, km: v2}
           - { kb: ergohaven/macropad/rev2, km: v2_ccw}
@@ -45,6 +45,7 @@ jobs:
           - { kb: ergohaven/k03pro/rev1/43mm, km: v1}
           - { kb: ergohaven/k03pro/rev1/65mm, km: v1}
           - { kb: ergohaven/k03pro/rev2, km: v2_v3}
+          - { kb: ergohaven/sm30, km: v1}
 
     steps:
     - name: (actions) Checkout Vial repo

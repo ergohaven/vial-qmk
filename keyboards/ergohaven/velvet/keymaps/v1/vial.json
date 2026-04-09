@@ -1,7 +1,10 @@
 {
     "lighting": "none",
     "matrix":{ "rows":8, "cols":5 },
-#include "keyboards/ergohaven/vial_custom_keycodes.json"
+#include "keyboards/ergohaven/src/json/keycodes_all.json"
+    "settings": [
+#include "keyboards/ergohaven/src/json/settings_ruen.json"
+    ],
     "layouts":{
         "keymap":[
             [{"c":"#000000","x":2.25},"0,2",{"x":9},"4,2"],

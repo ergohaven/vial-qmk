@@ -1,0 +1,5 @@
+    "customKeycodes": [
+#include "keyboards/ergohaven/src/json/keycodes_base.json"
+#include "keyboards/ergohaven/src/json/keycodes_ruen.json"
+#include "keyboards/ergohaven/src/json/keycodes_pointing.json"
+     ],

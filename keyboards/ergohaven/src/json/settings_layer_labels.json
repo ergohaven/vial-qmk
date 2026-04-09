@@ -1,0 +1,21 @@
+{
+    "name": "Layer labels",
+    "fields": [
+        { "type": "string", "title": "Label #0", "qsid": 200, "width": 16 },
+        { "type": "string", "title": "Label #1", "qsid": 201, "width": 16 },
+        { "type": "string", "title": "Label #2", "qsid": 202, "width": 16 },
+        { "type": "string", "title": "Label #3", "qsid": 203, "width": 16 },
+        { "type": "string", "title": "Label #4", "qsid": 204, "width": 16 },
+        { "type": "string", "title": "Label #5", "qsid": 205, "width": 16 },
+        { "type": "string", "title": "Label #6", "qsid": 206, "width": 16 },
+        { "type": "string", "title": "Label #7", "qsid": 207, "width": 16 },
+        { "type": "string", "title": "Label #8", "qsid": 208, "width": 16 },
+        { "type": "string", "title": "Label #9", "qsid": 209, "width": 16 },
+        { "type": "string", "title": "Label #10", "qsid": 210, "width": 16 },
+        { "type": "string", "title": "Label #11", "qsid": 211, "width": 16 },
+        { "type": "string", "title": "Label #12", "qsid": 212, "width": 16 },
+        { "type": "string", "title": "Label #13", "qsid": 213, "width": 16 },
+        { "type": "string", "title": "Label #14", "qsid": 214, "width": 16 },
+        { "type": "string", "title": "Label #15", "qsid": 215, "width": 16 }
+    ]
+}

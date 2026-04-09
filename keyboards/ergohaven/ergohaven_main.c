@@ -1,40 +1,13 @@
 #include "ergohaven.h"
-#include "ergohaven_ruen.h"
-#include "ergohaven_oled.h"
+#include "src/eh_settings.h"
+#include "src/eh_ruen.h"
+#include "src/oled/eh_oled.h"
 #include "ergohaven_rgb.h"
-#include "ergohaven_display.h"
-#include "ergohaven_pointing.h"
+#include "src/display/eh_display.h"
+#include "src/eh_pointing.h"
 #include "hid.h"
 #include "version.h"
 
-typedef union {
-    uint32_t raw;
-    struct {
-        uint8_t ruen_toggle_mode : 2;
-        bool    ruen_mac_layout : 1;
-    };
-} kb_config_t;
-
-kb_config_t kb_config;
-
-void kb_config_update(kb_config_t new_config) {
-    if (new_config.raw != kb_config.raw) {
-        kb_config = new_config;
-        eeconfig_update_kb(kb_config.raw);
-    }
-}
-
-void kb_config_update_ruen_toggle_mode(uint8_t mode) {
-    kb_config_t new_config      = kb_config;
-    new_config.ruen_toggle_mode = mode;
-    kb_config_update(new_config);
-}
-
-void kb_config_update_ruen_mac_layout(bool mac_layout) {
-    kb_config_t new_config     = kb_config;
-    new_config.ruen_mac_layout = mac_layout;
-    kb_config_update(new_config);
-}
 
 #ifdef AUDIO_ENABLE
 float base_sound[][2] = SONG(TERMINAL_SOUND);
@@ -247,9 +220,7 @@ void keyboard_post_init_kb(void) {
     debug_enable = true;
 #endif
 
-    kb_config.raw = eeconfig_read_kb();
-    set_ruen_toggle_mode(kb_config.ruen_toggle_mode);
-    set_ruen_mac_layout(kb_config.ruen_mac_layout);
+    kb_settings_init();
 
 #ifdef RGBLIGHT_ENABLE
     keyboard_post_init_rgb();
@@ -348,62 +319,6 @@ void suspend_wakeup_init_kb(void) {
 
 uint8_t get_current_layer(void) {
     return get_highest_layer(layer_state | default_layer_state);
-}
-
-static const char* PROGMEM LAYER_NAME[] = {
-    // clang-format off
-    "Base ",
-    "Lower",
-    "Raise",
-    "Adjst",
-    "Four ",
-    "Five ",
-    "Six  ",
-    "Seven",
-    "Eight",
-    "Nine ",
-    "Ten  ",
-    "Elevn",
-    "Twlve",
-    "Thrtn",
-    "Frtn ",
-    "Fiftn",
-    // clang-format on
-};
-
-static const char* PROGMEM LAYER_UPPER_NAME[] = {
-    // clang-format off
-    "BASE ",
-    "LOWER",
-    "RAISE",
-    "ADJST",
-    "FOUR ",
-    "FIVE ",
-    "SIX  ",
-    "SEVEN",
-    "EIGHT",
-    "NINE ",
-    "TEN  ",
-    "ELEVN",
-    "TWLVE",
-    "THRTN",
-    "FRTN ",
-    "FIFTN",
-    // clang-format on
-};
-
-__attribute__((weak)) const char* layer_name(uint8_t layer) {
-    if (layer >= 0 && layer <= 15)
-        return LAYER_NAME[layer];
-    else
-        return "Undef";
-}
-
-__attribute__((weak)) const char* layer_upper_name(uint8_t layer) {
-    if (layer >= 0 && layer <= 15)
-        return LAYER_UPPER_NAME[layer];
-    else
-        return "UNDEF";
 }
 
 __attribute__((weak)) uint8_t split_get_lang(void) {
