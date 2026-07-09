@@ -39,6 +39,7 @@
         { "type": "boolean", "title": "Auto layer in Normal", "qsid": 142, "bit": 0 },
         { "type": "boolean", "title": "Auto layer in Sniper", "qsid": 144, "bit": 0 },
         { "type": "boolean", "title": "Auto layer in Scroll", "qsid": 145, "bit": 0 },
-        { "type": "boolean", "title": "Auto layer in Text", "qsid": 146, "bit": 0 }
+        { "type": "boolean", "title": "Auto layer in Text", "qsid": 146, "bit": 0 },
+        { "type": "select", "title": "Auto layer timeout", "qsid": 324, "variants": ["250 ms", "500 ms", "750 ms", "1000 ms", "1250 ms", "1500 ms"] }
     ]
 }

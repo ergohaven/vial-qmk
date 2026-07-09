@@ -58,6 +58,8 @@ typedef struct {
     uint8_t side_auto_mouse_layer[SPLIT_POINTING_SIDE_COUNT];
     uint8_t invert_text[SPLIT_POINTING_SIDE_COUNT];
     uint8_t version;
+    // phenom-side-modules-v0.0.3: auto mouse layer timeout, 250 ms * (idx + 1).
+    uint8_t auto_mouse_timeout_idx;
 #endif
 } kb_settings_split_pointing_t;
 
@@ -109,6 +111,8 @@ bool    get_split_pointing_auto_mouse_enable(void);
 void    set_split_pointing_auto_mouse_enable(bool enable);
 uint8_t get_split_pointing_auto_mouse_layer(void);
 void    set_split_pointing_auto_mouse_layer(uint8_t layer);
+uint8_t get_split_pointing_auto_mouse_timeout_idx(void);
+void    set_split_pointing_auto_mouse_timeout_idx(uint8_t idx);
 void    set_pointing_auto_mouse_override(bool enabled, bool active);
 
 void          set_orientation(orientation_t orientation);

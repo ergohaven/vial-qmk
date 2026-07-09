@@ -17,7 +17,11 @@ static kb_settings_split_pointing_t kb_settings_phenom_devices;
 pointing_mode_t                pointing_mode = POINTING_MODE_NORMAL;
 
 #define PHENOM_AUTO_MOUSE_SUPPORTED_MODES_MASK ((1u << POINTING_MODE_NORMAL) | (1u << POINTING_MODE_SNIPER) | (1u << POINTING_MODE_SCROLL) | (1u << POINTING_MODE_TEXT))
-#define PHENOM_SPLIT_POINTING_SETTINGS_VERSION 5
+#define PHENOM_AUTO_MOUSE_TIMEOUT_STEP_MS 250
+#define PHENOM_AUTO_MOUSE_TIMEOUT_IDX_COUNT 6
+// 750 ms, the closest step to QMK's stock AUTO_MOUSE_TIME (650 ms).
+#define PHENOM_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX 2
+#define PHENOM_SPLIT_POINTING_SETTINGS_VERSION 6
 
 static uint8_t phenom_auto_mouse_mode_mask(pointing_mode_t mode) {
     if (mode < POINTING_MODE_NORMAL || mode > POINTING_MODE_USR3) {
@@ -41,6 +45,9 @@ static void apply_auto_mouse_settings(void) {
     auto_mouse_layer_off();
     set_auto_mouse_enable(enable);
     set_auto_mouse_layer(get_split_pointing_auto_mouse_layer());
+#    ifdef EH_KEYBOARD_SPLIT_POINTING_V2
+    set_auto_mouse_timeout((uint16_t)(get_split_pointing_auto_mouse_timeout_idx() + 1) * PHENOM_AUTO_MOUSE_TIMEOUT_STEP_MS);
+#    endif
 #    ifdef RGBLIGHT_ENABLE
     layer_state_set_rgb(layer_state | default_layer_state);
 #    endif
@@ -85,6 +92,7 @@ kb_settings_split_pointing_t get_split_pointing_settings_default(void) {
         .side_auto_mouse_layer  = {AUTO_MOUSE_DEFAULT_LAYER, AUTO_MOUSE_DEFAULT_LAYER},
         .invert_text            = {false, false},
         .version                = PHENOM_SPLIT_POINTING_SETTINGS_VERSION,
+        .auto_mouse_timeout_idx = PHENOM_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX,
 #endif
     };
     return dflt;
@@ -126,7 +134,8 @@ static kb_settings_split_pointing_t kb_settings_split_pointing_sanitize(kb_setti
             config.side_auto_mouse_layer[side]  = legacy_auto_mouse_layer;
             config.invert_text[side]            = false;
         }
-        config.version = PHENOM_SPLIT_POINTING_SETTINGS_VERSION;
+        config.auto_mouse_timeout_idx = PHENOM_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX;
+        config.version                = PHENOM_SPLIT_POINTING_SETTINGS_VERSION;
     }
 #endif
     for (uint8_t side = 0; side < SPLIT_POINTING_SIDE_COUNT; ++side) {
@@ -153,6 +162,9 @@ static kb_settings_split_pointing_t kb_settings_split_pointing_sanitize(kb_setti
         config.auto_mouse_layer = AUTO_MOUSE_DEFAULT_LAYER;
     }
 #ifdef EH_KEYBOARD_SPLIT_POINTING_V2
+    if (config.auto_mouse_timeout_idx >= PHENOM_AUTO_MOUSE_TIMEOUT_IDX_COUNT) {
+        config.auto_mouse_timeout_idx = PHENOM_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX;
+    }
     config.version = PHENOM_SPLIT_POINTING_SETTINGS_VERSION;
 #endif
     return config;
@@ -406,6 +418,30 @@ void set_split_pointing_auto_mouse_layer(uint8_t layer) {
     }
     new_config.auto_mouse_layer = layer;
     kb_settings_split_pointing_update(new_config);
+}
+
+uint8_t get_split_pointing_auto_mouse_timeout_idx(void) {
+#ifdef EH_KEYBOARD_SPLIT_POINTING_V2
+    if (kb_settings_phenom_devices.auto_mouse_timeout_idx >= PHENOM_AUTO_MOUSE_TIMEOUT_IDX_COUNT) {
+        return PHENOM_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX;
+    }
+    return kb_settings_phenom_devices.auto_mouse_timeout_idx;
+#else
+    return PHENOM_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX;
+#endif
+}
+
+void set_split_pointing_auto_mouse_timeout_idx(uint8_t idx) {
+#ifdef EH_KEYBOARD_SPLIT_POINTING_V2
+    kb_settings_split_pointing_t new_config = kb_settings_phenom_devices;
+    if (idx >= PHENOM_AUTO_MOUSE_TIMEOUT_IDX_COUNT) {
+        idx = PHENOM_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX;
+    }
+    new_config.auto_mouse_timeout_idx = idx;
+    kb_settings_split_pointing_update(new_config);
+#else
+    (void)idx;
+#endif
 }
 
 bool get_split_pointing_side_invert_text(split_pointing_side_t side) {
