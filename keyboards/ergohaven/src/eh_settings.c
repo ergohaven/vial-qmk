@@ -528,6 +528,9 @@ static int modules_select_get(const qmk_settings_proto_t *proto, void *setting, 
         case 143:
             v = get_split_pointing_auto_mouse_layer();
             break;
+        case 324:
+            v = get_split_pointing_auto_mouse_timeout_idx();
+            break;
         default: return -1;
     }
 #else
@@ -569,6 +572,9 @@ static int modules_select_set(const qmk_settings_proto_t *proto, const void *set
             break;
         case 143:
             set_split_pointing_auto_mouse_layer(v);
+            break;
+        case 324:
+            set_split_pointing_auto_mouse_timeout_idx(v);
             break;
         default: return -1;
     }
@@ -1003,5 +1009,10 @@ qmk_settings_proto_t kb_protos[KB_SETTINGS_NPROTOS] PROGMEM = {
     DECLARE_SETTING(317, leds_timeout_get, leds_timeout_set),
     DECLARE_SETTING(318, lcd_brightness_get, lcd_brightness_set),
     DECLARE_SETTING(319, lcd_timeout_get, lcd_timeout_set),
+#if defined(EH_KEYBOARD_SPLIT_POINTING_V2)
+    // Keep qsids in ascending order: qmk_settings_query returns them in table
+    // order and clients advance their cursor to the max qsid of each batch.
+    DECLARE_SETTING(324, modules_select_get, modules_select_set),
+#endif
     // clang-format on
 };
