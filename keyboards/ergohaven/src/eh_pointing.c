@@ -22,6 +22,7 @@ pointing_mode_t                pointing_mode = POINTING_MODE_NORMAL;
 #define PHENOM_AUTO_MOUSE_SUPPORTED_MODES_MASK ((1u << POINTING_MODE_NORMAL) | (1u << POINTING_MODE_SNIPER) | (1u << POINTING_MODE_SCROLL) | (1u << POINTING_MODE_TEXT))
 #define PHENOM_AUTO_MOUSE_TIMEOUT_IDX_COUNT 6
 #define PHENOM_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX 2
+#define PHENOM_AUTO_MOUSE_MOTION_GRACE_MS 50
 #define PHENOM_ENCODER_INTERVAL_IDX_COUNT 10
 #define PHENOM_ENCODER_INTERVAL_DEFAULT_IDX 4
 #define PHENOM_TOUCH_GESTURES_DEFAULT true
@@ -935,6 +936,7 @@ bool get_led_blinks(void) {
 bool is_mouse_active = false;
 static bool is_mouse_active_override_enabled = false;
 static bool is_mouse_active_override         = false;
+static uint16_t mouse_motion_timer            = 0;
 
 void set_pointing_auto_mouse_override(bool enabled, bool active) {
     is_mouse_active_override_enabled = enabled;
@@ -1204,7 +1206,14 @@ bool process_record_pointing(uint16_t keycode, keyrecord_t *record) {
 report_mouse_t pointing_device_task_user(report_mouse_t mrpt) {
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
     if (!is_mouse_active_override_enabled) {
-        is_mouse_active = abs(mrpt.x) >= 1 || abs(mrpt.y) >= 1 || abs(mrpt.v) >= 1 || abs(mrpt.h) >= 1 || mrpt.buttons;
+        bool mouse_report_active = abs(mrpt.x) >= 1 || abs(mrpt.y) >= 1 || abs(mrpt.v) >= 1 || abs(mrpt.h) >= 1 || mrpt.buttons;
+        // Trackballs can emit zero-delta reports between motion samples.
+        if (mouse_report_active) {
+            is_mouse_active    = true;
+            mouse_motion_timer = timer_read();
+        } else if (is_mouse_active && timer_elapsed(mouse_motion_timer) >= PHENOM_AUTO_MOUSE_MOTION_GRACE_MS) {
+            is_mouse_active = false;
+        }
     }
 #endif
     pointing_mode_t pmode = pointing_mode;
