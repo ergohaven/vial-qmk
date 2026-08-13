@@ -106,6 +106,14 @@ bool pre_process_record_kb(uint16_t keycode, keyrecord_t* record) {
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
+    // Some Vial keymaps need to consume keyboard-range user slots before shared
+    // Ergohaven handlers see them.
+#ifdef EH_PROCESS_RECORD_USER_FIRST
+    if (!process_record_user(keycode, record)) {
+        return false;
+    }
+#endif
+
     // #ifdef WPM_ENABLE
     //   if (record->event.pressed) {
     //       extern uint32_t tap_timer;
@@ -237,12 +245,6 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
             return false;
         }
     }
-
-// Some Vial keymaps need to consume keyboard-range user slots before shared
-// Ergohaven handlers see them.
-#ifdef EH_PROCESS_RECORD_USER_FIRST
-    if (!process_record_user(keycode, record)) return false;
-#endif
 
     if (!process_record_ruen(keycode, record)) return false;
 
