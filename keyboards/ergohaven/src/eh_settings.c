@@ -869,6 +869,7 @@ static int simple_joystick_mode_set(const qmk_settings_proto_t *proto, const voi
 
 #endif
 
+#ifndef EH_QMK_SETTINGS_DISABLE_LAYER_LEDS
 static int leds_color_get(const qmk_settings_proto_t *proto, void *setting, size_t maxsz) {
     uint8_t layer = (uint8_t)(proto->qsid - 300);
     uint8_t value;
@@ -934,6 +935,7 @@ static int leds_timeout_set(const qmk_settings_proto_t *proto, const void *setti
     }
     return 0;
 }
+#endif
 
 static int lcd_brightness_get(const qmk_settings_proto_t *proto, void *setting, size_t maxsz) {
     uint8_t value = get_lcd_brightness();
@@ -1095,6 +1097,7 @@ qmk_settings_proto_t kb_protos[KB_SETTINGS_NPROTOS] PROGMEM = {
     DECLARE_SETTING(213, layer_name_get, layer_name_set),
     DECLARE_SETTING(214, layer_name_get, layer_name_set),
     DECLARE_SETTING(215, layer_name_get, layer_name_set),
+#ifndef EH_QMK_SETTINGS_DISABLE_LAYER_LEDS
     DECLARE_SETTING(300, leds_color_get, leds_color_set),
     DECLARE_SETTING(301, leds_color_get, leds_color_set),
     DECLARE_SETTING(302, leds_color_get, leds_color_set),
@@ -1113,6 +1116,7 @@ qmk_settings_proto_t kb_protos[KB_SETTINGS_NPROTOS] PROGMEM = {
     DECLARE_SETTING(315, leds_color_get, leds_color_set),
     DECLARE_SETTING(316, leds_brightness_get, leds_brightness_set),
     DECLARE_SETTING(317, leds_timeout_get, leds_timeout_set),
+#endif
     DECLARE_SETTING(318, lcd_brightness_get, lcd_brightness_set),
     DECLARE_SETTING(319, lcd_timeout_get, lcd_timeout_set),
 #if defined(EH_KEYBOARD_SPLIT_POINTING_V2)

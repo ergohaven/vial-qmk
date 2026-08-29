@@ -1,5 +1,5 @@
 {
-    "firmware": {"version": "4.0.5"},
+    "firmware": {"version": "4.0.5", "capabilities_revision": 2},
     "firmwareVersion": "4.0.5",
     "matrix": {
         "rows": 10,
