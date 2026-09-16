@@ -98,6 +98,9 @@ typedef enum {
     USB_ENDPOINT_IN_CDC_DATA,
     USB_ENDPOINT_IN_CDC_SIGNALING,
 #endif
+#if defined(EH_FAST_UPLOAD_ENABLE)
+    USB_ENDPOINT_IN_FAST,
+#endif
     USB_ENDPOINT_IN_COUNT,
 /* All non shared endpoints have to be consequtive numbers starting from 0, so
  * that they can be used as array indices. The shared endpoints all point to
@@ -132,6 +135,9 @@ typedef enum {
 #endif
 #if defined(VIRTSER_ENABLE)
     USB_ENDPOINT_OUT_CDC_DATA,
+#endif
+#if defined(EH_FAST_UPLOAD_ENABLE)
+    USB_ENDPOINT_OUT_FAST,
 #endif
     USB_ENDPOINT_OUT_COUNT,
 } usb_endpoint_out_lut_t;

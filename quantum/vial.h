@@ -26,11 +26,12 @@
 #define VIAL_RAW_EPSIZE 32
 
 void vial_init(void);
+void vial_unlock_task(void);
 void vial_handle_cmd(uint8_t *data, uint8_t length);
 bool process_record_vial(uint16_t keycode, keyrecord_t *record);
 
-extern int vial_unlocked;
-extern int vial_unlock_in_progress;
+extern bool vial_unlocked;
+extern bool vial_unlock_in_progress;
 extern uint16_t g_vial_magic_keycode_override;
 
 enum {

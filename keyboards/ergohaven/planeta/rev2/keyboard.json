@@ -13,7 +13,7 @@
     "usb": {
         "vid": "0xE126",
         "pid": "0x0031",
-        "device_version": "4.0.5"
+        "device_version": "4.0.6"
     },
     "backlight": {
         "pin": "GP18",

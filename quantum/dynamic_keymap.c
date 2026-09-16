@@ -116,7 +116,7 @@ int dynamic_keymap_set_alt_repeat_key(uint8_t index, const vial_alt_repeat_key_e
 void dynamic_keymap_reset(void) {
 #ifdef VIAL_ENABLE
     /* temporarily unlock the keyboard so we can set hardcoded QK_BOOT keycode */
-    int vial_unlocked_prev = vial_unlocked;
+    bool vial_unlocked_prev = vial_unlocked;
     vial_unlocked = 1;
 #endif
 

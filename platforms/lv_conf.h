@@ -80,7 +80,11 @@
  *====================*/
 
 /*Default display refresh period. LVG will redraw changed areas with this period time*/
+#ifdef EH_DATE_SETTINGS_ENABLE
+#define LV_DISP_DEF_REFR_PERIOD 16
+#else
 #define LV_DISP_DEF_REFR_PERIOD 30      /*[ms]*/
+#endif
 
 /*Input device read period in milliseconds*/
 #define LV_INDEV_DEF_READ_PERIOD 30     /*[ms]*/
@@ -395,7 +399,11 @@
 #define LV_FONT_FMT_TXT_LARGE 0
 
 /*Enables/disables support for compressed fonts.*/
-#define LV_USE_FONT_COMPRESSED 0
+#ifdef EH_DATE_SETTINGS_ENABLE
+#    define LV_USE_FONT_COMPRESSED 1
+#else
+#    define LV_USE_FONT_COMPRESSED 0
+#endif
 
 /*Enable subpixel rendering*/
 #ifndef LV_USE_FONT_SUBPX

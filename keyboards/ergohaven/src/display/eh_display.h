@@ -10,6 +10,7 @@
 
 extern lv_color_t accent_color_red;
 extern lv_color_t accent_color_blue;
+extern lv_color_t display_background_color;
 
 extern lv_style_t style_screen;
 extern lv_style_t style_container;
@@ -27,6 +28,28 @@ void display_turn_on(void);
 void display_turn_off(void);
 
 bool is_display_enabled(void);
+bool display_should_wake_on_usb_resume(void);
+
+void display_process_keyevent(uint8_t row, uint8_t col, bool pressed);
+
+void display_process_matrix_press(void);
+
+void display_process_encoder_event(uint8_t index, bool clockwise, uint16_t keycode);
+
+void display_apply_accent_color(uint8_t red, uint8_t green, uint8_t blue);
+
+void display_apply_background_color(uint8_t red, uint8_t green, uint8_t blue);
+
+void display_apply_brightness(void);
+
+__attribute__((weak)) void display_accent_color_changed_kb(void);
+
+__attribute__((weak)) void display_background_color_changed_kb(void);
+
+void display_apply_button_style(uint8_t style);
+void display_apply_clock_settings(void);
+
+__attribute__((weak)) void display_button_style_changed_kb(uint8_t style);
 
 const char *get_layer_label(uint8_t layer);
 

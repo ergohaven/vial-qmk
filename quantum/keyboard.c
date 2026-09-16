@@ -604,6 +604,9 @@ static bool matrix_task(void) {
     static matrix_row_t matrix_previous[MATRIX_ROWS];
 
     matrix_scan();
+#ifdef VIAL_ENABLE
+    vial_unlock_task();
+#endif
     bool matrix_changed = false;
     for (uint8_t row = 0; row < MATRIX_ROWS && !matrix_changed; row++) {
         matrix_changed |= matrix_previous[row] ^ matrix_get_row(row);

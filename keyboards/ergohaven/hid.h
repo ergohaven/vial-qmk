@@ -5,6 +5,9 @@
 
 typedef struct {
     bool    hid_changed;
+    uint16_t year;
+    uint8_t month, day;
+    bool date_valid;
     uint8_t hours;
     uint8_t minutes;
     bool    time_changed;
@@ -23,5 +26,7 @@ hid_data_t* get_hid_data(void);
 void keyboard_post_init_hid(void);
 
 bool is_hid_active(void);
+bool is_hid_volume_active(void);
+bool is_hid_time_active(void);
 
 void hid_send_pointing_mode(pointing_mode_t mode);

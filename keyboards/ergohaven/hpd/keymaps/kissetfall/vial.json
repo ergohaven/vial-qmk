@@ -1,6 +1,6 @@
 {
-    "firmware": {"version": "4.0.5"},
-    "firmwareVersion": "4.0.5",
+    "firmware": {"version": "4.0.6"},
+    "firmwareVersion": "4.0.6",
     "name": "HPD",
     "vendorId": "0x444D",
     "productId": "0x1337",

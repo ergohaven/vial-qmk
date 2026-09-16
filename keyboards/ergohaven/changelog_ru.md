@@ -1,3 +1,13 @@
+## 4.0.6
+
+- Reduced the Vial unlock hold time to 3 seconds on all keyboards.
+- Fixed M4CR0Pad v2/v3 waking the home screen on the first key press during a fullscreen animation.
+- Added standby-screen settings, custom 32×32 pictograms, and macro/Tap Dance pictogram assignments for M4CR0Pad v2/v3.
+
+- Сокращено время удержания для разблокировки Vial до 3 секунд на всех клавиатурах.
+- Исправлено пробуждение основного экрана M4CR0Pad v2/v3 первым нажатием во время полноэкранной анимации.
+- Добавлены настройки экрана ожидания, пользовательские пиктограммы 32×32 и назначение пиктограмм для макросов и Tap Dance на M4CR0Pad v2/v3.
+
 ## 4.0.5
 
 - Added new settings for **K03 Pro**, **Trackball**, **HPD**, **Phenom**, **Phenom Mini** and **Phenom Micro**:

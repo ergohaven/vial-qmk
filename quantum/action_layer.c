@@ -359,7 +359,13 @@ uint8_t layer_switch_get_layer(keypos_t key) {
     layer_state_t layers = layer_state | default_layer_state;
     /* check top layer first */
     for (int8_t i = MAX_LAYER - 1; i >= 0; i--) {
+#ifdef EH_SEQUENTIAL_LAYER_FALLBACK
+        // M4CR0Pad's numbered pages inherit the nearest lower assignment.
+        // Resolve actions and display content identically, including encoders.
+        if (i <= get_highest_layer(layers)) {
+#else
         if (layers & ((layer_state_t)1 << i)) {
+#endif
             action = action_for_key(i, key);
             if (action.code != ACTION_TRANSPARENT) {
                 return i;

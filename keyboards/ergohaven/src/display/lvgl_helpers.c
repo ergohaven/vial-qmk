@@ -29,6 +29,8 @@ void toggle_state(void *obj, lv_state_t state, bool enabled) {
 }
 
 void toggle_hidden(void *obj, bool visible) {
+    // LVGL invalidates even when add/clear_flag does not change visibility.
+    if (lv_obj_has_flag(obj, LV_OBJ_FLAG_HIDDEN) == !visible) return;
     if (visible) {
         lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
     } else {

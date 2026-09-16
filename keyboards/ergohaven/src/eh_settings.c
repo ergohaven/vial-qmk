@@ -1,3 +1,7 @@
+#ifdef EH_DATE_SETTINGS_ENABLE
+#    include "display/eh_date_settings.h"
+#    include "display/eh_display.h"
+#endif
 #include "eh_settings.h"
 #include "eh_ruen.h"
 #include "eh_pointing.h"
@@ -54,6 +58,195 @@ __attribute__((weak)) void set_lcd_timeout_mins(uint8_t timeout_mins) {
 __attribute__((weak)) uint32_t get_lcd_timeout_ms(void) {
     return 10 * 60 * 1000;
 }
+__attribute__((weak)) uint8_t get_display_accent_red(void) {
+    return 84;
+}
+__attribute__((weak)) uint8_t get_display_accent_green(void) {
+    return 189;
+}
+__attribute__((weak)) uint8_t get_display_accent_blue(void) {
+    return 191;
+}
+__attribute__((weak)) void set_display_accent_red(uint8_t red) {
+    (void)red;
+}
+__attribute__((weak)) void set_display_accent_green(uint8_t green) {
+    (void)green;
+}
+__attribute__((weak)) void set_display_accent_blue(uint8_t blue) {
+    (void)blue;
+}
+__attribute__((weak)) uint8_t get_display_background_red(void) {
+    return 0;
+}
+__attribute__((weak)) uint8_t get_display_background_green(void) {
+    return 0;
+}
+__attribute__((weak)) uint8_t get_display_background_blue(void) {
+    return 0;
+}
+__attribute__((weak)) void set_display_background_red(uint8_t red) {
+    (void)red;
+}
+__attribute__((weak)) void set_display_background_green(uint8_t green) {
+    (void)green;
+}
+__attribute__((weak)) void set_display_background_blue(uint8_t blue) {
+    (void)blue;
+}
+__attribute__((weak)) uint8_t get_display_button_style(void) {
+    return 0;
+}
+__attribute__((weak)) void set_display_button_style(uint8_t style) {
+    (void)style;
+}
+__attribute__((weak)) uint8_t get_clock_text_red(void) {
+    return 255;
+}
+__attribute__((weak)) uint8_t get_clock_text_green(void) {
+    return 255;
+}
+__attribute__((weak)) uint8_t get_clock_text_blue(void) {
+    return 255;
+}
+__attribute__((weak)) void set_clock_text_red(uint8_t red) {
+    (void)red;
+}
+__attribute__((weak)) void set_clock_text_green(uint8_t green) {
+    (void)green;
+}
+__attribute__((weak)) void set_clock_text_blue(uint8_t blue) {
+    (void)blue;
+}
+__attribute__((weak)) uint8_t get_clock_background_red(void) {
+    return 0;
+}
+__attribute__((weak)) uint8_t get_clock_background_green(void) {
+    return 0;
+}
+__attribute__((weak)) uint8_t get_clock_background_blue(void) {
+    return 0;
+}
+__attribute__((weak)) void set_clock_background_red(uint8_t red) {
+    (void)red;
+}
+__attribute__((weak)) void set_clock_background_green(uint8_t green) {
+    (void)green;
+}
+__attribute__((weak)) void set_clock_background_blue(uint8_t blue) {
+    (void)blue;
+}
+__attribute__((weak)) uint8_t get_clock_style(void) {
+    return 0;
+}
+__attribute__((weak)) void set_clock_style(uint8_t style) {
+    (void)style;
+}
+__attribute__((weak)) uint8_t get_clock_size(void) {
+    return 2;
+}
+__attribute__((weak)) void set_clock_size(uint8_t size) {
+    (void)size;
+}
+__attribute__((weak)) uint8_t get_clock_alignment(void) {
+    return 1;
+}
+__attribute__((weak)) void set_clock_alignment(uint8_t alignment) {
+    (void)alignment;
+}
+__attribute__((weak)) uint8_t get_clock_delay_variant(void) {
+    return 1;
+}
+__attribute__((weak)) void set_clock_delay_variant(uint8_t variant) {
+    (void)variant;
+}
+__attribute__((weak)) uint32_t get_clock_delay_ms(void) {
+    return 10 * 1000;
+}
+__attribute__((weak)) bool get_clock_colon_blink(void) {
+    return false;
+}
+__attribute__((weak)) void set_clock_colon_blink(bool enabled) {
+    (void)enabled;
+}
+__attribute__((weak)) uint8_t get_clock_info_red(void) {
+    return 255;
+}
+__attribute__((weak)) uint8_t get_clock_info_green(void) {
+    return 255;
+}
+__attribute__((weak)) uint8_t get_clock_info_blue(void) {
+    return 255;
+}
+__attribute__((weak)) void set_clock_info_red(uint8_t red) {
+    (void)red;
+}
+__attribute__((weak)) void set_clock_info_green(uint8_t green) {
+    (void)green;
+}
+__attribute__((weak)) void set_clock_info_blue(uint8_t blue) {
+    (void)blue;
+}
+__attribute__((weak)) bool get_clock_visible(void) {
+    return true;
+}
+__attribute__((weak)) void set_clock_visible(bool visible) {
+    (void)visible;
+}
+__attribute__((weak)) uint8_t get_clock_opacity(void) {
+    return 100;
+}
+__attribute__((weak)) void set_clock_opacity(uint8_t opacity) {
+    (void)opacity;
+}
+__attribute__((weak)) bool get_clock_info_visible(void) {
+    return true;
+}
+__attribute__((weak)) void set_clock_info_visible(bool visible) {
+    (void)visible;
+}
+__attribute__((weak)) uint8_t get_clock_info_opacity(void) {
+    return 100;
+}
+__attribute__((weak)) void set_clock_info_opacity(uint8_t opacity) {
+    (void)opacity;
+}
+__attribute__((weak)) bool get_clock_modifiers_visible(void) {
+    return true;
+}
+__attribute__((weak)) void set_clock_modifiers_visible(bool visible) {
+    (void)visible;
+}
+__attribute__((weak)) uint8_t get_clock_modifiers_red(void) {
+    return get_clock_info_red();
+}
+__attribute__((weak)) uint8_t get_clock_modifiers_green(void) {
+    return get_clock_info_green();
+}
+__attribute__((weak)) uint8_t get_clock_modifiers_blue(void) {
+    return get_clock_info_blue();
+}
+__attribute__((weak)) void set_clock_modifiers_red(uint8_t red) {
+    (void)red;
+}
+__attribute__((weak)) void set_clock_modifiers_green(uint8_t green) {
+    (void)green;
+}
+__attribute__((weak)) void set_clock_modifiers_blue(uint8_t blue) {
+    (void)blue;
+}
+__attribute__((weak)) uint8_t get_clock_modifiers_opacity(void) {
+    return 100;
+}
+__attribute__((weak)) void set_clock_modifiers_opacity(uint8_t opacity) {
+    (void)opacity;
+}
+__attribute__((weak)) uint8_t get_clock_background_dim(void) {
+    return 30;
+}
+__attribute__((weak)) void set_clock_background_dim(uint8_t dim) {
+    (void)dim;
+}
 __attribute__((weak)) uint8_t get_split_lcd_brightness(void) {
     return get_lcd_brightness();
 }
@@ -87,6 +280,10 @@ void kb_settings_reset(void) {
     kb_settings_split_pointing_reset();
     kb_settings_led_colors_reset();
     kb_settings_lcd_reset();
+#ifdef EH_DATE_SETTINGS_ENABLE
+    eh_date_reset();
+    eh_extra_settings_flush();
+#endif
     kb_settings_init();
 }
 
@@ -982,6 +1179,313 @@ static int lcd_timeout_set(const qmk_settings_proto_t *proto, const void *settin
     return 0;
 }
 
+#ifdef EH_DISPLAY_COLOR_SETTINGS
+static int display_accent_get(const qmk_settings_proto_t *proto, void *setting, size_t maxsz) {
+    uint8_t value;
+    if (maxsz < sizeof(value)) return -1;
+    switch (proto->qsid) {
+        case 320:
+            value = get_display_accent_red();
+            break;
+        case 321:
+            value = get_display_accent_green();
+            break;
+        case 322:
+            value = get_display_accent_blue();
+            break;
+        default:
+            return -1;
+    }
+    memcpy(setting, &value, sizeof(value));
+    return 0;
+}
+
+static int display_accent_set(const qmk_settings_proto_t *proto, const void *setting, size_t maxsz) {
+    uint8_t value;
+    if (maxsz < sizeof(value)) return -1;
+    memcpy(&value, setting, sizeof(value));
+    switch (proto->qsid) {
+        case 320:
+            set_display_accent_red(value);
+            break;
+        case 321:
+            set_display_accent_green(value);
+            break;
+        case 322:
+            set_display_accent_blue(value);
+            break;
+        default:
+            return -1;
+    }
+    return 0;
+}
+
+static int display_background_get(const qmk_settings_proto_t *proto, void *setting, size_t maxsz) {
+    uint8_t value;
+    if (maxsz < sizeof(value)) return -1;
+    switch (proto->qsid) {
+        case 330:
+            value = get_display_background_red();
+            break;
+        case 331:
+            value = get_display_background_green();
+            break;
+        case 332:
+            value = get_display_background_blue();
+            break;
+        default:
+            return -1;
+    }
+    memcpy(setting, &value, sizeof(value));
+    return 0;
+}
+
+static int display_background_set(const qmk_settings_proto_t *proto, const void *setting, size_t maxsz) {
+    uint8_t value;
+    if (maxsz < sizeof(value)) return -1;
+    memcpy(&value, setting, sizeof(value));
+    switch (proto->qsid) {
+        case 330:
+            set_display_background_red(value);
+            break;
+        case 331:
+            set_display_background_green(value);
+            break;
+        case 332:
+            set_display_background_blue(value);
+            break;
+        default:
+            return -1;
+    }
+    return 0;
+}
+
+static int display_button_style_get(const qmk_settings_proto_t *proto, void *setting, size_t maxsz) {
+    (void)proto;
+    uint8_t value = get_display_button_style();
+    if (maxsz < sizeof(value)) return -1;
+    memcpy(setting, &value, sizeof(value));
+    return 0;
+}
+
+static int display_button_style_set(const qmk_settings_proto_t *proto, const void *setting, size_t maxsz) {
+    (void)proto;
+    uint8_t value;
+    if (maxsz < sizeof(value)) return -1;
+    memcpy(&value, setting, sizeof(value));
+    if (value > 32) return -1;
+    set_display_button_style(value);
+    return 0;
+}
+
+static int clock_color_get(const qmk_settings_proto_t *proto, void *setting, size_t maxsz) {
+    uint8_t value;
+    if (maxsz < sizeof(value)) return -1;
+    switch (proto->qsid) {
+        case 333:
+            value = get_clock_text_red();
+            break;
+        case 334:
+            value = get_clock_text_green();
+            break;
+        case 335:
+            value = get_clock_text_blue();
+            break;
+        case 336:
+            value = get_clock_background_red();
+            break;
+        case 337:
+            value = get_clock_background_green();
+            break;
+        case 338:
+            value = get_clock_background_blue();
+            break;
+        case 344:
+            value = get_clock_info_red();
+            break;
+        case 345:
+            value = get_clock_info_green();
+            break;
+        case 346:
+            value = get_clock_info_blue();
+            break;
+        case 347:
+            value = get_clock_background_dim();
+            break;
+        case 348:
+            value = get_clock_visible();
+            break;
+        case 349:
+            value = get_clock_opacity();
+            break;
+        case 350:
+            value = get_clock_info_visible();
+            break;
+        case 351:
+            value = get_clock_info_opacity();
+            break;
+        case 352:
+            value = get_clock_modifiers_visible();
+            break;
+        case 353:
+            value = get_clock_modifiers_red();
+            break;
+        case 354:
+            value = get_clock_modifiers_green();
+            break;
+        case 355:
+            value = get_clock_modifiers_blue();
+            break;
+        case 356:
+            value = get_clock_modifiers_opacity();
+            break;
+        default:
+            return -1;
+    }
+    memcpy(setting, &value, sizeof(value));
+    return 0;
+}
+
+static int clock_color_set(const qmk_settings_proto_t *proto, const void *setting, size_t maxsz) {
+    uint8_t value;
+    if (maxsz < sizeof(value)) return -1;
+    memcpy(&value, setting, sizeof(value));
+    switch (proto->qsid) {
+        case 333:
+            set_clock_text_red(value);
+            break;
+        case 334:
+            set_clock_text_green(value);
+            break;
+        case 335:
+            set_clock_text_blue(value);
+            break;
+        case 336:
+            set_clock_background_red(value);
+            break;
+        case 337:
+            set_clock_background_green(value);
+            break;
+        case 338:
+            set_clock_background_blue(value);
+            break;
+        case 344:
+            set_clock_info_red(value);
+            break;
+        case 345:
+            set_clock_info_green(value);
+            break;
+        case 346:
+            set_clock_info_blue(value);
+            break;
+        case 347:
+            if (value > 100) return -1;
+            set_clock_background_dim(value);
+            break;
+        case 348:
+            if (value > 1) return -1;
+            set_clock_visible(value != 0);
+            break;
+        case 349:
+            if (value > 100) return -1;
+            set_clock_opacity(value);
+            break;
+        case 350:
+            if (value > 1) return -1;
+            set_clock_info_visible(value != 0);
+            break;
+        case 351:
+            if (value > 100) return -1;
+            set_clock_info_opacity(value);
+            break;
+        case 352:
+            if (value > 1) return -1;
+            set_clock_modifiers_visible(value != 0);
+            break;
+        case 353:
+            set_clock_modifiers_red(value);
+            break;
+        case 354:
+            set_clock_modifiers_green(value);
+            break;
+        case 355:
+            set_clock_modifiers_blue(value);
+            break;
+        case 356:
+            if (value > 100) return -1;
+            set_clock_modifiers_opacity(value);
+            break;
+        default:
+            return -1;
+    }
+    return 0;
+}
+
+static int clock_option_get(const qmk_settings_proto_t *proto, void *setting, size_t maxsz) {
+    uint8_t value;
+    if (maxsz < sizeof(value)) return -1;
+    switch (proto->qsid) {
+        case 339:
+            value = get_clock_style();
+            break;
+        case 340:
+            value = get_clock_size();
+            break;
+        case 341:
+            value = get_clock_alignment();
+            break;
+        case 342:
+            value = get_clock_delay_variant();
+            break;
+        case 343:
+            value = get_clock_colon_blink();
+            break;
+        default:
+            return -1;
+    }
+    memcpy(setting, &value, sizeof(value));
+    return 0;
+}
+
+static int clock_option_set(const qmk_settings_proto_t *proto, const void *setting, size_t maxsz) {
+    uint8_t value;
+    if (maxsz < sizeof(value)) return -1;
+    memcpy(&value, setting, sizeof(value));
+    switch (proto->qsid) {
+        case 339:
+            set_clock_style(value);
+            break;
+        case 340:
+            set_clock_size(value);
+            break;
+        case 341:
+            set_clock_alignment(value);
+            break;
+        case 342:
+            set_clock_delay_variant(value);
+            break;
+        case 343:
+            if (value > 1) return -1;
+            set_clock_colon_blink(value != 0);
+            break;
+        default:
+            return -1;
+    }
+    return 0;
+}
+#endif
+
+#ifdef EH_DATE_SETTINGS_ENABLE
+static int date_option_get(const qmk_settings_proto_t *proto, void *setting, size_t maxsz) {
+    if (maxsz < 1) return -1;
+    *(uint8_t *)setting = eh_date_get(proto->qsid - 357); return 0;
+}
+static int date_option_set(const qmk_settings_proto_t *proto, const void *setting, size_t maxsz) {
+    if (maxsz < 1 || !eh_date_set(proto->qsid - 357, *(const uint8_t *)setting)) return -1;
+    display_apply_clock_settings(); display_apply_brightness(); return 0;
+}
+#endif
+
 qmk_settings_proto_t kb_protos[KB_SETTINGS_NPROTOS] PROGMEM = {
     // clang-format off
     DECLARE_SETTING(100, ruen_toggle_get, ruen_toggle_set),
@@ -1115,6 +1619,57 @@ qmk_settings_proto_t kb_protos[KB_SETTINGS_NPROTOS] PROGMEM = {
     DECLARE_SETTING(317, leds_timeout_get, leds_timeout_set),
     DECLARE_SETTING(318, lcd_brightness_get, lcd_brightness_set),
     DECLARE_SETTING(319, lcd_timeout_get, lcd_timeout_set),
+#ifdef EH_DISPLAY_COLOR_SETTINGS
+    DECLARE_SETTING(320, display_accent_get, display_accent_set),
+    DECLARE_SETTING(321, display_accent_get, display_accent_set),
+    DECLARE_SETTING(322, display_accent_get, display_accent_set),
+    DECLARE_SETTING(323, display_button_style_get, display_button_style_set),
+    DECLARE_SETTING(330, display_background_get, display_background_set),
+    DECLARE_SETTING(331, display_background_get, display_background_set),
+    DECLARE_SETTING(332, display_background_get, display_background_set),
+    DECLARE_SETTING(333, clock_color_get, clock_color_set),
+    DECLARE_SETTING(334, clock_color_get, clock_color_set),
+    DECLARE_SETTING(335, clock_color_get, clock_color_set),
+    DECLARE_SETTING(336, clock_color_get, clock_color_set),
+    DECLARE_SETTING(337, clock_color_get, clock_color_set),
+    DECLARE_SETTING(338, clock_color_get, clock_color_set),
+    DECLARE_SETTING(339, clock_option_get, clock_option_set),
+    DECLARE_SETTING(340, clock_option_get, clock_option_set),
+    DECLARE_SETTING(341, clock_option_get, clock_option_set),
+    DECLARE_SETTING(342, clock_option_get, clock_option_set),
+    DECLARE_SETTING(343, clock_option_get, clock_option_set),
+    DECLARE_SETTING(344, clock_color_get, clock_color_set),
+    DECLARE_SETTING(345, clock_color_get, clock_color_set),
+    DECLARE_SETTING(346, clock_color_get, clock_color_set),
+    DECLARE_SETTING(347, clock_color_get, clock_color_set),
+    DECLARE_SETTING(348, clock_color_get, clock_color_set),
+    DECLARE_SETTING(349, clock_color_get, clock_color_set),
+    DECLARE_SETTING(350, clock_color_get, clock_color_set),
+    DECLARE_SETTING(351, clock_color_get, clock_color_set),
+    DECLARE_SETTING(352, clock_color_get, clock_color_set),
+    DECLARE_SETTING(353, clock_color_get, clock_color_set),
+    DECLARE_SETTING(354, clock_color_get, clock_color_set),
+    DECLARE_SETTING(355, clock_color_get, clock_color_set),
+    DECLARE_SETTING(356, clock_color_get, clock_color_set),
+#ifdef EH_DATE_SETTINGS_ENABLE
+    DECLARE_SETTING(357, date_option_get, date_option_set),
+    DECLARE_SETTING(358, date_option_get, date_option_set),
+    DECLARE_SETTING(359, date_option_get, date_option_set),
+    DECLARE_SETTING(360, date_option_get, date_option_set),
+    DECLARE_SETTING(361, date_option_get, date_option_set),
+    DECLARE_SETTING(362, date_option_get, date_option_set),
+    DECLARE_SETTING(363, date_option_get, date_option_set),
+    DECLARE_SETTING(364, date_option_get, date_option_set),
+    DECLARE_SETTING(365, date_option_get, date_option_set),
+    DECLARE_SETTING(366, date_option_get, date_option_set),
+    DECLARE_SETTING(367, date_option_get, date_option_set),
+    DECLARE_SETTING(368, date_option_get, date_option_set),
+    DECLARE_SETTING(369, date_option_get, date_option_set),
+    DECLARE_SETTING(370, date_option_get, date_option_set),
+    DECLARE_SETTING(371, date_option_get, date_option_set),
+
+#endif
+#endif
 #if defined(EH_KEYBOARD_SPLIT_POINTING_V2)
     DECLARE_SETTING(324, modules_select_get, modules_select_set),
     DECLARE_SETTING(325, modules_select_get, modules_select_set),

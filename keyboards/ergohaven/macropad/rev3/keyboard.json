@@ -6,7 +6,7 @@
     "usb": {
         "vid": "0xE126",
         "pid": "0x0042",
-        "device_version": "4.0.5"
+        "device_version": "4.0.6"
     },
     "features": {
         "rgb_matrix": true
@@ -80,7 +80,7 @@
     },
     "backlight": {
         "pin": "GP23",
-        "levels": 10,
+        "levels": 31,
         "breathing": false
       },
     "encoder": {

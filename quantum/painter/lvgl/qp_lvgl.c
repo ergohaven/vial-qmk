@@ -19,6 +19,14 @@ static lvgl_state_t        lvgl_states[2]    = {0}; // For lv_tick_inc and lv_ta
 painter_device_t selected_display = NULL;
 void *           color_buffer     = NULL;
 
+#ifndef QP_LVGL_BUFFER_DIVISOR
+#    define QP_LVGL_BUFFER_DIVISOR 10
+#endif
+
+#if QP_LVGL_BUFFER_DIVISOR < 1
+#    error "QP_LVGL_BUFFER_DIVISOR must be at least 1"
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Quantum Painter LVGL Integration Internal: qp_lvgl_flush
 
@@ -95,8 +103,9 @@ bool qp_lvgl_attach(painter_device_t device) {
 
     // Set up lvgl display buffer
     static lv_disp_draw_buf_t draw_buf;
-    // Allocate a buffer for 1/10 screen size
-    const size_t count_required   = driver->panel_width * driver->panel_height / 10;
+    // A small strip is the conservative default. Displays with enough RAM can
+    // request a complete frame to avoid exposing strip-by-strip redraws.
+    const size_t count_required   = driver->panel_width * driver->panel_height / QP_LVGL_BUFFER_DIVISOR;
     void *       new_color_buffer = realloc(color_buffer, sizeof(lv_color_t) * count_required);
     if (!new_color_buffer) {
         qp_dprintf("qp_lvgl_attach: fail (could not set up memory buffer)\n");

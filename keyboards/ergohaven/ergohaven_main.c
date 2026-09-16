@@ -20,6 +20,53 @@ float caps_sound[][2] = SONG(CAPS_LOCK_ON_SOUND);
 bool     is_alt_tab_active = false;
 uint16_t alt_tab_timer     = 0;
 
+#if defined(EH_HAS_DISPLAY) && defined(DIRECT_PINS) && PAL_USE_CALLBACKS
+static const pin_t display_wake_pins[MATRIX_ROWS][MATRIX_COLS] = DIRECT_PINS;
+static volatile bool display_wake_interrupt_pending;
+
+static void display_wake_pin_callback(void *argument) {
+    (void)argument;
+    // IRQ context must never call LVGL or SPI. Preserve even a very short key
+    // pulse while the main thread is flushing a full animation frame.
+    display_wake_interrupt_pending = true;
+}
+
+static void display_wake_interrupt_init(void) {
+    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+        for (uint8_t col = 0; col < MATRIX_COLS; col++) {
+            pin_t pin = display_wake_pins[row][col];
+            if (pin == NO_PIN) continue;
+            palSetLineCallback(pin, display_wake_pin_callback, NULL);
+            palEnableLineEvent(pin, PAL_EVENT_MODE_FALLING_EDGE);
+        }
+    }
+}
+#endif
+
+#if defined(EH_ENCODER_WAKE_INTERRUPTS) && defined(ENCODER_ENABLE) && PAL_USE_CALLBACKS
+static const pin_t display_encoder_pins_a[] = ENCODER_A_PINS;
+static const pin_t display_encoder_pins_b[] = ENCODER_B_PINS;
+
+extern void encoder_quadrature_handle_read(uint8_t index, uint8_t pin_a_state, uint8_t pin_b_state);
+
+static void display_encoder_pin_callback(void *argument) {
+    uint8_t index = (uint8_t)(uintptr_t)argument;
+    // The QMK quadrature driver explicitly supports feeding pin changes from
+    // IRQ context. It only updates its tiny state machine and queues a normal
+    // encoder event; keycodes, LVGL and SPI remain in the main thread.
+    encoder_quadrature_handle_read(index, gpio_read_pin(display_encoder_pins_a[index]), gpio_read_pin(display_encoder_pins_b[index]));
+}
+
+void encoder_quadrature_post_init_kb(void) {
+    for (uint8_t index = 0; index < NUM_ENCODERS; index++) {
+        palSetLineCallback(display_encoder_pins_a[index], display_encoder_pin_callback, (void *)(uintptr_t)index);
+        palSetLineCallback(display_encoder_pins_b[index], display_encoder_pin_callback, (void *)(uintptr_t)index);
+        palEnableLineEvent(display_encoder_pins_a[index], PAL_EVENT_MODE_BOTH_EDGES);
+        palEnableLineEvent(display_encoder_pins_b[index], PAL_EVENT_MODE_BOTH_EDGES);
+    }
+}
+#endif
+
 #if defined(RGB_MATRIX_ENABLE) && defined(EH_RGB_MATRIX_RUNTIME_TIMEOUT)
 static bool rgb_matrix_timeout_suspended = false;
 #endif
@@ -102,8 +149,26 @@ void vial_get_unlock_combo_coords(uint8_t *rows, uint8_t *cols, size_t count) {
 #endif
 
 bool pre_process_record_kb(uint16_t keycode, keyrecord_t* record) {
+#ifdef EH_HAS_DISPLAY
+#    if defined(ENCODER_ENABLE) && defined(ENCODER_MAP_ENABLE)
+    if (record->event.pressed && IS_ENCODEREVENT(record->event) &&
+        (record->event.key.row == KEYLOC_ENCODER_CW || record->event.key.row == KEYLOC_ENCODER_CCW)) {
+        display_process_encoder_event(record->event.key.col, record->event.key.row == KEYLOC_ENCODER_CW, keycode);
+    } else
+#    endif
+    {
+        display_process_keyevent(record->event.key.row, record->event.key.col, record->event.pressed);
+    }
+#endif
     return pre_process_record_ruen(keycode, record) && pre_process_record_user(keycode, record);
 }
+
+#if defined(EH_HAS_DISPLAY) && defined(ENCODER_ENABLE) && !defined(ENCODER_MAP_ENABLE)
+bool encoder_update_kb(uint8_t index, bool clockwise) {
+    display_process_encoder_event(index, clockwise, KC_NO);
+    return encoder_update_user(index, clockwise);
+}
+#endif
 
 bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
     // #ifdef WPM_ENABLE
@@ -299,6 +364,27 @@ bool caps_word_press_user(uint16_t keycode) {
 }
 
 void matrix_scan_kb(void) { // The very important timer.
+#ifdef EH_HAS_DISPLAY
+#    if defined(DIRECT_PINS) && PAL_USE_CALLBACKS
+    if (display_wake_interrupt_pending) {
+        display_wake_interrupt_pending = false;
+        display_process_matrix_press();
+    }
+#    endif
+
+    // This runs immediately after QMK has debounced the physical matrix and
+    // before keycode processing or the next LVGL/Quantum Painter task. A
+    // rising edge therefore leaves standby on the first accepted press.
+    static matrix_row_t previous_display_matrix[MATRIX_ROWS];
+    bool                display_matrix_pressed = false;
+    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+        matrix_row_t current = matrix_get_row(row);
+        display_matrix_pressed |= (current & ~previous_display_matrix[row]) != 0;
+        previous_display_matrix[row] = current;
+    }
+    if (display_matrix_pressed) display_process_matrix_press();
+#endif
+
     if (is_alt_tab_active) {
         if (timer_elapsed(alt_tab_timer) > 650) {
             unregister_code(keymap_config.swap_lctl_lgui ? KC_LGUI : KC_LALT);
@@ -315,6 +401,10 @@ void keyboard_post_init_kb(void) {
 #endif
 
     kb_settings_init();
+
+#if defined(EH_HAS_DISPLAY) && defined(DIRECT_PINS) && PAL_USE_CALLBACKS
+    display_wake_interrupt_init();
+#endif
 
 #ifdef RGBLIGHT_ENABLE
     keyboard_post_init_rgb();
@@ -460,7 +550,7 @@ void suspend_power_down_kb(void) {
 
 void suspend_wakeup_init_kb(void) {
 #ifdef EH_HAS_DISPLAY
-    display_turn_on();
+    if (display_should_wake_on_usb_resume()) display_turn_on();
 #endif
 #ifdef RGBLIGHT_ENABLE
     rgb_on();
