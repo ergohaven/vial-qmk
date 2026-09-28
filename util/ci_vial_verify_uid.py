@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 from glob import glob
 from pathlib import Path
 import re
@@ -6,14 +7,33 @@ import sys
 import struct
 from collections import defaultdict
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="Verify that Vial keyboard UIDs are unique.")
+    parser.add_argument(
+        "--root",
+        default="keyboards",
+        help="Only scan vial.json files below this directory (default: keyboards).",
+    )
+    return parser.parse_args()
+
 def main():
+
+    args = parse_args()
+    root = Path(args.root)
+    if not root.is_dir():
+        print("UID scan root does not exist or is not a directory: {}".format(root))
+        return 1
 
     VIAL_UID_REGEX = re.compile(r"#\s*define\s+VIAL_KEYBOARD_UID\s+(?:\\(?:\n|\r)\s*)*{\s*((?:0(?:x|X)(?:[0-9a-fA-F]){2}\s*,\s*){7}(?:0(?:x|X)(?:[0-9a-fA-F]){2}))\s*}")
 
     error = 0
     uid_to_keyboards = defaultdict(set)
 
-    for filename in glob("keyboards/**/vial.json", recursive=True):
+    for filename in sorted(glob(str(root / "**" / "vial.json"), recursive=True)):
+        filename = Path(filename).as_posix()
+        if not filename.startswith("keyboards/"):
+            print("UID scan root must be inside keyboards: {}".format(root))
+            return 1
         keyboard = filename[10:-10].split("/keymaps/")[0]
 
         dirname = Path(filename).parents[0]
