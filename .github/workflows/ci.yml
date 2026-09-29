@@ -19,4 +19,4 @@ jobs:
         persist-credentials: false
 
     - name: Verify Vial UID is unique per-keyboard
-      run: python3 util/ci_vial_verify_uid.py --root keyboards/ergohaven
+      run: python3 util/ci_vial_verify_uid.py

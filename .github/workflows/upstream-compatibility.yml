@@ -2,6 +2,8 @@ name: Upstream compatibility
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '17 3 * * 1'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -83,10 +85,24 @@ jobs:
       id: build
       run: |
         git config --global --add safe.directory $(pwd)
-        if ! qmk mass-compile -km "${KEYMAP}" -j $(nproc);
+        set +e
+        qmk mass-compile -km "${KEYMAP}" -j $(nproc) > /tmp/qmk-mass-compile.log 2>&1
+        build_status=$?
+        set -e
+        cat /tmp/qmk-mass-compile.log
+
+        sed "${REGEX_ANSI_COLOR}" /tmp/qmk-mass-compile.log \
+          | sed -n 's/^Build \(.*\):vial[[:space:]]*\[ERRORS\][[:space:]]*$/\1/p' \
+          | sort -u > /tmp/actual-vial-failures.txt
+
+        if ! diff -u .github/upstream-vial-known-failures.txt /tmp/actual-vial-failures.txt;
           then
-          echo "::error::$(ls -1 .build/failed.log.* | wc -l) keymaps failed to build. See logs and/or job summary for details."
+          echo "::error::Upstream Vial failure baseline changed. Review regressions or remove fixed targets from the allowlist."
           exit 1
+        fi
+
+        if [ "${build_status}" -ne 0 ]; then
+          echo "::warning::Only the documented upstream Vial baseline failures were observed."
         fi
 
     - name: Dump failure logs

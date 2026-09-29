@@ -8,8 +8,22 @@ on:
 
 jobs:
 
+  verify-release-scope:
+    name: Verify Ergohaven release scope
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: (actions) Checkout Vial repo
+      uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+
+    - name: Verify release matrix and intentional exclusions
+      run: python3 util/ci_ergohaven_release_scope.py
+
   build-ergohaven:
     name: Build Ergohaven keymaps
+    needs: verify-release-scope
     runs-on: ubuntu-latest
     container: ghcr.io/qmk/qmk_cli:latest
 
@@ -32,6 +46,7 @@ jobs:
           - { kb: ergohaven/hpd/rev2, km: v2_touch_enc}
           - { kb: ergohaven/hpd/rev2, km: v2_enc_enc}
           - { kb: ergohaven/hpd/rev2, km: v2_enc_joy}
+          - { kb: ergohaven/hpd/rev2, km: v2_lcd_ball}
           - { kb: ergohaven/phenom/rev1, km: v1}
           - { kb: ergohaven/phenom_mini/rev1, km: v1}
           - { kb: ergohaven/phenom_micro/rev1, km: v1}
@@ -91,3 +106,25 @@ jobs:
           name: ergohaven_fw
           pattern: ergohaven_*
           delete-merged: true
+
+  required:
+    name: Ergohaven required checks
+    if: ${{ always() }}
+    needs:
+      - verify-release-scope
+      - build-ergohaven
+      - merge
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify required job results
+        env:
+          SCOPE_RESULT: ${{ needs.verify-release-scope.result }}
+          BUILD_RESULT: ${{ needs.build-ergohaven.result }}
+          MERGE_RESULT: ${{ needs.merge.result }}
+        run: |
+          if [[ "${SCOPE_RESULT}" != "success" || \
+                "${BUILD_RESULT}" != "success" || \
+                "${MERGE_RESULT}" != "success" ]]; then
+            echo "::error::Required Ergohaven jobs did not all succeed. scope=${SCOPE_RESULT}, build=${BUILD_RESULT}, merge=${MERGE_RESULT}"
+            exit 1
+          fi
