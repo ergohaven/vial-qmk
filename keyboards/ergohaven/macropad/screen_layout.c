@@ -6,6 +6,7 @@
 #include "src/display/eh_symbols.h"
 #include "src/display/lvgl_helpers.h"
 #include "ergohaven.h"
+#include "hid.h"
 #include "src/eh_settings.h"
 
 LV_FONT_DECLARE(eh_font_montserrat_20);
@@ -19,12 +20,28 @@ const char *default_layer_label(uint8_t layer) {
 }
 
 uint16_t get_keycode(int layer, int row, int col) {
+#ifdef EH_APP_LAYOUT_ENABLE
+    uint8_t control;
+    if (row == 0 && col == 2) {
+        control = 12;
+    } else if (row >= 1 && row <= 4 && col <= 2) {
+        control = (row - 1) * 3 + col;
+    } else {
+        control = UINT8_MAX;
+    }
+    uint16_t runtime_keycode;
+    if (control != UINT8_MAX && hid_app_layout_get_keycode(layer, control, &runtime_keycode)) return runtime_keycode;
+#endif
     uint16_t keycode = dynamic_keymap_get_keycode(layer, row, col);
     while (keycode == KC_TRANSPARENT && layer > 0) keycode = dynamic_keymap_get_keycode(--layer, row, col);
     return keycode;
 }
 
 uint16_t get_encoder_keycode(int layer, int encoder, bool clockwise) {
+#ifdef EH_APP_LAYOUT_ENABLE
+    uint16_t runtime_keycode;
+    if (encoder == 0 && hid_app_layout_get_keycode(layer, clockwise ? 14 : 13, &runtime_keycode)) return runtime_keycode;
+#endif
     uint16_t keycode = dynamic_keymap_get_encoder(layer, encoder, clockwise);
     while (keycode == KC_TRANSPARENT && layer > 0) keycode = dynamic_keymap_get_encoder(--layer, encoder, clockwise);
     return keycode;
@@ -42,9 +59,16 @@ static lv_img_dsc_t key_icon_dsc[NLABELS];
 static lv_color_t key_icon_colors[NLABELS];
 static uint8_t key_icon_bits[NLABELS][EH_ICON_RENDER_BYTES];
 static uint16_t  label_kc[NLABELS];
+static uint8_t   label_visual[NLABELS];
+static uint8_t   label_execution_state[NLABELS];
+static uint8_t   label_animation_frame[NLABELS];
 static char      label_text[NLABELS][24];
 static lv_obj_t *label_layer_icon;
 static lv_obj_t *label_layer;
+static char      displayed_layout_name[64];
+#ifdef EH_APP_LAYOUT_ENABLE
+static char runtime_layout_name[23];
+#endif
 
 #define LAYER_HEADER_WIDTH 194
 #define LAYER_HEADER_HEIGHT 70
@@ -507,6 +531,7 @@ static void finish_key_press_animations(void) {
 }
 
 static void screen_layout_set_layer_name(const char *name) {
+    snprintf(displayed_layout_name, sizeof(displayed_layout_name), "%s", name);
     lv_coord_t letter_space   = lv_obj_get_style_text_letter_space(label_layer, LV_PART_MAIN);
     lv_coord_t icon_width     = lv_txt_get_width(EH_SYMBOL_LAYER, strlen(EH_SYMBOL_LAYER), &eh_font_montserrat_28, letter_space, LV_TEXT_FLAG_NONE);
     lv_coord_t name_width     = lv_txt_get_width(name, strlen(name), &eh_font_montserrat_28, letter_space, LV_TEXT_FLAG_NONE);
@@ -528,6 +553,13 @@ static void screen_layout_set_layer_name(const char *name) {
         lv_obj_set_pos(label_layer, icon_width + LAYER_HEADER_GAP, LAYER_HEADER_LABEL_Y);
         lv_obj_set_size(label_layer, max_name_width, LAYER_HEADER_LABEL_HEIGHT);
     }
+}
+
+static const char *screen_layout_header_name(uint8_t layer) {
+#ifdef EH_APP_LAYOUT_ENABLE
+    if (hid_app_layout_get_name(layer, runtime_layout_name, sizeof(runtime_layout_name))) return runtime_layout_name;
+#endif
+    return layer_name(layer);
 }
 
 void screen_layout_init(void) {
@@ -555,7 +587,7 @@ void screen_layout_init(void) {
     lv_label_set_text(label_layer, "");
     lv_obj_set_style_text_align(label_layer, LV_TEXT_ALIGN_LEFT, 0);
     lv_obj_set_style_text_font(label_layer, &eh_font_montserrat_28, LV_PART_MAIN);
-    screen_layout_set_layer_name(layer_name(0));
+    screen_layout_set_layer_name(screen_layout_header_name(0));
 
     lv_obj_t *cont = lv_obj_create(content);
     lv_obj_set_size(cont, 222, 240);
@@ -612,8 +644,240 @@ void screen_layout_init(void) {
 static uint8_t prev_layer = 255;
 static int     lbl_idx    = 0;
 static uint32_t pictogram_generation;
+static uint32_t integration_visual_generation;
 
-static void screen_layout_set_key_content(uint8_t index, uint16_t keycode) {
+static uint8_t screen_layout_control_for_label(uint8_t index) {
+    if (index < 12) return index;
+    if (index == 12) return 13;
+    if (index == 13) return 12;
+    return 14;
+}
+
+static void integration_icon_pixel(uint8_t *bits, int16_t x, int16_t y) {
+    if (x < 0 || y < 0 || x >= EH_ICON_RENDER_SIZE || y >= EH_ICON_RENDER_SIZE) return;
+    bits[y * EH_ICON_RENDER_STRIDE + x / 8] |= 0x80u >> (x % 8);
+}
+
+static void integration_icon_line(uint8_t *bits, int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint8_t width) {
+    int16_t dx = x1 >= x0 ? x1 - x0 : x0 - x1;
+    int16_t sx = x0 < x1 ? 1 : -1;
+    int16_t dy = -(y1 >= y0 ? y1 - y0 : y0 - y1);
+    int16_t sy = y0 < y1 ? 1 : -1;
+    int16_t error = dx + dy;
+    while (true) {
+        for (int8_t oy = -(int8_t)(width / 2); oy <= (int8_t)(width / 2); oy++) {
+            for (int8_t ox = -(int8_t)(width / 2); ox <= (int8_t)(width / 2); ox++) {
+                integration_icon_pixel(bits, x0 + ox, y0 + oy);
+            }
+        }
+        if (x0 == x1 && y0 == y1) break;
+        int16_t twice = 2 * error;
+        if (twice >= dy) {
+            error += dy;
+            x0 += sx;
+        }
+        if (twice <= dx) {
+            error += dx;
+            y0 += sy;
+        }
+    }
+}
+
+static void integration_icon_rect(uint8_t *bits, int16_t x1, int16_t y1, int16_t x2, int16_t y2) {
+    integration_icon_line(bits, x1, y1, x2, y1, 1);
+    integration_icon_line(bits, x2, y1, x2, y2, 1);
+    integration_icon_line(bits, x2, y2, x1, y2, 1);
+    integration_icon_line(bits, x1, y2, x1, y1, 1);
+}
+
+static void integration_icon_spinner(uint8_t *bits, uint8_t frame) {
+    static const int8_t points[8][2] = {
+        {17, 4}, {26, 8}, {30, 17}, {26, 26}, {17, 30}, {8, 26}, {4, 17}, {8, 8},
+    };
+    for (uint8_t offset = 0; offset < 3; offset++) {
+        uint8_t point = (frame + 8 - offset) % 8;
+        uint8_t width = offset == 0 ? 3 : 1;
+        integration_icon_line(bits, points[point][0], points[point][1], points[point][0], points[point][1], width);
+    }
+}
+
+static void integration_icon_check(uint8_t *bits) {
+    integration_icon_line(bits, 6, 18, 14, 27, 3);
+    integration_icon_line(bits, 14, 27, 30, 8, 3);
+}
+
+static void integration_icon_error(uint8_t *bits) {
+    integration_icon_line(bits, 8, 8, 27, 27, 3);
+    integration_icon_line(bits, 27, 8, 8, 27, 3);
+}
+
+static void integration_icon_circle(uint8_t *bits, int16_t center_x, int16_t center_y, int16_t radius, uint8_t width) {
+    int16_t x = radius;
+    int16_t y = 0;
+    int16_t error = 1 - radius;
+    while (x >= y) {
+        const int16_t points[8][2] = {
+            {center_x + x, center_y + y}, {center_x + y, center_y + x},
+            {center_x - y, center_y + x}, {center_x - x, center_y + y},
+            {center_x - x, center_y - y}, {center_x - y, center_y - x},
+            {center_x + y, center_y - x}, {center_x + x, center_y - y},
+        };
+        for (uint8_t point = 0; point < 8; point++) {
+            integration_icon_line(bits, points[point][0], points[point][1], points[point][0], points[point][1], width);
+        }
+        y++;
+        if (error < 0) {
+            error += 2 * y + 1;
+        } else {
+            x--;
+            error += 2 * (y - x) + 1;
+        }
+    }
+}
+
+static void integration_icon_base(uint8_t *bits, uint8_t visual) {
+    if (visual == 1) {
+        integration_icon_rect(bits, 6, 8, 28, 27);
+        integration_icon_line(bits, 11, 13, 23, 13, 1);
+        integration_icon_line(bits, 11, 18, 20, 18, 1);
+        integration_icon_line(bits, 23, 20, 23, 30, 3);
+        integration_icon_line(bits, 18, 25, 28, 25, 3);
+    } else if (visual == 2) {
+        integration_icon_rect(bits, 8, 5, 27, 30);
+        integration_icon_line(bits, 13, 12, 22, 12, 1);
+        integration_icon_line(bits, 13, 17, 22, 17, 1);
+        integration_icon_line(bits, 17, 21, 17, 28, 3);
+        integration_icon_line(bits, 13, 25, 21, 25, 3);
+    } else if (visual == 3) {
+        integration_icon_rect(bits, 5, 5, 30, 30);
+        integration_icon_check(bits);
+    } else if (visual == 4) {
+        integration_icon_line(bits, 8, 10, 17, 5, 2);
+        integration_icon_line(bits, 17, 5, 26, 10, 2);
+        integration_icon_line(bits, 26, 10, 29, 17, 2);
+        integration_icon_line(bits, 29, 17, 25, 16, 2);
+        integration_icon_line(bits, 29, 17, 30, 13, 2);
+        integration_icon_line(bits, 26, 25, 17, 30, 2);
+        integration_icon_line(bits, 17, 30, 8, 25, 2);
+        integration_icon_line(bits, 8, 25, 5, 18, 2);
+        integration_icon_line(bits, 5, 18, 9, 19, 2);
+        integration_icon_line(bits, 5, 18, 4, 22, 2);
+    } else if (visual == 5) {
+        // OBS recording: ring with a filled record dot.
+        integration_icon_circle(bits, 17, 17, 13, 2);
+        integration_icon_circle(bits, 17, 17, 6, 5);
+    } else if (visual == 6) {
+        // OBS streaming: antenna and two broadcast waves.
+        integration_icon_circle(bits, 17, 18, 2, 3);
+        integration_icon_line(bits, 17, 20, 17, 29, 2);
+        integration_icon_line(bits, 12, 29, 22, 29, 2);
+        integration_icon_line(bits, 11, 14, 8, 18, 2);
+        integration_icon_line(bits, 8, 18, 11, 22, 2);
+        integration_icon_line(bits, 23, 14, 26, 18, 2);
+        integration_icon_line(bits, 26, 18, 23, 22, 2);
+        integration_icon_line(bits, 7, 9, 3, 18, 2);
+        integration_icon_line(bits, 3, 18, 7, 27, 2);
+        integration_icon_line(bits, 27, 9, 31, 18, 2);
+        integration_icon_line(bits, 31, 18, 27, 27, 2);
+    } else if (visual == 7) {
+        // OBS scene: stacked canvas frames.
+        integration_icon_rect(bits, 8, 5, 30, 24);
+        integration_icon_rect(bits, 4, 10, 26, 29);
+        integration_icon_line(bits, 8, 25, 14, 18, 2);
+        integration_icon_line(bits, 14, 18, 19, 23, 2);
+        integration_icon_line(bits, 19, 23, 24, 17, 2);
+    } else if (visual == 8) {
+        // OBS audio: microphone.
+        integration_icon_rect(bits, 13, 5, 21, 21);
+        integration_icon_line(bits, 9, 16, 9, 20, 2);
+        integration_icon_line(bits, 9, 20, 13, 25, 2);
+        integration_icon_line(bits, 13, 25, 21, 25, 2);
+        integration_icon_line(bits, 21, 25, 25, 20, 2);
+        integration_icon_line(bits, 25, 20, 25, 16, 2);
+        integration_icon_line(bits, 17, 25, 17, 31, 2);
+        integration_icon_line(bits, 11, 31, 23, 31, 2);
+    } else if (visual == 9) {
+        // OBS source visibility: eye.
+        integration_icon_line(bits, 3, 18, 9, 11, 2);
+        integration_icon_line(bits, 9, 11, 17, 8, 2);
+        integration_icon_line(bits, 17, 8, 25, 11, 2);
+        integration_icon_line(bits, 25, 11, 31, 18, 2);
+        integration_icon_line(bits, 31, 18, 25, 25, 2);
+        integration_icon_line(bits, 25, 25, 17, 28, 2);
+        integration_icon_line(bits, 17, 28, 9, 25, 2);
+        integration_icon_line(bits, 9, 25, 3, 18, 2);
+        integration_icon_circle(bits, 17, 18, 5, 3);
+    } else if (visual == 10) {
+        // OBS Studio Mode: preview and program side by side.
+        integration_icon_rect(bits, 3, 8, 15, 27);
+        integration_icon_rect(bits, 20, 8, 32, 27);
+        integration_icon_line(bits, 16, 14, 19, 14, 2);
+        integration_icon_line(bits, 18, 12, 20, 14, 2);
+        integration_icon_line(bits, 18, 16, 20, 14, 2);
+        integration_icon_line(bits, 19, 21, 16, 21, 2);
+        integration_icon_line(bits, 17, 19, 15, 21, 2);
+        integration_icon_line(bits, 17, 23, 15, 21, 2);
+    } else if (visual == 11) {
+        // OBS refresh: two circular arrows.
+        integration_icon_line(bits, 7, 17, 9, 11, 2);
+        integration_icon_line(bits, 9, 11, 15, 7, 2);
+        integration_icon_line(bits, 15, 7, 23, 9, 2);
+        integration_icon_line(bits, 23, 9, 28, 14, 2);
+        integration_icon_line(bits, 28, 14, 29, 9, 2);
+        integration_icon_line(bits, 28, 14, 23, 14, 2);
+        integration_icon_line(bits, 28, 19, 26, 25, 2);
+        integration_icon_line(bits, 26, 25, 20, 29, 2);
+        integration_icon_line(bits, 20, 29, 12, 27, 2);
+        integration_icon_line(bits, 12, 27, 7, 22, 2);
+        integration_icon_line(bits, 7, 22, 6, 27, 2);
+        integration_icon_line(bits, 7, 22, 12, 22, 2);
+    }
+}
+
+static void screen_layout_set_integration_icon(uint8_t index, uint8_t visual, uint8_t state, uint8_t frame) {
+    memset(key_icon_bits[index], 0, EH_ICON_RENDER_BYTES);
+    if (state == 1) {
+        integration_icon_spinner(key_icon_bits[index], frame);
+    } else if (state == 2) {
+        integration_icon_check(key_icon_bits[index]);
+    } else if (state == 3) {
+        integration_icon_error(key_icon_bits[index]);
+    } else {
+        integration_icon_base(key_icon_bits[index], visual);
+    }
+    key_icon_dsc[index] = (lv_img_dsc_t){
+        .header.always_zero = 0,
+        .header.w = EH_ICON_RENDER_SIZE,
+        .header.h = EH_ICON_RENDER_SIZE,
+        .header.cf = LV_IMG_CF_ALPHA_1BIT,
+        .data_size = EH_ICON_RENDER_BYTES,
+        .data = key_icon_bits[index],
+    };
+    key_icon_colors[index] = accent_color_blue;
+    lv_img_cache_invalidate_src(&key_icon_dsc[index]);
+    lv_img_set_src(key_icons[index], &key_icon_dsc[index]);
+    lv_obj_invalidate(key_icons[index]);
+    lv_obj_set_style_img_recolor(key_icons[index], key_pressed[index] ? display_background_color : key_icon_colors[index], 0);
+    lv_obj_add_flag(key_labels[index], LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(key_icons[index], LV_OBJ_FLAG_HIDDEN);
+}
+
+static void screen_layout_set_key_content(uint8_t index, uint8_t layer, uint8_t control, uint16_t keycode) {
+#ifdef EH_APP_LAYOUT_ENABLE
+    uint8_t visual = 0;
+    uint8_t state  = 0;
+    if (hid_app_layout_get_visual(layer, control, &visual, &state)) {
+        uint8_t frame = state == 1 ? (timer_read32() / 120) % 8 : 0;
+        screen_layout_set_integration_icon(index, visual, state, frame);
+        label_visual[index]         = visual;
+        label_execution_state[index] = state;
+        label_animation_frame[index] = frame;
+        return;
+    }
+#endif
+    label_visual[index]          = 0;
+    label_execution_state[index] = 0;
+    label_animation_frame[index] = 0;
     const uint8_t *bitmap = eh_pictogram_for_keycode(keycode);
     if (bitmap == NULL) {
         lv_obj_add_flag(key_icons[index], LV_OBJ_FLAG_HIDDEN);
@@ -646,19 +910,23 @@ static void screen_layout_set_key_content(uint8_t index, uint16_t keycode) {
 static void screen_layout_refresh_key_content(void) {
     uint8_t layer = get_current_layer();
     for (uint8_t index = 0; index < NLABELS; index++) {
+        uint8_t control = screen_layout_control_for_label(index);
         uint16_t keycode = index < 12 ? get_keycode(layer, 1 + index / 3, index % 3)
             : index == 13 ? get_keycode(layer, 0, 2) : get_encoder_keycode(layer, 0, index == 14);
-        screen_layout_set_key_content(index, keycode);
+        screen_layout_set_key_content(index, layer, control, keycode);
         label_kc[index] = keycode;
     }
     // Only acknowledge a generation after its images have actually been drawn.
     pictogram_generation = eh_pictograms_generation();
+#ifdef EH_APP_LAYOUT_ENABLE
+    integration_visual_generation = hid_app_layout_visual_generation();
+#endif
     lbl_idx = 0;
 }
 
 void screen_layout_load(void) {
     prev_layer = get_current_layer();
-    screen_layout_set_layer_name(layer_name(prev_layer));
+    screen_layout_set_layer_name(screen_layout_header_name(prev_layer));
     layer_name_updated = false;
     screen_layout_refresh_key_content();
     lv_scr_load(screen_layout);
@@ -671,13 +939,19 @@ void screen_layout_housekeep(void) {
     if (pictogram_generation != eh_pictograms_generation()) {
         screen_layout_refresh_key_content();
     }
+#ifdef EH_APP_LAYOUT_ENABLE
+    if (integration_visual_generation != hid_app_layout_visual_generation()) {
+        screen_layout_refresh_key_content();
+    }
+#endif
     if (timer_elapsed32(update_timer) < 5) // prevent long display updates
         return;
 
-    uint8_t layer = get_current_layer();
-    if (layer != prev_layer || layer_name_updated) {
+    uint8_t     layer       = get_current_layer();
+    const char *header_name = screen_layout_header_name(layer);
+    if (layer != prev_layer || layer_name_updated || strcmp(header_name, displayed_layout_name) != 0) {
         prev_layer = layer;
-        screen_layout_set_layer_name(layer_name(layer));
+        screen_layout_set_layer_name(header_name);
         update_timer       = timer_read32();
         lbl_idx            = 0;
         layer_name_updated = false;
@@ -704,8 +978,16 @@ void screen_layout_housekeep(void) {
         keycode = get_encoder_keycode(layer, 0, false);
     else if (lbl_idx == 14)
         keycode = get_encoder_keycode(layer, 0, true);
-    if (keycode != label_kc[lbl_idx]) {
-        screen_layout_set_key_content(lbl_idx, keycode);
+    uint8_t control = screen_layout_control_for_label(lbl_idx);
+    uint8_t visual  = 0;
+    uint8_t state   = 0;
+#ifdef EH_APP_LAYOUT_ENABLE
+    hid_app_layout_get_visual(layer, control, &visual, &state);
+#endif
+    uint8_t frame = state == 1 ? (timer_read32() / 120) % 8 : 0;
+    if (keycode != label_kc[lbl_idx] || visual != label_visual[lbl_idx] ||
+        state != label_execution_state[lbl_idx] || frame != label_animation_frame[lbl_idx]) {
+        screen_layout_set_key_content(lbl_idx, layer, control, keycode);
         label_kc[lbl_idx] = keycode;
         update_timer      = timer_read32();
     }
