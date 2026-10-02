@@ -1,7 +1,11 @@
 #pragma once
 #include "quantum.h"
 
-#if defined(KEYBOARD_ergohaven_macropad_rev1) || defined(KEYBOARD_ergohaven_macropad_rev2) || defined(KEYBOARD_ergohaven_macropad_rev3)
+#if defined(KEYBOARD_ergohaven_macropad_rev3)
+#    define EH_VERSION_STR "4.0.7"
+#elif defined(KEYBOARD_ergohaven_macropad_rev2)
+#    define EH_VERSION_STR "4.0.8"
+#elif defined(KEYBOARD_ergohaven_macropad_rev1)
 #    define EH_VERSION_STR "4.0.7"
 #else
 #    define EH_VERSION_STR "4.0.6"

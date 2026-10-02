@@ -19,7 +19,9 @@
 static hid_data_t hid_data;
 
 #ifdef EH_APP_LAYOUT_ENABLE
-#    define EH_APP_LAYOUT_PROTOCOL_VERSION 6
+#    define EH_APP_LAYOUT_PROTOCOL_VERSION 7
+#    define EH_APP_LAYOUT_STACK_SLOTS 4
+#    define EH_APP_LAYOUT_STACK_NAME_BYTES 12
 #    define EH_APP_LAYOUT_CONTROL_COUNT 15
 #    define EH_APP_LAYOUT_KEY_COUNT 13
 #    define EH_APP_LAYOUT_LAYER_COUNT 16
@@ -37,6 +39,8 @@ static hid_data_t hid_data;
 #    define EH_APP_LAYOUT_EVENT_POLL 0xE6
 #    define EH_APP_LAYOUT_VISUALS 0xE7
 #    define EH_APP_LAYOUT_EXECUTION_STATE 0xE8
+#    define EH_APP_LAYOUT_ENCODER_STACK 0xE9
+#    define EH_APP_LAYOUT_DEACTIVATE 0xEA
 #    define EH_APP_LAYOUT_EVENT_REQUEST 0xA5
 #    define EH_APP_LAYOUT_EVENT_RESPONSE 0x5A
 #    define EH_APP_LAYOUT_EVENT_QUEUE_LENGTH 8
@@ -54,6 +58,10 @@ typedef struct {
     char     layer_names[EH_APP_LAYOUT_LAYER_COUNT][EH_APP_LAYOUT_NAME_BYTES + 1];
     uint16_t keycodes[EH_APP_LAYOUT_LAYER_COUNT][EH_APP_LAYOUT_CONTROL_COUNT];
     uint8_t  visuals[EH_APP_LAYOUT_LAYER_COUNT][EH_APP_LAYOUT_CONTROL_COUNT];
+    uint8_t  stack_chunks[EH_APP_LAYOUT_LAYER_COUNT];
+    uint8_t  stack_counts[EH_APP_LAYOUT_LAYER_COUNT];
+    uint16_t stack_keycodes[EH_APP_LAYOUT_LAYER_COUNT][EH_APP_LAYOUT_STACK_SLOTS][2];
+    char     stack_names[EH_APP_LAYOUT_LAYER_COUNT][EH_APP_LAYOUT_STACK_SLOTS][EH_APP_LAYOUT_STACK_NAME_BYTES + 1];
 } eh_app_layout_staging_t;
 
 static eh_app_layout_staging_t app_layout_staging;
@@ -64,6 +72,10 @@ static char                    app_layout_name[EH_APP_LAYOUT_NAME_BYTES + 1];
 static char                    app_layout_layer_names[EH_APP_LAYOUT_LAYER_COUNT][EH_APP_LAYOUT_NAME_BYTES + 1];
 static uint16_t                app_layout_keycodes[EH_APP_LAYOUT_LAYER_COUNT][EH_APP_LAYOUT_CONTROL_COUNT];
 static uint8_t                 app_layout_visuals[EH_APP_LAYOUT_LAYER_COUNT][EH_APP_LAYOUT_CONTROL_COUNT];
+static uint8_t                 app_layout_stack_counts[EH_APP_LAYOUT_LAYER_COUNT];
+static uint8_t                 app_layout_stack_selected[EH_APP_LAYOUT_LAYER_COUNT];
+static uint16_t                app_layout_stack_keycodes[EH_APP_LAYOUT_LAYER_COUNT][EH_APP_LAYOUT_STACK_SLOTS][2];
+static char                    app_layout_stack_names[EH_APP_LAYOUT_LAYER_COUNT][EH_APP_LAYOUT_STACK_SLOTS][EH_APP_LAYOUT_STACK_NAME_BYTES + 1];
 static uint8_t                 app_layout_execution_states[EH_APP_LAYOUT_LAYER_COUNT][EH_APP_LAYOUT_CONTROL_COUNT];
 static uint32_t                app_layout_visual_generation;
 static uint16_t                app_layout_held[EH_APP_LAYOUT_KEY_COUNT];
@@ -152,6 +164,19 @@ static uint16_t app_layout_crc16(const eh_app_layout_staging_t *snapshot) {
             crc = app_layout_crc16_byte(crc, snapshot->visuals[layer][index]);
         }
     }
+    for (uint8_t layer = 0; layer < EH_APP_LAYOUT_LAYER_COUNT; layer++) {
+        crc = app_layout_crc16_byte(crc, snapshot->stack_counts[layer]);
+        for (uint8_t slot = 0; slot < EH_APP_LAYOUT_STACK_SLOTS; slot++) {
+            for (uint8_t direction = 0; direction < 2; direction++) {
+                uint16_t keycode = snapshot->stack_keycodes[layer][slot][direction];
+                crc = app_layout_crc16_byte(crc, keycode);
+                crc = app_layout_crc16_byte(crc, keycode >> 8);
+            }
+            uint8_t length = strlen(snapshot->stack_names[layer][slot]);
+            crc = app_layout_crc16_byte(crc, length);
+            for (uint8_t i = 0; i < length; i++) crc = app_layout_crc16_byte(crc, snapshot->stack_names[layer][slot][i]);
+        }
+    }
     crc = app_layout_crc16_byte(crc, snapshot->name_length);
     for (uint8_t index = 0; index < snapshot->name_length; index++) {
         crc = app_layout_crc16_byte(crc, snapshot->name[index]);
@@ -190,6 +215,15 @@ void hid_app_layout_task(void) {
 bool hid_app_layout_process_packet(uint8_t *data, uint8_t length) {
     if (length < 2 || data[1] != EH_APP_LAYOUT_PROTOCOL_VERSION) return false;
     switch (data[0]) {
+        case EH_APP_LAYOUT_DEACTIVATE:
+            app_layout_release_held();
+            layer_clear();
+            app_layout_active = false;
+            app_layout_staging.valid = false;
+            app_layout_clear_events();
+            app_layout_visual_generation++;
+            return true;
+
         case EH_APP_LAYOUT_BEGIN:
             if (length < 10 || data[7] != EH_APP_LAYOUT_CONTROL_COUNT || data[8] != EH_APP_LAYOUT_LAYER_COUNT || data[2] > 1 ||
                 data[9] > EH_APP_LAYOUT_NAME_BYTES || length < (uint8_t)(10 + data[9]))
@@ -247,10 +281,30 @@ bool hid_app_layout_process_packet(uint8_t *data, uint8_t length) {
             return true;
         }
 
+        case EH_APP_LAYOUT_ENCODER_STACK: {
+            if (!app_layout_staging.valid || length < 10) return true;
+            uint8_t layer = data[2], slot = data[3], count = data[4], name_length = data[5];
+            if (layer >= EH_APP_LAYOUT_LAYER_COUNT || slot >= EH_APP_LAYOUT_STACK_SLOTS ||
+                (count != 0 && (count < 2 || count > EH_APP_LAYOUT_STACK_SLOTS)) ||
+                name_length > EH_APP_LAYOUT_STACK_NAME_BYTES || length < (uint8_t)(10 + name_length) ||
+                (app_layout_staging.stack_chunks[layer] && app_layout_staging.stack_counts[layer] != count))
+                return true;
+            app_layout_staging.stack_counts[layer] = count;
+            app_layout_staging.stack_keycodes[layer][slot][0] = data[6] | ((uint16_t)data[7] << 8);
+            app_layout_staging.stack_keycodes[layer][slot][1] = data[8] | ((uint16_t)data[9] << 8);
+            memcpy(app_layout_staging.stack_names[layer][slot], data + 10, name_length);
+            app_layout_staging.stack_names[layer][slot][name_length] = '\0';
+            app_layout_staging.stack_chunks[layer] |= (uint8_t)1U << slot;
+            return true;
+        }
+
         case EH_APP_LAYOUT_COMMIT: {
             if (length < 9 || !app_layout_staging.valid || app_layout_staging.chunks != EH_APP_LAYOUT_ALL_CHUNKS ||
                 app_layout_staging.layer_name_chunks != UINT16_MAX || app_layout_staging.visual_chunks != UINT16_MAX)
                 return true;
+            for (uint8_t layer = 0; layer < EH_APP_LAYOUT_LAYER_COUNT; layer++) {
+                if (app_layout_staging.stack_chunks[layer] != 0x0F) return true;
+            }
             uint32_t revision = app_layout_read_u32(data + 3);
             uint16_t crc      = data[7] | ((uint16_t)data[8] << 8);
             if ((data[2] != 0) != app_layout_staging.active || revision != app_layout_staging.revision ||
@@ -261,6 +315,9 @@ bool hid_app_layout_process_packet(uint8_t *data, uint8_t length) {
             bool layout_changed = app_layout_active != app_layout_staging.active ||
                                   memcmp(app_layout_keycodes, app_layout_staging.keycodes, sizeof(app_layout_keycodes)) != 0 ||
                                   memcmp(app_layout_visuals, app_layout_staging.visuals, sizeof(app_layout_visuals)) != 0 ||
+                                  memcmp(app_layout_stack_counts, app_layout_staging.stack_counts, sizeof(app_layout_stack_counts)) != 0 ||
+                                  memcmp(app_layout_stack_keycodes, app_layout_staging.stack_keycodes, sizeof(app_layout_stack_keycodes)) != 0 ||
+                                  memcmp(app_layout_stack_names, app_layout_staging.stack_names, sizeof(app_layout_stack_names)) != 0 ||
                                   memcmp(app_layout_name, app_layout_staging.name, sizeof(app_layout_name)) != 0 ||
                                   memcmp(app_layout_layer_names, app_layout_staging.layer_names, sizeof(app_layout_layer_names)) != 0;
             if (layout_changed) {
@@ -269,6 +326,10 @@ bool hid_app_layout_process_packet(uint8_t *data, uint8_t length) {
             }
             memcpy(app_layout_keycodes, app_layout_staging.keycodes, sizeof(app_layout_keycodes));
             memcpy(app_layout_visuals, app_layout_staging.visuals, sizeof(app_layout_visuals));
+            memcpy(app_layout_stack_counts, app_layout_staging.stack_counts, sizeof(app_layout_stack_counts));
+            memcpy(app_layout_stack_keycodes, app_layout_staging.stack_keycodes, sizeof(app_layout_stack_keycodes));
+            memcpy(app_layout_stack_names, app_layout_staging.stack_names, sizeof(app_layout_stack_names));
+            if (layout_changed) memset(app_layout_stack_selected, 0, sizeof(app_layout_stack_selected));
             memcpy(app_layout_name, app_layout_staging.name, sizeof(app_layout_name));
             memcpy(app_layout_layer_names, app_layout_staging.layer_names, sizeof(app_layout_layer_names));
             app_layout_active        = app_layout_staging.active;
@@ -318,6 +379,11 @@ static uint16_t app_layout_keycode_for_control(uint8_t layer, uint8_t control) {
 bool hid_app_layout_get_keycode(uint8_t layer, uint8_t control, uint16_t *keycode) {
     if (keycode == NULL || control >= EH_APP_LAYOUT_CONTROL_COUNT || !app_layout_session_live()) return false;
     if (layer >= EH_APP_LAYOUT_LAYER_COUNT) layer = 0;
+    if (control >= 13 && app_layout_stack_counts[layer] >= 2) {
+        uint16_t selected = app_layout_stack_keycodes[layer][app_layout_stack_selected[layer]][control == 14 ? 1 : 0];
+        *keycode = (selected == EH_APP_LAYOUT_UNSET_KEYCODE || selected == KC_TRNS) ? KC_NO : selected;
+        return true;
+    }
     for (int8_t candidate = (int8_t)layer; candidate >= 0; candidate--) {
         uint16_t candidate_keycode = app_layout_keycodes[candidate][control];
         if (candidate_keycode == KC_TRNS) continue;
@@ -351,6 +417,11 @@ uint32_t hid_app_layout_visual_generation(void) {
 bool hid_app_layout_get_name(uint8_t layer, char *name, uint8_t size) {
     if (name == NULL || size == 0 || !app_layout_session_live()) return false;
     if (layer >= EH_APP_LAYOUT_LAYER_COUNT) layer = 0;
+    if (app_layout_stack_counts[layer] >= 2) {
+        uint8_t selected = app_layout_stack_selected[layer];
+        snprintf(name, size, "<%s>", app_layout_stack_names[layer][selected]);
+        return true;
+    }
     const char *source = app_layout_layer_names[layer][0] != '\0' ? app_layout_layer_names[layer] : app_layout_name;
     if (source[0] == '\0') return false;
     snprintf(name, size, "%s", source);
@@ -366,8 +437,19 @@ static bool app_layout_dispatch_control(uint8_t control, bool pressed, bool enco
     }
     if (!app_layout_session_live()) return false;
     uint8_t layer = app_layout_current_layer();
+    if (!encoder && control == 12 && app_layout_stack_counts[layer] >= 2) {
+        if (pressed) {
+            app_layout_stack_selected[layer] = (app_layout_stack_selected[layer] + 1) % app_layout_stack_counts[layer];
+            app_layout_visual_generation++;
+        }
+        return true;
+    }
     if (pressed) app_layout_enqueue_event(layer, control);
     uint16_t keycode = app_layout_keycode_for_control(layer, control);
+    if (encoder && app_layout_stack_counts[layer] >= 2) {
+        keycode = app_layout_stack_keycodes[layer][app_layout_stack_selected[layer]][control == 14 ? 1 : 0];
+        if (keycode == EH_APP_LAYOUT_UNSET_KEYCODE || keycode == KC_TRNS) keycode = KC_NO;
+    }
     if (keycode == EH_APP_LAYOUT_UNSET_KEYCODE) return false;
     if (encoder) {
         if (pressed && keycode != KC_NO) vial_keycode_tap(keycode);

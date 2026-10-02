@@ -935,7 +935,13 @@ void screen_layout_load(void) {
 
 void screen_layout_housekeep(void) {
     static uint32_t update_timer = 0;
+    static bool previous_mac_modifiers = false;
     finish_key_press_animations();
+    bool mac_modifiers = eh_keycode_str_uses_mac_modifiers();
+    if (mac_modifiers != previous_mac_modifiers) {
+        previous_mac_modifiers = mac_modifiers;
+        screen_layout_refresh_key_content();
+    }
     if (pictogram_generation != eh_pictograms_generation()) {
         screen_layout_refresh_key_content();
     }
