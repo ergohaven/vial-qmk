@@ -5,8 +5,6 @@
 #    define EH_VERSION_STR "4.0.7"
 #elif defined(KEYBOARD_ergohaven_macropad_rev2)
 #    define EH_VERSION_STR "4.0.7"
-#elif defined(KEYBOARD_ergohaven_macropad_rev1)
-#    define EH_VERSION_STR "4.0.7"
 #else
 #    define EH_VERSION_STR "4.0.6"
 #endif
