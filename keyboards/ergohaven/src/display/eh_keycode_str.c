@@ -5,6 +5,19 @@
 #include "eh_symbols.h"
 #include "src/eh_ruen.h"
 #include "src/eh_pointing.h"
+#include <string.h>
+#ifdef OS_DETECTION_ENABLE
+#    include "os_detection.h"
+#endif
+
+bool eh_keycode_str_uses_mac_modifiers(void) {
+#ifdef OS_DETECTION_ENABLE
+    os_variant_t os = detected_host_os();
+    return os == OS_MACOS || os == OS_IOS;
+#else
+    return false;
+#endif
+}
 
 const char *basic_keycode_to_str(uint16_t keycode) {
     static char buf[16];
@@ -272,10 +285,10 @@ const char *basic_keycode_to_str(uint16_t keycode) {
             return EH_SYMBOL_SFT;
         case KC_LEFT_ALT:
         case KC_RIGHT_ALT:
-            return EH_SYMBOL_ALT;
+            return eh_keycode_str_uses_mac_modifiers() ? "OPT" : EH_SYMBOL_ALT;
         case KC_LEFT_GUI:
         case KC_RIGHT_GUI:
-            return EH_SYMBOL_GUI;
+            return eh_keycode_str_uses_mac_modifiers() ? "CMD" : EH_SYMBOL_GUI;
         default:
             return "Unkn";
     }
@@ -707,39 +720,13 @@ const char *mods_to_str(uint8_t mods) {
     bool alt   = mods & MOD_MASK_ALT;
     bool gui   = mods & MOD_MASK_GUI;
 
-    const char *mod_str;
-    if (ctrl && shift && alt && gui)
-        mod_str = "All";
-    else if (shift && alt && gui)
-        mod_str = "󰘶󰘵";
-    else if (ctrl && alt && gui)
-        mod_str = "󰘴󰘵";
-    else if (ctrl && shift && gui)
-        mod_str = "󰘴󰘶";
-    else if (ctrl && shift && alt)
-        mod_str = "󰘴󰘶󰘵";
-    else if (alt && gui)
-        mod_str = "󰘵";
-    else if (shift && gui)
-        mod_str = "󰘶";
-    else if (shift && alt)
-        mod_str = "󰘶󰘵";
-    else if (ctrl && gui)
-        mod_str = "󰘴";
-    else if (ctrl && shift)
-        mod_str = "󰘴󰘶";
-    else if (ctrl && alt)
-        mod_str = "󰘴󰘵";
-    else if (ctrl)
-        mod_str = "󰘴";
-    else if (shift)
-        mod_str = "󰘶";
-    else if (alt)
-        mod_str = "󰘵";
-    else if (gui)
-        mod_str = "";
-    else
-        mod_str = "";
+    if (ctrl && shift && alt && gui) return "All";
+    static char mod_str[32];
+    mod_str[0] = '\0';
+    if (gui) strcat(mod_str, eh_keycode_str_uses_mac_modifiers() ? "CMD" : EH_SYMBOL_GUI);
+    if (ctrl) strcat(mod_str, EH_SYMBOL_CTL);
+    if (shift) strcat(mod_str, EH_SYMBOL_SFT);
+    if (alt) strcat(mod_str, eh_keycode_str_uses_mac_modifiers() ? "OPT" : EH_SYMBOL_ALT);
     return mod_str;
 }
 

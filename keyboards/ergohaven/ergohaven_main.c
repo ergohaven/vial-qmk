@@ -151,13 +151,25 @@ void vial_get_unlock_combo_coords(uint8_t *rows, uint8_t *cols, size_t count) {
 bool pre_process_record_kb(uint16_t keycode, keyrecord_t* record) {
 #ifdef EH_HAS_DISPLAY
 #    if defined(ENCODER_ENABLE) && defined(ENCODER_MAP_ENABLE)
-    if (record->event.pressed && IS_ENCODEREVENT(record->event) &&
+    if (IS_ENCODEREVENT(record->event) &&
         (record->event.key.row == KEYLOC_ENCODER_CW || record->event.key.row == KEYLOC_ENCODER_CCW)) {
-        display_process_encoder_event(record->event.key.col, record->event.key.row == KEYLOC_ENCODER_CW, keycode);
+#        ifdef EH_APP_LAYOUT_ENABLE
+        bool app_layout_handled = false;
+#        endif
+        if (record->event.pressed) {
+            display_process_encoder_event(record->event.key.col, record->event.key.row == KEYLOC_ENCODER_CW, keycode);
+        }
+#        ifdef EH_APP_LAYOUT_ENABLE
+        app_layout_handled = hid_app_layout_process_encoder_event(record->event.key.col, record->event.key.row == KEYLOC_ENCODER_CW, record->event.pressed);
+        if (app_layout_handled) return false;
+#        endif
     } else
 #    endif
     {
         display_process_keyevent(record->event.key.row, record->event.key.col, record->event.pressed);
+#    ifdef EH_APP_LAYOUT_ENABLE
+        if (hid_app_layout_process_keyevent(record->event.key.row, record->event.key.col, record->event.pressed)) return false;
+#    endif
     }
 #endif
     return pre_process_record_ruen(keycode, record) && pre_process_record_user(keycode, record);
@@ -166,6 +178,9 @@ bool pre_process_record_kb(uint16_t keycode, keyrecord_t* record) {
 #if defined(EH_HAS_DISPLAY) && defined(ENCODER_ENABLE) && !defined(ENCODER_MAP_ENABLE)
 bool encoder_update_kb(uint8_t index, bool clockwise) {
     display_process_encoder_event(index, clockwise, KC_NO);
+#    ifdef EH_APP_LAYOUT_ENABLE
+    if (hid_app_layout_process_encoder_event(index, clockwise, true)) return false;
+#    endif
     return encoder_update_user(index, clockwise);
 }
 #endif
@@ -366,6 +381,9 @@ bool caps_word_press_user(uint16_t keycode) {
 }
 
 void matrix_scan_kb(void) { // The very important timer.
+#ifdef EH_APP_LAYOUT_ENABLE
+    hid_app_layout_task();
+#endif
 #ifdef EH_HAS_DISPLAY
 #    if defined(DIRECT_PINS) && PAL_USE_CALLBACKS
     if (display_wake_interrupt_pending) {
