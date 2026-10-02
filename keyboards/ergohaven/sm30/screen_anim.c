@@ -4,6 +4,12 @@
 #include "src/display/lvgl_helpers.h"
 #include "src/display/eh_display.h"
 
+#if LV_COLOR_DEPTH != 16 || LV_COLOR_16_SWAP != 1
+#    error "SM30 animation requires byte-swapped RGB565"
+#endif
+
+extern painter_device_t display;
+
 static lv_obj_t *screen_anim;
 
 LV_IMG_DECLARE(anim_00);
@@ -50,26 +56,37 @@ static const lv_img_dsc_t *flame_frame[] = {
     &flame_10, &flame_11, &flame_12, &flame_13, &flame_14, &flame_15,                                             //
 };
 
-static lv_obj_t *anim_start;
 static uint32_t  anim_timer = 0;
+static uint32_t  anim_load_timer = 0;
 static int32_t   anim_index = 0;
+static uint16_t  anim_row   = 0;
+static bool      anim_output_ready = false;
+static bool      anim_waiting_for_lvgl = false;
 
-const int    IMG_WIDTH  = 240;
-const int    IMG_HEIGHT = 224;
 lv_img_dsc_t custom_img_dsc;
+
+enum {
+    DISPLAY_WIDTH              = 240,
+    DISPLAY_HEIGHT             = 280,
+    IMG_WIDTH                  = 240,
+    IMG_HEIGHT                 = 224,
+    ANIM_IMAGE_TOP             = (DISPLAY_HEIGHT - IMG_HEIGHT) / 2,
+    ANIM_STRIP_ROWS            = 8,
+    ANIM_FRAME_INTERVAL_MS     = 50,
+    ANIM_LVGL_SETTLE_MS        = QUANTUM_PAINTER_TASK_THROTTLE + 1,
+};
+
+_Static_assert(IMG_HEIGHT % ANIM_STRIP_ROWS == 0, "Animation height must be divisible by strip height");
 
 void anim_screen_init(void) {
     screen_anim = lv_obj_create(NULL);
     lv_obj_add_style(screen_anim, &style_screen, 0);
     use_flex_column(screen_anim);
 
-    anim_start = lv_img_create(screen_anim);
-    lv_obj_align(anim_start, LV_ALIGN_CENTER, 0, 0);
-    lv_obj_set_style_pad_top(anim_start, 0, 0);
-    lv_obj_set_style_pad_bottom(anim_start, 0, 0);
-
-    const int data_size         = IMG_WIDTH * IMG_HEIGHT * 2;
+    const int data_size         = IMG_WIDTH * IMG_HEIGHT * sizeof(uint16_t);
     uint16_t *image_data_buffer = (uint16_t *)lv_mem_alloc(data_size);
+    if (!image_data_buffer) return;
+
     memset(image_data_buffer, 0, data_size);
     custom_img_dsc.header.always_zero = 0;
     custom_img_dsc.header.w           = IMG_WIDTH;
@@ -77,6 +94,8 @@ void anim_screen_init(void) {
     custom_img_dsc.data_size          = data_size;
     custom_img_dsc.header.cf          = LV_IMG_CF_TRUE_COLOR; /*Set the color format*/
     custom_img_dsc.data               = (uint8_t *)image_data_buffer;
+
+    anim_output_ready = display && qp_get_width(display) == DISPLAY_WIDTH && qp_get_height(display) == DISPLAY_HEIGHT;
 }
 
 void draw_stars(lv_img_dsc_t *out) {
@@ -214,20 +233,28 @@ void draw_flame(const lv_img_dsc_t *in, lv_img_dsc_t *out) {
 }
 
 void anim_screen_housekeep(void) {
-    static bool frame_drawn = false;
-    static int  frame_idx   = -1;
-    if (!frame_drawn) {
-        draw_stars(&custom_img_dsc);
-        if (frame_idx >= 0) {
-            draw_ship(ship_frame[frame_idx], &custom_img_dsc);
-            draw_flame(flame_frame[frame_idx], &custom_img_dsc);
-        }
-        frame_drawn = true;
+    if (!anim_output_ready) return;
+
+    if (anim_waiting_for_lvgl) {
+        if (timer_elapsed32(anim_load_timer) <= ANIM_LVGL_SETTLE_MS) return;
+
+        anim_waiting_for_lvgl = false;
+        anim_timer            = timer_read32() - (ANIM_FRAME_INTERVAL_MS + 1);
+    }
+
+    if (anim_row < IMG_HEIGHT) {
+        uint16_t rows = MIN(ANIM_STRIP_ROWS, IMG_HEIGHT - anim_row);
+        uint16_t top  = ANIM_IMAGE_TOP + anim_row;
+
+        if (!qp_viewport(display, 0, top, IMG_WIDTH - 1, top + rows - 1)) return;
+        if (!qp_pixdata(display, (const uint16_t *)custom_img_dsc.data + anim_row * IMG_WIDTH, rows * IMG_WIDTH)) return;
+
+        anim_row += rows;
         return;
-    } else if (timer_elapsed32(anim_timer) > 50) {
-        lv_img_set_src(anim_start, &custom_img_dsc);
-        anim_timer = timer_read32();
-        anim_index += 1;
+    }
+
+    if (timer_elapsed32(anim_timer) > ANIM_FRAME_INTERVAL_MS) {
+        int frame_idx = -1;
 
         const static int TABLE[] = {
             9,  15, 9,  15, 9,  15, 9,  15, 9,  15, //
@@ -242,22 +269,30 @@ void anim_screen_housekeep(void) {
             12, 11, 10,                             //
         };
 
-        if (anim_index >= 14)
+        if (anim_index >= 14) {
             frame_idx = TABLE[(anim_index - 14) % ARRAY_SIZE(TABLE)];
-        else if (anim_index > 5)
+        } else if (anim_index > 5) {
             frame_idx = anim_index - 5;
-        else
-            frame_idx = -1;
+        }
 
-        frame_drawn = false;
+        draw_stars(&custom_img_dsc);
+        if (frame_idx >= 0) {
+            draw_ship(ship_frame[frame_idx], &custom_img_dsc);
+            draw_flame(flame_frame[frame_idx], &custom_img_dsc);
+        }
+
+        anim_row   = 0;
+        anim_timer = timer_read32();
+        anim_index += 1;
     }
 }
 
 void anim_screen_load(void) {
-    anim_timer = 0;
-    anim_index = 0;
+    anim_load_timer       = timer_read32();
+    anim_index            = 0;
+    anim_row              = IMG_HEIGHT;
+    anim_waiting_for_lvgl = true;
     srand(timer_read32());
-    anim_screen_housekeep();
     lv_scr_load(screen_anim);
 }
 
