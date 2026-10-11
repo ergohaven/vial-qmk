@@ -8,10 +8,13 @@
 #include "dynamic_keymap.h"
 #include "eeconfig.h"
 #include "quantum/split_common/transactions.h"
+#include "quantum/split_common/split_util.h"
 #include "src/eh_pointing.h"
 #include "ergohaven_rgb.h"
 #include "via.h"
 #include "pointing_device_internal.h"
+
+static_assert(sizeof(kb_settings_split_pointing_t) <= RPC_M2S_BUFFER_SIZE, "Split pointing settings exceed the RPC buffer");
 
 #ifndef AZOTEQ_IQS5XX_ADDRESS
 #define AZOTEQ_IQS5XX_ADDRESS (0x74 << 1)
@@ -103,6 +106,7 @@ static phenom_via_config_t          phenom_via_config           = {.raw = VIA_EE
 static uint32_t                   phenom_synced_raw           = VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT;
 static uint32_t                   phenom_applied_raw          = UINT32_MAX;
 static kb_settings_split_pointing_t phenom_synced_devices;
+static bool                         phenom_synced_devices_valid = false;
 static kb_settings_split_pointing_t phenom_applied_devices;
 static bool                       phenom_applied_devices_valid = false;
 static kb_settings_led_colors_t   phenom_synced_led_colors;
@@ -434,6 +438,10 @@ void housekeeping_task_user(void) {
     if (!is_keyboard_master()) {
         return;
     }
+    if (!is_transport_connected()) {
+        phenom_synced_devices_valid = false;
+        return;
+    }
     if (timer_elapsed32(last_sync) < 100) {
         return;
     }
@@ -445,9 +453,14 @@ void housekeeping_task_user(void) {
     }
 
     kb_settings_split_pointing_t devices = get_split_pointing_settings();
-    if (memcmp(&phenom_synced_devices, &devices, sizeof(devices)) != 0) {
-        phenom_synced_devices = devices;
-        transaction_rpc_send(RPC_PHENOM_SPLIT_POINTING_SETTINGS, sizeof(phenom_synced_devices), &phenom_synced_devices);
+    if (!phenom_synced_devices_valid || memcmp(&phenom_synced_devices, &devices, sizeof(devices)) != 0) {
+        if (transaction_rpc_send(RPC_PHENOM_SPLIT_POINTING_SETTINGS, sizeof(devices), &devices)) {
+            phenom_synced_devices = devices;
+            phenom_synced_devices_valid = true;
+        } else {
+            // The peer may have applied the settings before the RPC failed.
+            phenom_synced_devices_valid = false;
+        }
     }
 
     kb_settings_led_colors_t led_colors = get_settings_led_colors();

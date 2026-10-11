@@ -9,6 +9,9 @@
 
 #define SPLIT_TRANSACTION_IDS_USER RPC_PHENOM_CONFIG, RPC_PHENOM_SPLIT_POINTING_SETTINGS, RPC_PHENOM_LED_COLORS
 
+// Phenom split pointing settings occupy 40 bytes; QMK defaults to 32.
+#define RPC_M2S_BUFFER_SIZE 48
+
 /* Serial settings */
 #define SERIAL_USART_FULL_DUPLEX
 #define SERIAL_USART_TX_PIN GP0
