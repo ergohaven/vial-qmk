@@ -1,0 +1,11 @@
+{
+  "provenance": "User-approved Equal-Corner preview; exact bytes from vial-qmk-app-layouts-clean/keyboards/ergohaven/macropad/layer_navigation_icons.h, not redrawn",
+  "sha256": {
+    "layer_prev_icon.bin": "e8154d9b6ef608300641ba9fbae73654b98a994f9f63eaed7418c08ec25a05ff",
+    "layer_next_icon.bin": "fffb6870fd87fbccf422aa4f0f5b64773b815e9c77ad6204cbc261dd3b2c1693",
+    "pixel-preview.png": "d14dacaf30d08ec0afd8db59616fe7e3c3f51d1e3e0f84c60e65c86e50f688cc",
+    "layer-previous.svg": "cf7cb4560835a96e0bc66c3eebf9216d3165c53e125cabfabd9b928aac5f985c",
+    "layer-next.svg": "039bb9e39fc50c01b3a9bfa019f05408b0fafc63a908b69009688406f6ccb5ef"
+  },
+  "unchanged_catalog_prefix_sha256": "068351e9dc5e4b2d2ffd6db23c862db5b7ee10e275f696132d3764283d2fec68"
+}

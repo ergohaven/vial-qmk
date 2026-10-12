@@ -938,8 +938,8 @@ static void screen_layout_set_key_content(uint8_t index, uint8_t layer, uint8_t 
     label_animation_frame[index] = 0;
     const uint8_t *bitmap = eh_pictogram_for_keycode(keycode);
     uint8_t bitmap_width = eh_pictogram_stored_width();
-    if (keycode == LAYER_PREV) { bitmap = layer_prev_icon; bitmap_width = 35; }
-    if (keycode == LAYER_NEXT) { bitmap = layer_next_icon; bitmap_width = 35; }
+    if (bitmap == NULL && keycode == LAYER_PREV) { bitmap = layer_prev_icon; bitmap_width = 35; }
+    if (bitmap == NULL && keycode == LAYER_NEXT) { bitmap = layer_next_icon; bitmap_width = 35; }
     if (bitmap == NULL) { bitmap = screen_layout_builtin_key_icon(keycode); bitmap_width = 35; }
     if (bitmap == NULL) {
         lv_obj_add_flag(key_icons[index], LV_OBJ_FLAG_HIDDEN);

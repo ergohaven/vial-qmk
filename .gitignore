@@ -96,6 +96,14 @@ tags
 *.ttf
 *.otf
 
+# Approved artwork masters and independent regression fixtures are source data.
+!/tools/artwork/layer-navigation/*.bin
+!/tools/artwork/layer-navigation/*.png
+!/tools/artwork/layer-navigation/*.svg
+!/tests/ergohaven_icons/golden/*.bin
+!/tests/ergohaven_icons/golden/*.png
+!/tests/ergohaven_icons/golden/*.svg
+
 # Things Travis sees
 /.vs
 id_rsa_*
