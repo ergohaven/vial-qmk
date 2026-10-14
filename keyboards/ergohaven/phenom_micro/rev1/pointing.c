@@ -141,7 +141,7 @@ static phenom_module_t phenom_get_active_module(void) {
 }
 
 static report_mouse_t phenom_rotate_report(report_mouse_t report, orientation_t orientation) {
-    int8_t tmp;
+    mouse_xy_report_t tmp;
     switch (orientation) {
         case ROT_0:
             break;
