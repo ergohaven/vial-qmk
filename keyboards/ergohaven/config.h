@@ -17,11 +17,7 @@
 
 #define WEAR_LEVELING_BACKING_SIZE 16384 // increase EEPROM size
 
-#if defined(KEYBOARD_ergohaven_macropad_rev2) || defined(KEYBOARD_ergohaven_macropad_rev3)
-#    define EH_FIRMWARE_VERSION 0x00040007
-#else
-#    define EH_FIRMWARE_VERSION 0x00040006
-#endif
+#define EH_FIRMWARE_VERSION 0x00040100
 #ifndef VIA_FIRMWARE_VERSION
 #    define VIA_FIRMWARE_VERSION EH_FIRMWARE_VERSION
 #endif

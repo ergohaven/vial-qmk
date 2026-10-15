@@ -1,6 +1,6 @@
 {
-    "firmware": {"version": "4.0.6"},
-    "firmwareVersion": "4.0.6",
+    "firmware": {"version": "4.1.0"},
+    "firmwareVersion": "4.1.0",
     "lighting": "qmk_backlight",
     "matrix": {
         "rows": 12,

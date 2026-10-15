@@ -1,3 +1,25 @@
+## 4.1.0
+
+- Added application layouts for M4CR0Pad v2/v3, including v2_ccw, with automatic switching, host-provided labels and encoder actions through Entropy.
+- Updated M4CR0Pad v2/v3 action and layer-navigation icons, refined display rendering, and preserved custom clock colors when changing the accent color.
+- Fixed Combo processing for Entropy application layouts on M4CR0Pad v2/v3, including key releases after layout or layer changes.
+- Fixed scroll-mode keys on Phenom Micro typing product information instead of entering scroll mode.
+- Fixed trackball/touchpad DPI synchronization between halves of Phenom, Phenom Mini and Phenom Micro, including retries after failed transfers or reconnects, and fixed coordinate truncation during pointer rotation.
+- Removed unavailable layer LED settings and obsolete dynamic-macro bindings from HPD v1.
+- Made SM30 startup animation rendering cooperative to avoid blocking keyboard scanning.
+- Added HPD v2 LCD/trackball builds to the official release matrix and expanded release-scope and regression checks.
+- Contributors / Special thanks: @IgorArkhipov (#37), @D19ital (#40, #42, #43, #45, #50), and @Yurii-Q (#44, #47, #48, #49).
+
+- Добавлены раскладки приложений для M4CR0Pad v2/v3, включая v2_ccw, с автоматическим переключением, подписями с компьютера и действиями энкодеров через Entropy.
+- Обновлены пиктограммы действий и переключения слоёв M4CR0Pad v2/v3, доработано отображение экрана и сохранение пользовательских цветов часов при изменении акцентного цвета.
+- Исправлена обработка Combo в раскладках приложений Entropy на M4CR0Pad v2/v3, включая отпускание клавиш после смены раскладки или слоя.
+- Исправлены клавиши режима прокрутки Phenom Micro, которые печатали информацию об устройстве вместо включения прокрутки.
+- Исправлена синхронизация DPI трекболла и тачпада между половинами Phenom, Phenom Mini и Phenom Micro, включая повторную отправку после ошибок передачи и переподключения, а также обрезание координат при повороте указателя.
+- Убраны недоступные настройки подсветки слоёв и устаревшие назначения динамических макросов HPD v1.
+- Отрисовка стартовой анимации SM30 переведена в пошаговый режим, чтобы не блокировать сканирование клавиатуры.
+- В официальную матрицу релиза добавлена сборка HPD v2 с дисплеем и трекболлом, расширены проверки состава релиза и регрессионные тесты.
+- Участники / Особая благодарность: @IgorArkhipov (#37), @D19ital (#40, #42, #43, #45, #50) и @Yurii-Q (#44, #47, #48, #49).
+
 ## 4.0.6
 
 - Reduced the Vial unlock hold time to 3 seconds on all keyboards.

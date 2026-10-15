@@ -1,6 +1,6 @@
 {
-    "firmware": {"version": "4.0.6"},
-    "firmwareVersion": "4.0.6",
+    "firmware": {"version": "4.1.0"},
+    "firmwareVersion": "4.1.0",
     "name": "Imperial44",
     "vendorId": "0x444D",
     "productId": "0x3636",
