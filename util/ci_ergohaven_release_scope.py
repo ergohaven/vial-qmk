@@ -11,9 +11,11 @@ KEYBOARDS_ROOT = Path("keyboards")
 ERGOHAVEN_ROOT = KEYBOARDS_ROOT / "ergohaven"
 MATRIX_ENTRY = re.compile(r"^\s*-\s*\{\s*kb:\s*([^,]+),\s*km:\s*([^}]+)\}\s*$")
 
-# Maintainer keymaps are kept in-tree for development and personal builds, but
-# are intentionally excluded from official Ergohaven release artifacts.
+# Maintainer and retired keymaps stay in-tree for development/personal builds,
+# but are intentionally excluded from official Ergohaven release artifacts.
 EXCLUDED_KEYMAPS = {
+    ERGOHAVEN_ROOT / "hpd/keymaps/v2_lcd_ball/vial.json",
+    ERGOHAVEN_ROOT / "macropad/keymaps/v2_ccw/vial.json",
     ERGOHAVEN_ROOT / "hpd/keymaps/kissetfall/vial.json",
     ERGOHAVEN_ROOT / "imperial44/keymaps/kissetfall/vial.json",
     ERGOHAVEN_ROOT / "k02/keymaps/kissetfall/vial.json",
@@ -33,7 +35,7 @@ REQUIRED_RELEASE_TARGETS = {
     ("ergohaven/hpd/rev2", "v2_enc_enc"),
     ("ergohaven/hpd/rev2", "v2_enc_joy"),
     ("ergohaven/hpd/rev2", "v2_enc_touch"),
-    ("ergohaven/hpd/rev2", "v2_lcd_ball"),
+
     ("ergohaven/hpd/rev2", "v2_touch_enc"),
     ("ergohaven/imperial44/rev1", "v1_v2"),
     ("ergohaven/imperial44/rev3", "v3_v4"),
@@ -45,7 +47,7 @@ REQUIRED_RELEASE_TARGETS = {
     ("ergohaven/k03pro/rev2", "v2_v3"),
     ("ergohaven/macropad/rev1", "v1"),
     ("ergohaven/macropad/rev2", "v2"),
-    ("ergohaven/macropad/rev2", "v2_ccw"),
+
     ("ergohaven/macropad/rev3", "v3"),
     ("ergohaven/phenom/rev1", "v1"),
     ("ergohaven/phenom_micro/rev1", "v1"),

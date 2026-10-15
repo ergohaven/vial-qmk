@@ -46,7 +46,7 @@ jobs:
           - { kb: ergohaven/hpd/rev2, km: v2_touch_enc}
           - { kb: ergohaven/hpd/rev2, km: v2_enc_enc}
           - { kb: ergohaven/hpd/rev2, km: v2_enc_joy}
-          - { kb: ergohaven/hpd/rev2, km: v2_lcd_ball}
+
           - { kb: ergohaven/phenom/rev1, km: v1}
           - { kb: ergohaven/phenom_mini/rev1, km: v1}
           - { kb: ergohaven/phenom_micro/rev1, km: v1}
@@ -56,7 +56,7 @@ jobs:
           - { kb: ergohaven/planeta/rev2, km: v2}
           - { kb: ergohaven/macropad/rev1, km: v1}
           - { kb: ergohaven/macropad/rev2, km: v2}
-          - { kb: ergohaven/macropad/rev2, km: v2_ccw}
+
           - { kb: ergohaven/macropad/rev3, km: v3}
           - { kb: ergohaven/trackball, km: v1}
           - { kb: ergohaven/trackball, km: v2}
