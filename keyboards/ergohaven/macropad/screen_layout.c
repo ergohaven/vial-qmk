@@ -65,7 +65,7 @@ static uint16_t  label_kc[NLABELS];
 static uint8_t   label_visual[NLABELS];
 static uint8_t   label_execution_state[NLABELS];
 static uint8_t   label_animation_frame[NLABELS];
-static char      label_text[NLABELS][24];
+static char      label_text[NLABELS][32];
 static lv_obj_t *label_layer_icon;
 static lv_obj_t *label_layer;
 static char      displayed_layout_name[64];
@@ -896,7 +896,8 @@ static const uint8_t *screen_layout_builtin_key_icon(uint16_t keycode) {
         case KC_HOME: icon = EH_KEY_ICON_HOME; break;
         case KC_INSERT: icon = EH_KEY_ICON_INSERT; break;
         case KC_END: icon = EH_KEY_ICON_END; break;
-        case KC_DELETE: icon = EH_KEY_ICON_DELETE; break;
+        case KC_BACKSPACE: icon = EH_KEY_ICON_BACKSPACE; break;
+        case KC_DELETE: return EH_SHARED_ICON_DELETE;
         case KC_PRINT_SCREEN: icon = EH_KEY_ICON_SCREENSHOT; break;
         case KC_UP: return EH_SHARED_ICON_ARROW_UP;
         case KC_DOWN: return EH_SHARED_ICON_ARROW_DOWN;
@@ -950,6 +951,25 @@ static void screen_layout_set_key_content(uint8_t index, uint8_t layer, uint8_t 
             keycode >= KC_1 && keycode <= KC_0 ? &eh_font_montserrat_28 : &eh_font_montserrat_20,
             LV_PART_MAIN);
         get_keycode_str(label_text[index], keycode);
+        // A previous long shortcut may have been scaled down. Ordinary labels
+        // and numbers must always restore their original size.
+        lv_obj_set_style_transform_zoom(key_labels[index], 256, LV_PART_MAIN);
+        if (IS_QK_MODS(keycode) && QK_MODS_GET_MODS(keycode) != 0) {
+            // Static single-line shortcuts: fit the complete label into the
+            // tile, without introducing a horizontal or vertical marquee.
+            lv_point_t text_size;
+            lv_txt_get_size(&text_size, label_text[index], &eh_font_montserrat_20,
+                0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
+            lv_label_set_long_mode(key_labels[index], LV_LABEL_LONG_CLIP);
+            lv_obj_set_size(key_labels[index], text_size.x > 0 ? text_size.x : 1, eh_font_montserrat_20.line_height);
+            if (text_size.x > 66) {
+                lv_obj_set_style_transform_zoom(key_labels[index],
+                    (66U * 256U) / text_size.x, LV_PART_MAIN);
+            }
+        } else {
+            lv_label_set_long_mode(key_labels[index], LV_LABEL_LONG_WRAP);
+            lv_obj_set_size(key_labels[index], LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+        }
         lv_label_set_text_static(key_labels[index], label_text[index]);
         return;
     }

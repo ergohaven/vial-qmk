@@ -100,6 +100,7 @@ tags
 !/tools/artwork/layer-navigation/*.bin
 !/tools/artwork/layer-navigation/*.png
 !/tools/artwork/layer-navigation/*.svg
+!/tools/artwork/delete-right/*.bin
 !/tests/ergohaven_icons/golden/*.bin
 !/tests/ergohaven_icons/golden/*.png
 !/tests/ergohaven_icons/golden/*.svg

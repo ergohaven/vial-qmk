@@ -68,3 +68,41 @@ patterns. Silent no-op programming and separate descriptor corruption are
 additional fault models, not equivalent to ordinary interrupted power. No test
 claims ARM linking/size, USB driver integration, real LVGL
 rendering, physical scan/encoder cadence, watchdog timing or flash endurance.
+
+## Focused Macropad БАГ-002 / БАГ-004 regressions
+
+```sh
+python3 tests/ergohaven/run_macropad_bugs.py /absolute/scratch/encoder --only 002
+python3 tests/ergohaven/run_macropad_bugs.py /absolute/scratch/labels --only 004 --lvgl /path/to/initialized/lib/lvgl
+```
+
+Add `--ref d531ecf18f4226ab6de04b3b2784500f1979b67f` to compile the same
+assertions against the original production source (both must fail behaviorally).
+Only test fixtures remain current with `--ref`; production bodies/declarations
+and fonts are read with `git show`. No source checkout is modified by the runner.
+All generated code, executables and assertion output (`results.txt`) stay in
+the explicit output directory. GCC and Python stdlib suffice.
+
+002 compiles the actual pre-process hook, QMK event types/predicates, Macropad
+screen transition/encoder functions and complete HID application-layout section.
+Only timers, layer-state primitives, screen load/power/animation sinks, downstream
+Vial dispatch and unrelated user/RuEn hooks are substituted. It covers native
+event queue identity, QMK fallback, modifier-wrapped volume, layer transparency,
+selected stacks, press/release, timeout and unavailable host volume. Runtime
+profiles are synthetic in-memory fixtures, not a live companion session.
+
+004 compiles the production keycode formatting functions, builtin-icon selector,
+key-content renderer, label buffers and unmodified 20/28px fonts with real LVGL
+software layout/rasterization. It checks a 74x43 tile, short and long combinations,
+scroll frames, nonempty text pixels confined to the tile, left/right and Mac/Linux
+labels, adjacent-buffer sentinels and basic/modtap/OSM/icon controls. The initialized
+LVGL source must contain commit `e19410f8f8a256609da72cff549598e0df6fa4cf`;
+every tracked C/header blob is checked against it before compilation. A read-only
+copy of an existing initialized submodule also works. Hardware and OS detection
+are synthetic; the surrounding screen/style tree is a minimal fixture, not the
+full device initialization or the user's private layout. No ARM link, physical
+display/USB or companion-native OS-action execution is certified.
+
+Both probes use `-Wall -Wextra -Werror` and UBSan. Only the LVGL probe disables
+GCC's `type-limits` warning for QMK's existing unsigned `IS_QK_BASIC` range macro;
+it keeps all other warnings fatal. These commands do not run the broader suite.

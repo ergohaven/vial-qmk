@@ -19,6 +19,9 @@
 static hid_data_t hid_data;
 
 #ifdef EH_APP_LAYOUT_ENABLE
+// Boards without a layout display need no notification.
+__attribute__((weak)) void hid_app_layout_changed_kb(void) {}
+
 #    define EH_APP_LAYOUT_PROTOCOL_VERSION 7
 #    define EH_APP_LAYOUT_STACK_SLOTS 4
 #    define EH_APP_LAYOUT_STACK_NAME_BYTES 12
@@ -78,6 +81,10 @@ static uint16_t                app_layout_stack_keycodes[EH_APP_LAYOUT_LAYER_COU
 static char                    app_layout_stack_names[EH_APP_LAYOUT_LAYER_COUNT][EH_APP_LAYOUT_STACK_SLOTS][EH_APP_LAYOUT_STACK_NAME_BYTES + 1];
 static uint8_t                 app_layout_execution_states[EH_APP_LAYOUT_LAYER_COUNT][EH_APP_LAYOUT_CONTROL_COUNT];
 static uint32_t                app_layout_visual_generation;
+static uint32_t                app_layout_wake_epoch;
+static bool                    app_layout_wake_epoch_seen;
+static uint8_t                 app_layout_wake_identity[20];
+static bool                    app_layout_wake_identity_seen;
 static uint16_t                app_layout_held[EH_APP_LAYOUT_KEY_COUNT];
 
 typedef struct {
@@ -338,6 +345,23 @@ bool hid_app_layout_process_packet(uint8_t *data, uint8_t length) {
             app_layout_clear_events();
             memset(app_layout_execution_states, 0, sizeof(app_layout_execution_states));
             app_layout_visual_generation++;
+            // v2 is a stable semantic-ID digest (not map content). Retain it
+            // across deactivate, expiry and transport replacement. Unknown or
+            // legacy snapshots do not erase the last known semantic identity.
+            if (length >= 31 && data[9] == 0x57 && data[10] == 2) {
+                bool changed = !app_layout_wake_identity_seen || memcmp(app_layout_wake_identity, data + 11, 20) != 0;
+                memcpy(app_layout_wake_identity, data + 11, 20);
+                app_layout_wake_identity_seen = true;
+                if (changed) hid_app_layout_changed_kb();
+            } else if (!app_layout_wake_identity_seen && length >= 15 && data[9] == 0x57 && data[10] == 1) {
+                // Backward compatibility only: v1 has worker-local epochs and
+                // cannot certify semantic transitions across worker restarts.
+                uint32_t epoch = app_layout_read_u32(data + 11);
+                bool changed = !app_layout_wake_epoch_seen || epoch != app_layout_wake_epoch;
+                app_layout_wake_epoch_seen = true;
+                app_layout_wake_epoch = epoch;
+                if (changed) hid_app_layout_changed_kb();
+            }
             return true;
         }
 

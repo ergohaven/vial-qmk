@@ -25,6 +25,10 @@ uint32_t last_matrix_activity_time(void);
 static uint32_t screen_timer             = 0;
 static uint32_t last_user_activity_timer = 0;
 static uint32_t handled_matrix_activity  = 0;
+// Display-only activity: application switches must not mutate QMK's physical
+// input timestamps, but start a fresh LCD timeout as well as standby delay.
+static uint32_t application_display_activity_timer;
+static bool application_display_activity_seen;
 
 
 typedef enum {
@@ -74,6 +78,18 @@ static void apply_screen_state(void) {
     current_screen.load();
 }
 
+// A committed application transition is activity, not a physical key press.
+// Wake enabled standby (clock/GIF), but preserve power-off and volume modes.
+void hid_app_layout_changed_kb(void) {
+    if (!is_display_enabled() || (screen_state != SCREEN_HOME && screen_state != SCREEN_LAYOUT)) return;
+    last_user_activity_timer = timer_read32();
+    application_display_activity_timer = last_user_activity_timer;
+    application_display_activity_seen = true;
+    screen_timer = last_user_activity_timer;
+    change_screen_state = SCREEN_LAYOUT;
+    apply_screen_state();
+}
+
 void display_process_matrix_press(void) {
     if (!is_display_enabled()) return;
     last_matrix_activity_trigger();
@@ -93,6 +109,7 @@ void display_process_keyevent(uint8_t row, uint8_t col, bool pressed) {
 }
 
 static int8_t volume_direction_for_keycode(uint16_t keycode) {
+    if (IS_QK_MODS(keycode)) keycode = QK_MODS_GET_BASIC_KEYCODE(keycode);
     switch (keycode) {
         case KC_AUDIO_VOL_UP:
         case KC_KB_VOLUME_UP:
@@ -109,6 +126,12 @@ void display_process_encoder_event(uint8_t index, bool clockwise, uint16_t keyco
     if (index != 0) return;
     last_user_activity_timer = timer_read32();
 
+#ifdef EH_APP_LAYOUT_ENABLE
+    // The hook receives the underlying QMK mapping before application routing.
+    // Match the binding that will actually execute, including selected stacks.
+    uint16_t runtime_keycode;
+    if (hid_app_layout_get_keycode(get_current_layer(), clockwise ? 14 : 13, &runtime_keycode)) keycode = runtime_keycode;
+#endif
     int8_t volume_direction = volume_direction_for_keycode(keycode);
     if (screen_state == SCREEN_LAYOUT && change_screen_state == SCREEN_LAYOUT) {
         screen_layout_process_encoder_event(index, clockwise);
@@ -209,6 +232,10 @@ void display_housekeeping_task(void) {
     if (screen_state == change_screen_state) {
         uint32_t screen_elapsed   = timer_elapsed32(screen_timer);
         uint32_t activity_elapsed = last_input_activity_elapsed();
+        if (application_display_activity_seen) {
+            uint32_t display_elapsed = timer_elapsed32(application_display_activity_timer);
+            if (display_elapsed < activity_elapsed) activity_elapsed = display_elapsed;
+        }
 #ifdef EH_DATE_SETTINGS_ENABLE
         // One standby-entry delay, independent of which elements are enabled.
         static const uint32_t standby_delays[] = {0,5000,10000,15000,30000,60000,120000,20000};

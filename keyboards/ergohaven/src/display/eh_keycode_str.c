@@ -495,7 +495,7 @@ bool special_keycode_str(char *buf, uint16_t keycode) {
             return true;
 
         case C(KC_Z):
-            sprintf(buf, EH_SYMBOL_ROTATE_LEFT "\n" EH_SYMBOL_CTL "Z");
+            sprintf(buf, EH_APP_LAYOUT_LABEL(EH_SYMBOL_ROTATE_LEFT " " EH_SYMBOL_CTL " Z", EH_SYMBOL_ROTATE_LEFT "\n" EH_SYMBOL_CTL "Z"));
             return true;
         case C(KC_X):
             sprintf(buf, EH_SYMBOL_CUT "\n" EH_SYMBOL_CTL "X");
@@ -739,11 +739,19 @@ const char *mods_to_str(uint8_t mods) {
 bool mods_keycode_to_str(char *str, uint16_t keycode) {
     uint8_t     mods      = QK_MODS_GET_MODS(keycode);
     const char *basic_str = basic_keycode_to_str(QK_MODS_GET_BASIC_KEYCODE(keycode));
+#ifdef EH_APP_LAYOUT_ENABLE
+    // QK_MODS stores a right-side flag, not an HID modifier mask.
+    mods = (mods & 0x0F) << ((mods & 0x10) ? 4 : 0);
+#endif
     if (mods == 0) {
         sprintf(str, "%s", basic_str);
     } else {
         const char *mod_str = mods_to_str(mods);
-        sprintf(str, "%s\n%s", mod_str, basic_str);
+        sprintf(str, EH_APP_LAYOUT_LABEL("%s %s", "%s\n%s"), mod_str, basic_str);
+#ifdef EH_APP_LAYOUT_ENABLE
+        // Some basic key names also contain intentional two-line labels.
+        for (char *p = str; *p; p++) if (*p == '\n') *p = ' ';
+#endif
     }
     return true;
 }
