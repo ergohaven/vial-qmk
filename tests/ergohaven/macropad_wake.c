@@ -133,6 +133,7 @@ int main(void){
    display_housekeeping_task();assert(screen_state==SCREEN_OFF);checks++;
   }else{assert(!"unknown command");}
  }
+ if(checks==0){fputs("FAIL: no wake checks executed\n",stderr);return 1;}
  printf("PASS %u screen/standby/disabled/manual/disconnect assertions\n",checks);
  return 0;
 }

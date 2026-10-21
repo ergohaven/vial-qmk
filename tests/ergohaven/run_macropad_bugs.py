@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Focused native production-source probes, following run_native.py conventions."""
 import argparse
-import hashlib
+from macropad_native_support import validate_lvgl, write_stubs
 from pathlib import Path
 import re
 import subprocess
@@ -11,6 +11,7 @@ p = argparse.ArgumentParser()
 p.add_argument('output', type=Path)
 p.add_argument('--only', choices=['002', '004'], required=True)
 p.add_argument('--ref', help='Read production source from this Git revision')
+p.add_argument('--no-app-layout', action='store_true', help='Exercise default-keymap multiline labels without EH_APP_LAYOUT_ENABLE')
 p.add_argument('--lvgl', type=Path, help='LVGL source at the pinned lib/lvgl revision')
 a = p.parse_args()
 a.output.mkdir(parents=True, exist_ok=True)
@@ -54,42 +55,9 @@ if a.only == '002':
 else:
     if not a.lvgl or not (a.lvgl/'lvgl.h').is_file():
         p.error('--only 004 requires --lvgl at e19410f8f8a256609da72cff549598e0df6fa4cf')
-    pinned = 'e19410f8f8a256609da72cff549598e0df6fa4cf'
-    tree = subprocess.check_output(['git', '-C', str(a.lvgl), 'ls-tree', '-rz', '--full-tree', pinned])
-    checked = 0
-    for entry in tree.split(b'\0'):
-        if not entry:
-            continue
-        metadata, filename = entry.split(b'\t')
-        _, kind, oid = metadata.split()
-        if kind != b'blob' or not filename.endswith((b'.c', b'.h')):
-            continue
-        data = (a.lvgl/filename.decode()).read_bytes()
-        actual = hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
-        assert actual == oid.decode(), f'LVGL source differs from pinned revision: {filename!r}'
-        checked += 1
-    print(f'LVGL pinned source: {checked} C/header blobs verified', flush=True)
+    validate_lvgl(a.lvgl)
     stubs = a.output/'stubs'
-    stubs.mkdir(exist_ok=True)
-    (stubs/'os_detection.h').write_text('''#pragma once
-typedef enum { OS_UNSURE, OS_LINUX, OS_MACOS, OS_IOS } os_variant_t;
-static os_variant_t test_os=OS_LINUX;
-static os_variant_t detected_host_os(void){return test_os;}
-''')
-    (stubs/'quantum.h').write_text('''#pragma once
-#include <stdint.h>
-#include <stdbool.h>
-#include "quantum/keycodes.h"
-#include "quantum/quantum_keycodes.h"
-#define PROGMEM
-#define MOD_MASK_CTRL 0x11
-#define MOD_MASK_SHIFT 0x22
-#define MOD_MASK_ALT 0x44
-#define MOD_MASK_GUI 0x88
-#define MOD_LSFT 2
-#define MOD_LCTL 1
-typedef struct keyrecord keyrecord_t;
-''')
+    write_stubs(stubs)
     labels = source('keyboards/ergohaven/src/display/eh_keycode_str.c')
     production = labels[labels.index('// Application-layout labels'):]
     layout = source('keyboards/ergohaven/macropad/screen_layout.c')
@@ -110,7 +78,12 @@ typedef struct keyrecord keyrecord_t;
         font.write_text(source(f'keyboards/ergohaven/src/display/fonts/eh_font_montserrat_{size}.c'))
         extra.append(str(font))
     # QMK's unsigned >= 0 range macro triggers GCC's type-limits warning.
-    extra += ['-DLV_CONF_SKIP', '-DEH_APP_LAYOUT_ENABLE', '-DOS_DETECTION_ENABLE', '-DLV_USE_LOG=1', '-DLV_USE_ASSERT_MALLOC=1', '-Wno-type-limits', '-lm']
+    extra += ['-DLV_CONF_SKIP', '-DOS_DETECTION_ENABLE', '-DLV_USE_LOG=1', '-DLV_USE_ASSERT_MALLOC=1', '-Wno-type-limits', '-lm']
+    if not a.no_app_layout:
+        extra.append('-DEH_APP_LAYOUT_ENABLE')
+    else:
+        # These production arguments are intentionally unused without the feature.
+        extra.append('-Wno-unused-parameter')
 path = a.output / f'bug{a.only}.c'
 path.write_text(text)
 exe = path.with_suffix('')

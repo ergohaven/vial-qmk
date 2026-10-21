@@ -17,10 +17,12 @@
 LV_FONT_DECLARE(eh_font_montserrat_20);
 LV_FONT_DECLARE(eh_font_montserrat_28);
 static lv_color_t accent_color_blue,display_background_color;
+#ifdef EH_APP_LAYOUT_ENABLE
 static bool hid_app_layout_get_visual(uint8_t l,uint8_t c,uint8_t *v,uint8_t *s){(void)l;(void)c;(void)v;(void)s;return false;}
 static void screen_layout_set_integration_icon(uint8_t i,uint8_t v,uint8_t s,uint8_t f){(void)i;(void)v;(void)s;(void)f;assert(false);}
 
 static uint32_t timer_read32(void){return 0;}
+#endif
 PRODUCTION
 static lv_color_t framebuffer[240*280];
 static void flush(lv_disp_drv_t *drv,const lv_area_t *a,lv_color_t *colors){
@@ -91,6 +93,23 @@ int main(void){
     }
     assert(memcmp(expected_backspace,expected_delete,154));
     puts("BACKSPACE/DELETE PASS: unchanged Backspace, exact approved mirrored Delete; same native canvas and production setter");
+#ifndef EH_APP_LAYOUT_ENABLE
+    // Default rev3 keymaps retain the shared formatter's modifier/newline/key.
+    const uint16_t multiline[]={LCTL(KC_M),RCTL(KC_M),LCTL(KC_Z),LGUI(KC_M)};
+    for(unsigned i=0;i<sizeof(multiline)/sizeof(*multiline);i++){
+        check_label(multiline[i],false);
+        assert(strchr(lv_label_get_text(key_labels[0]),'\n'));
+        assert(lv_obj_get_height(key_labels[0])>=2*eh_font_montserrat_20.line_height);
+        assert(lv_label_get_long_mode(key_labels[0])==LV_LABEL_LONG_WRAP);
+        assert(lv_obj_get_style_transform_zoom(key_labels[0],0)==256);
+        unsigned lower_ink=0;
+        for(int y=53;y<=73;y++)for(int x=23;x<=96;x++)lower_ink+=framebuffer[y*240+x].full!=0;
+        assert(lower_ink>0 && "base key must remain visible on the second row");
+    }
+    check_label(KC_1,false);
+    assert(lv_obj_get_style_text_font(key_labels[0],0)==&eh_font_montserrat_28);
+    puts("DEFAULT LABEL PASS: multiline modifier and base key visible without application-layout feature");
+#else
     // Ctrl+Z has a special arrow caption, unlike the basic KC_UNDO glyph.
     // It must pass the same one-line, clipped/static pixel assertions.
     check_label(LCTL(KC_Z),true);
@@ -118,4 +137,5 @@ int main(void){
     assert(!strcmp(lv_label_get_text(key_labels[0]),"CMD Z"));
     puts("SPACING/UNDO PASS: modifier gap, complete arrow/control/Z single line, no clipped second row");
     puts("BUG-004 PASS: static single-line shortcuts without plus separators; identical frames over time, scaled glyph bounds inside 74x43 tile, Linux/Mac and ordinary/icon controls");
+#endif
 }

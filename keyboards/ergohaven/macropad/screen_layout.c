@@ -954,6 +954,8 @@ static void screen_layout_set_key_content(uint8_t index, uint8_t layer, uint8_t 
         // A previous long shortcut may have been scaled down. Ordinary labels
         // and numbers must always restore their original size.
         lv_obj_set_style_transform_zoom(key_labels[index], 256, LV_PART_MAIN);
+#ifdef EH_APP_LAYOUT_ENABLE
+        // Match the formatter's one-line application-layout feature gate.
         if (IS_QK_MODS(keycode) && QK_MODS_GET_MODS(keycode) != 0) {
             // Static single-line shortcuts: fit the complete label into the
             // tile, without introducing a horizontal or vertical marquee.
@@ -966,7 +968,9 @@ static void screen_layout_set_key_content(uint8_t index, uint8_t layer, uint8_t 
                 lv_obj_set_style_transform_zoom(key_labels[index],
                     (66U * 256U) / text_size.x, LV_PART_MAIN);
             }
-        } else {
+        } else
+#endif
+        {
             lv_label_set_long_mode(key_labels[index], LV_LABEL_LONG_WRAP);
             lv_obj_set_size(key_labels[index], LV_SIZE_CONTENT, LV_SIZE_CONTENT);
         }

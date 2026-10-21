@@ -2,14 +2,18 @@
 """Production HID/display/screen bodies + real LVGL; USB/clock/storage/panel boundaries injected."""
 from pathlib import Path
 import argparse, re, subprocess
+from macropad_native_support import validate_lvgl, write_stubs
+from macropad_wake_scenarios import scenarios
 ROOT = Path(__file__).resolve().parents[2]
 p = argparse.ArgumentParser()
 p.add_argument('output', type=Path)
 p.add_argument('--lvgl', type=Path, required=True)
-p.add_argument('--stubs', type=Path, required=True, help='Hardware headers from focused run_macropad_bugs.py --only 004')
 p.add_argument('--ref', help='Baseline firmware source revision (tests remain current)')
 a = p.parse_args()
+validate_lvgl(a.lvgl)
 a.output.mkdir(parents=True, exist_ok=True)
+stubs = a.output/'stubs'
+write_stubs(stubs)
 def source(path):
     if a.ref:
         return subprocess.check_output(['git', 'show', f'{a.ref}:{path}'], cwd=ROOT, text=True)
@@ -42,7 +46,7 @@ text = (ROOT/'tests/ergohaven/macropad_wake.c').read_text().replace('SCREEN_STAT
 src = a.output/'wake.c'
 src.write_text(text)
 exe = a.output/'wake'
-includes = [a.stubs,a.lvgl,ROOT/'keyboards/ergohaven',ROOT/'keyboards/ergohaven/macropad',ROOT,ROOT/'quantum',ROOT/'quantum/keymap_extras',ROOT/'quantum/sequencer']
+includes = [stubs,a.lvgl,ROOT/'keyboards/ergohaven',ROOT/'keyboards/ergohaven/macropad',ROOT,ROOT/'quantum',ROOT/'quantum/keymap_extras',ROOT/'quantum/sequencer']
 fonts = []
 for size in [20,28]:
     font = a.output/f'eh_font_montserrat_{size}.c'
@@ -50,4 +54,18 @@ for size in [20,28]:
     fonts.append(str(font))
 cmd = ['gcc','-std=gnu11','-O1','-g','-Wall','-Wextra','-Werror','-Wno-type-limits','-fsanitize=undefined','-fno-sanitize-recover=all','-DLV_CONF_SKIP','-DEH_APP_LAYOUT_ENABLE','-DOS_DETECTION_ENABLE','-DLV_USE_LOG=1','-DLV_USE_ASSERT_MALLOC=1']
 subprocess.run([*cmd,*['-I'+str(d) for d in includes],str(src),*fonts,*sorted(str(f) for f in (a.lvgl/'src').rglob('*.c')),'-lm','-o',str(exe)],check=True)
-print(exe)
+# Empty input must be rejected even if the executable is invoked directly.
+empty = subprocess.run([str(exe)], input='', text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+(a.output/'empty-input.txt').write_text(empty.stdout)
+assert empty.returncode != 0, 'zero-check run falsely succeeded'
+total = 0
+for name, commands in scenarios().items():
+    (a.output/(name+'.stdin')).write_text(commands)
+    result = subprocess.run([str(exe)], input=commands, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    (a.output/(name+'.txt')).write_text(result.stdout)
+    print(name+': '+result.stdout, flush=True)
+    result.check_returncode()
+    match = re.search(r'PASS ([1-9][0-9]*) ', result.stdout)
+    assert match, 'missing positive executed-check count'
+    total += int(match[1])
+print(f'PASS {len(scenarios())} deterministic wake scenarios, {total} checks; empty input rejected')
