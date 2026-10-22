@@ -69,6 +69,38 @@ additional fault models, not equivalent to ordinary interrupted power. No test
 claims ARM linking/size, USB driver integration, real LVGL
 rendering, physical scan/encoder cadence, watchdog timing or flash endurance.
 
+## Complete CI wave
+
+`build-ergohaven.yml` owns firmware and native validation together. The planner
+selects each profile independently; documentation-only changes run neither,
+test-only changes run native, and an unvalidated push runs both. Successful
+same-tree original-PR receipts may replace repeated push validation, but skipped
+or reused profiles never mint new receipts. Required checks distinguish planned
+skips from missing/failed jobs. Manual, tag and reusable release calls remain
+full validation; the reusable workflow's `full-validation` input defaults to true.
+The firmware matrix, release exclusions and publication workflows are unchanged.
+
+To run the same serial native wave locally, read
+[the focused Macropad CLI contract](README.macropad.md), then use external output
+and the exact pinned LVGL checkout:
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/ergohaven -p test_run_ci.py -v
+PYTHONDONTWRITEBYTECODE=1 python3 tests/ergohaven/run_ci.py /absolute/scratch/ci-native --lvgl /path/to/pinned/lvgl
+```
+
+The wave executes nine commands: the full native runner, application combo,
+display `all` (EEPROM and flash), Phenom settings sync, product-name validation,
+encoder 002, default/app-layout LVGL labels 004, and wake (9 scenarios / 27 checks
+plus empty-input rejection). It continues after a failed command and returns
+nonzero if any command fails. Command count is not an assertion or case count.
+Temporary sources, binaries and logs are under the output directory, never the
+source checkout. CI initializes **only** `lib/lvgl`, verifies HEAD equals
+`e19410f8f8a256609da72cff549598e0df6fa4cf`, and uses system GCC/Python; the focused
+LVGL runners independently verify every pinned C/header blob before compiling.
+No full MCU dependency initialization is needed for native coverage. Native
+success does not certify ARM linking, firmware size or physical-device behavior.
+
 ## Focused Macropad БАГ-002 / БАГ-004 regressions
 
 ```sh
