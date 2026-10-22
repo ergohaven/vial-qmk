@@ -219,11 +219,18 @@ class ReuseTests(unittest.TestCase):
             self.assertTrue(self.result()['run'])
         stream = io.BytesIO()
         with zipfile.ZipFile(stream, 'w') as archive:
-            archive.writestr('proof.json', json.dumps(self.proof))
+            info = zipfile.ZipInfo('proof.json')
+            info.extra = b'\xff\xff\x01\x00{'
+            archive.writestr(info, json.dumps(self.proof))
         corrupt = bytearray(stream.getvalue())
-        offset = corrupt.index(b'{')
+        # A single marker can occur in the header CRC/timestamps/extra fields.
+        # Locate the complete stored payload, then corrupt only its data bytes.
+        offset = corrupt.index(json.dumps(self.proof).encode())
+        self.assertLess(corrupt.index(b'{'), offset)
         corrupt[offset] = ord('[')
         self.archive = bytes(corrupt)
+        with self.assertRaisesRegex(zipfile.BadZipFile, 'Bad CRC'):
+            self.p.read_proof(self.archive)
         self.assertTrue(self.result()['run'])
 
     def test_commit_api_tree_must_match(self):
