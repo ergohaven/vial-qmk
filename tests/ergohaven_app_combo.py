@@ -92,7 +92,9 @@ void process_record(keyrecord_t *record);
 '''
 
 hid = read_source('keyboards/ergohaven/hid.c')
-hid = hid[hid.index('#ifdef EH_APP_LAYOUT_ENABLE\n#    define'):hid.index('\nhid_data_t *get_hid_data')]
+# Skip feature-gated includes, but keep the complete implementation block and hooks.
+hid_start = hid.index('#ifdef EH_APP_LAYOUT_ENABLE', hid.index('static hid_data_t hid_data;'))
+hid = hid[hid_start:hid.index('\nhid_data_t *get_hid_data')]
 combo_header = without_includes((ROOT / 'quantum/process_keycode/process_combo.h').read_text()).replace('#pragma once', '')
 combo = without_includes((ROOT / 'quantum/process_keycode/process_combo.c').read_text())
 fixtures = r'''
