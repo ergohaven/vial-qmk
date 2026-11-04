@@ -9,6 +9,7 @@
 #include "quantum/split_common/split_util.h"
 #include "src/eh_pointing.h"
 #include "ergohaven_rgb.h"
+#include "src/eh_split_sync.h"
 #include "via.h"
 #include "pointing_device_internal.h"
 
@@ -102,12 +103,14 @@ static uint8_t phenom_clamp_index(uint8_t index, uint8_t max) {
 // phenom-axis-indep-v0.0.5, read side-specific fields from raw, not C bitfields.
 static phenom_via_config_t          phenom_via_config           = {.raw = VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT};
 static uint32_t                   phenom_synced_raw           = VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT;
+static bool                       phenom_synced_raw_valid     = false;
 static uint32_t                   phenom_applied_raw          = UINT32_MAX;
 static kb_settings_split_pointing_t phenom_synced_devices;
 static bool                         phenom_synced_devices_valid = false;
 static kb_settings_split_pointing_t phenom_applied_devices;
 static bool                       phenom_applied_devices_valid = false;
 static kb_settings_led_colors_t   phenom_synced_led_colors;
+static bool                       phenom_synced_led_colors_valid = false;
 
 static split_pointing_device_id_t phenom_get_local_device_id(phenom_module_t module) {
     bool left = is_keyboard_left();
@@ -372,7 +375,6 @@ void via_set_layout_options_kb(uint32_t value) {
     dprintf("  left_ball_dpi=%lu, right_ball_dpi=%lu\n", (unsigned long)((value >> PHENOM_LEFT_BALL_DPI_SHIFT) & 15), (unsigned long)((value >> PHENOM_RIGHT_BALL_DPI_SHIFT) & 15));
     dprintf("  left_touch_dpi=%lu, right_touch_dpi=%lu\n", (unsigned long)((value >> PHENOM_LEFT_TOUCH_DPI_SHIFT) & 15), (unsigned long)((value >> PHENOM_RIGHT_TOUCH_DPI_SHIFT) & 15));
     phenom_via_config.raw = value;
-    phenom_synced_raw     = value;
     phenom_apply_device_config();
 }
 
@@ -386,6 +388,7 @@ static void phenom_sync_config_rpc(uint8_t in_len, const void *in_data, uint8_t 
         } else {
             via_set_layout_options_kb(value);
         }
+        eh_sync_settings_ack(out_len, out_data);
     }
 }
 
@@ -395,6 +398,7 @@ static void phenom_sync_split_pointing_settings_rpc(uint8_t in_len, const void *
         memcpy(&value, in_data, sizeof(value));
         set_split_pointing_settings(value);
         phenom_applied_devices_valid = false;
+        eh_sync_settings_ack(out_len, out_data);
     }
 }
 
@@ -403,6 +407,7 @@ static void phenom_sync_led_colors_rpc(uint8_t in_len, const void *in_data, uint
         kb_settings_led_colors_t value;
         memcpy(&value, in_data, sizeof(value));
         set_settings_led_colors(value);
+        eh_sync_settings_ack(out_len, out_data);
     }
 }
 
@@ -411,9 +416,6 @@ void keyboard_post_init_user(void) {
     debug_enable = true;
     dprintf("keyboard_post_init_user: phenom both halves debug\n");
 #endif
-    transaction_register_rpc(RPC_PHENOM_CONFIG, phenom_sync_config_rpc);
-    transaction_register_rpc(RPC_PHENOM_SPLIT_POINTING_SETTINGS, phenom_sync_split_pointing_settings_rpc);
-    transaction_register_rpc(RPC_PHENOM_LED_COLORS, phenom_sync_led_colors_rpc);
     phenom_applied_raw = UINT32_MAX; // force re-apply after early kb_settings_pointing_init may have set CPI=0
     phenom_applied_devices_valid = false;
 
@@ -424,10 +426,16 @@ void keyboard_post_init_user(void) {
         via_set_layout_options_kb(raw);
     }
 
-    phenom_synced_raw = phenom_via_config.raw;
-    phenom_synced_devices = get_split_pointing_settings();
-    phenom_synced_led_colors = get_settings_led_colors();
-    dprintf("final raw=0x%08lX\n", (unsigned long)phenom_synced_raw);
+    // Publish receivers only after local initialization can no longer overwrite them.
+    transaction_register_rpc(RPC_PHENOM_CONFIG, phenom_sync_config_rpc);
+    transaction_register_rpc(RPC_PHENOM_SPLIT_POINTING_SETTINGS, phenom_sync_split_pointing_settings_rpc);
+    transaction_register_rpc(RPC_PHENOM_LED_COLORS, phenom_sync_led_colors_rpc);
+
+    // Local EEPROM contents do not prove that the peer has the same settings.
+    phenom_synced_raw_valid = false;
+    phenom_synced_devices_valid = false;
+    phenom_synced_led_colors_valid = false;
+    dprintf("final raw=0x%08lX\n", (unsigned long)phenom_via_config.raw);
 }
 
 void housekeeping_task_user(void) {
@@ -437,7 +445,9 @@ void housekeeping_task_user(void) {
         return;
     }
     if (!is_transport_connected()) {
+        phenom_synced_raw_valid = false;
         phenom_synced_devices_valid = false;
+        phenom_synced_led_colors_valid = false;
         return;
     }
     if (timer_elapsed32(last_sync) < 100) {
@@ -445,14 +455,19 @@ void housekeeping_task_user(void) {
     }
 
     last_sync = timer_read32();
-    if (phenom_synced_raw != phenom_via_config.raw) {
-        phenom_synced_raw = phenom_via_config.raw;
-        transaction_rpc_send(RPC_PHENOM_CONFIG, sizeof(phenom_synced_raw), &phenom_synced_raw);
+    if (!phenom_synced_raw_valid || phenom_synced_raw != phenom_via_config.raw) {
+        if (eh_sync_settings(RPC_PHENOM_CONFIG, sizeof(phenom_via_config.raw), &phenom_via_config.raw)) {
+            phenom_synced_raw = phenom_via_config.raw;
+            phenom_synced_raw_valid = true;
+        } else {
+            // The peer may have applied the settings before the RPC failed.
+            phenom_synced_raw_valid = false;
+        }
     }
 
     kb_settings_split_pointing_t devices = get_split_pointing_settings();
     if (!phenom_synced_devices_valid || memcmp(&phenom_synced_devices, &devices, sizeof(devices)) != 0) {
-        if (transaction_rpc_send(RPC_PHENOM_SPLIT_POINTING_SETTINGS, sizeof(devices), &devices)) {
+        if (eh_sync_settings(RPC_PHENOM_SPLIT_POINTING_SETTINGS, sizeof(devices), &devices)) {
             phenom_synced_devices = devices;
             phenom_synced_devices_valid = true;
         } else {
@@ -462,9 +477,13 @@ void housekeeping_task_user(void) {
     }
 
     kb_settings_led_colors_t led_colors = get_settings_led_colors();
-    if (memcmp(&phenom_synced_led_colors, &led_colors, sizeof(led_colors)) != 0) {
-        phenom_synced_led_colors = led_colors;
-        transaction_rpc_send(RPC_PHENOM_LED_COLORS, sizeof(phenom_synced_led_colors), &phenom_synced_led_colors);
+    if (!phenom_synced_led_colors_valid || memcmp(&phenom_synced_led_colors, &led_colors, sizeof(led_colors)) != 0) {
+        if (eh_sync_settings(RPC_PHENOM_LED_COLORS, sizeof(led_colors), &led_colors)) {
+            phenom_synced_led_colors = led_colors;
+            phenom_synced_led_colors_valid = true;
+        } else {
+            phenom_synced_led_colors_valid = false;
+        }
     }
 }
 
