@@ -1098,6 +1098,9 @@ void slave_rpc_info_callback(uint8_t initiator2target_buffer_size, const void *i
 }
 
 void slave_rpc_exec_callback(uint8_t initiator2target_buffer_size, const void *initiator2target_buffer, uint8_t target2initiator_buffer_size, void *target2initiator_buffer) {
+    // An absent callback must not return a previous RPC response as fresh data.
+    memset(split_shmem->rpc_s2m_buffer, 0, sizeof(split_shmem->rpc_s2m_buffer));
+
 #if defined(KEYBOARD_ergohaven_sm62)
     if (!sm62_rpc_info_valid) return;
     sm62_rpc_info_valid = false;

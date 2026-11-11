@@ -26,6 +26,7 @@ class NativeCI(unittest.TestCase):
             ['tests/ergohaven_app_combo.py'],
             ['tests/ergohaven_display/run.py', 'all'],
             ['tests/ergohaven/test_phenom_settings_sync.py'],
+            ['tests/ergohaven/test_split_state_sync.py'],
             ['tests/ergohaven/test_macropad_product_name.py'],
             ['tests/ergohaven/run_macropad_bugs.py', '/external/output/encoder', '--only', '002'],
             ['tests/ergohaven/run_macropad_bugs.py', '/external/output/labels-default', '--only', '004', '--no-app-layout', '--lvgl', '/external/lvgl'],

@@ -3,8 +3,9 @@
 #include "src/eh_ruen.h"
 #include "src/oled/eh_oled.h"
 #include "ergohaven_rgb.h"
-#ifdef EH_SYNC_LED_COLORS
-#    include "transactions.h"
+#if defined(EH_SYNC_LED_COLORS) || defined(EH_SYNC_POINTING_SETTINGS)
+#    include "src/eh_split_sync.h"
+#    include "split_util.h"
 #endif
 #include "src/display/eh_display.h"
 #include "src/eh_pointing.h"
@@ -76,12 +77,11 @@ static kb_settings_led_colors_t synced_led_colors;
 static bool synced_led_colors_valid = false;
 
 static void sync_led_colors_rpc(uint8_t in_len, const void *in_data, uint8_t out_len, void *out_data) {
-    (void)out_len;
-    (void)out_data;
     if (in_len == sizeof(kb_settings_led_colors_t) && in_data != NULL) {
         kb_settings_led_colors_t value;
         memcpy(&value, in_data, sizeof(value));
         set_settings_led_colors(value);
+        eh_sync_settings_ack(out_len, out_data);
     }
 }
 #endif
@@ -93,22 +93,20 @@ static kb_settings_split_pointing_t synced_split_pointing_settings;
 static bool synced_split_pointing_settings_valid = false;
 
 static void sync_pointing_settings_rpc(uint8_t in_len, const void *in_data, uint8_t out_len, void *out_data) {
-    (void)out_len;
-    (void)out_data;
     if (in_len == sizeof(kb_settings_pointing_t) && in_data != NULL) {
         kb_settings_pointing_t value;
         memcpy(&value, in_data, sizeof(value));
         set_settings_pointing(value);
+        eh_sync_settings_ack(out_len, out_data);
     }
 }
 
 static void sync_split_pointing_settings_rpc(uint8_t in_len, const void *in_data, uint8_t out_len, void *out_data) {
-    (void)out_len;
-    (void)out_data;
     if (in_len == sizeof(kb_settings_split_pointing_t) && in_data != NULL) {
         kb_settings_split_pointing_t value;
         memcpy(&value, in_data, sizeof(value));
         set_split_pointing_settings(value);
+        eh_sync_settings_ack(out_len, out_data);
     }
 }
 #endif
@@ -499,6 +497,8 @@ void keyboard_post_init_kb(void) {
 #ifdef RGBLIGHT_ENABLE
     keyboard_post_init_rgb();
 #endif
+    keyboard_post_init_hid();
+    keyboard_post_init_user();
 #ifdef EH_SYNC_LED_COLORS
     transaction_register_rpc(RPC_SYNC_LED_COLORS, sync_led_colors_rpc);
     synced_led_colors_valid = false;
@@ -509,8 +509,6 @@ void keyboard_post_init_kb(void) {
     synced_pointing_settings_valid = false;
     synced_split_pointing_settings_valid      = false;
 #endif
-    keyboard_post_init_hid();
-    keyboard_post_init_user();
 }
 
 layer_state_t default_layer_state_set_kb(layer_state_t state) {
@@ -582,37 +580,54 @@ void housekeeping_task_kb(void) {
     }
 
 #ifdef EH_SYNC_LED_COLORS
-    {
+    if (!is_transport_connected()) {
+        synced_led_colors_valid = false;
+    } else {
         static uint32_t last_led_sync = 0;
         if (is_keyboard_master() && timer_elapsed32(last_led_sync) >= 100) {
             last_led_sync = timer_read32();
             kb_settings_led_colors_t led_colors = get_settings_led_colors();
             if (!synced_led_colors_valid || memcmp(&synced_led_colors, &led_colors, sizeof(led_colors)) != 0) {
-                transaction_rpc_send(RPC_SYNC_LED_COLORS, sizeof(led_colors), &led_colors);
-                synced_led_colors = led_colors;
-                synced_led_colors_valid = true;
+                if (eh_sync_settings(RPC_SYNC_LED_COLORS, sizeof(led_colors), &led_colors)) {
+                    synced_led_colors = led_colors;
+                    synced_led_colors_valid = true;
+                } else {
+                    // The peer may have applied the settings before the RPC failed.
+                    synced_led_colors_valid = false;
+                }
             }
         }
     }
 #endif
 #ifdef EH_SYNC_POINTING_SETTINGS
-    {
+    if (!is_transport_connected()) {
+        synced_pointing_settings_valid = false;
+        synced_split_pointing_settings_valid = false;
+    } else {
         static uint32_t last_pointing_sync = 0;
         if (is_keyboard_master() && timer_elapsed32(last_pointing_sync) >= 100) {
             last_pointing_sync = timer_read32();
 
             kb_settings_pointing_t pointing_settings = get_settings_pointing();
             if (!synced_pointing_settings_valid || memcmp(&synced_pointing_settings, &pointing_settings, sizeof(pointing_settings)) != 0) {
-                transaction_rpc_send(RPC_SYNC_POINTING_SETTINGS, sizeof(pointing_settings), &pointing_settings);
-                synced_pointing_settings = pointing_settings;
-                synced_pointing_settings_valid = true;
+                if (eh_sync_settings(RPC_SYNC_POINTING_SETTINGS, sizeof(pointing_settings), &pointing_settings)) {
+                    synced_pointing_settings = pointing_settings;
+                    synced_pointing_settings_valid = true;
+                } else {
+                    // The peer may have applied the settings before the RPC failed.
+                    synced_pointing_settings_valid = false;
+                }
             }
 
             kb_settings_split_pointing_t phenom_devices = get_split_pointing_settings();
             if (!synced_split_pointing_settings_valid || memcmp(&synced_split_pointing_settings, &phenom_devices, sizeof(phenom_devices)) != 0) {
-                transaction_rpc_send(RPC_SYNC_SPLIT_POINTING_SETTINGS, sizeof(phenom_devices), &phenom_devices);
-                synced_split_pointing_settings = phenom_devices;
-                synced_split_pointing_settings_valid = true;
+                if (eh_sync_settings(RPC_SYNC_SPLIT_POINTING_SETTINGS, sizeof(phenom_devices), &phenom_devices)) {
+                    synced_split_pointing_settings = phenom_devices;
+                    synced_split_pointing_settings_valid = true;
+                } else {
+                    // The peer may have applied the settings before the RPC failed.
+                    synced_split_pointing_settings_valid = false;
+                }
             }
         }
     }

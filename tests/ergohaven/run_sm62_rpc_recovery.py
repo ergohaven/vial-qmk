@@ -72,6 +72,8 @@ int main(void){
   printf("case=%u request=%u cross_buffer_changes=%u\n",which,requested,changed);
   assert(requested<=40&&changed==0);
   unsigned c=callbacks;slave_rpc_exec_callback(1,NULL,0,NULL);assert(callbacks==c);
+  /* Rejected SM62 metadata must not expose an earlier successful RPC reply. */
+  for(unsigned i=0;i<sizeof(shared.rpc_s2m_buffer);i++)assert(shared.rpc_s2m_buffer[i]==0);
  }
  /* New healthy metadata/data/execute recovers normally, no latch or reset. */
  info(3,40,32,false);assert(react_to_transaction());slave_rpc_exec_callback(1,NULL,0,NULL);assert(callbacks==1);
