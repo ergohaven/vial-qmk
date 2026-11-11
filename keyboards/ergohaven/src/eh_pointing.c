@@ -319,7 +319,7 @@ static void clear_split_pointing_side_mode_override(split_pointing_side_t side) 
 }
 
 static void restore_split_pointing_side_mode_override(split_pointing_side_t side, bool active, pointing_mode_t mode) {
-    if (active) {
+    if (active && get_split_pointing_side_sticky_mode(side)) {
         set_split_pointing_side_mode_override(side, mode);
     } else {
         clear_split_pointing_side_mode_override(side);
@@ -1089,7 +1089,37 @@ void set_pointing_mode(pointing_mode_t mode) {
     }
 }
 
+static bool process_pointing_sticky_key(uint16_t keycode, keyrecord_t *record) {
+#ifdef EH_KEYBOARD_SPLIT_POINTING_V2
+    if (keycode < EH_STK_TG || keycode > EH_R_STK_OFF) return true;
+#else
+    if (keycode < EH_STK_TG || keycode > EH_STK_OFF) return true;
+#endif
+    if (!record->event.pressed) return false;
+
+    uint8_t action = (keycode - EH_STK_TG) % 3;
+#ifdef EH_KEYBOARD_SPLIT_POINTING_V2
+    uint8_t scope = (keycode - EH_STK_TG) / 3;
+    bool left = scope != 2;
+    bool right = scope != 1;
+    bool all_enabled = (!left || get_split_pointing_side_sticky_mode(SPLIT_POINTING_SIDE_LEFT)) &&
+                       (!right || get_split_pointing_side_sticky_mode(SPLIT_POINTING_SIDE_RIGHT));
+    bool enabled = action == 1 || (action == 0 && !all_enabled);
+    for (split_pointing_side_t side = SPLIT_POINTING_SIDE_LEFT; side < SPLIT_POINTING_SIDE_COUNT; side++) {
+        if ((side == SPLIT_POINTING_SIDE_LEFT && !left) || (side == SPLIT_POINTING_SIDE_RIGHT && !right)) continue;
+        if (get_split_pointing_side_sticky_mode(side) != enabled) set_split_pointing_side_sticky_mode(side, enabled);
+        if (!enabled) clear_split_pointing_side_mode_override(side);
+    }
+#else
+    bool enabled = action == 1 || (action == 0 && !get_sticky_mode());
+    if (get_sticky_mode() != enabled) set_sticky_mode(enabled);
+    if (!enabled) set_pointing_mode(POINTING_MODE_NORMAL);
+#endif
+    return false;
+}
+
 bool process_record_pointing(uint16_t keycode, keyrecord_t *record) {
+    if (!process_pointing_sticky_key(keycode, record)) return false;
     switch (keycode) {
 #ifdef EH_KEYBOARD_SPLIT_POINTING_V2
         case EH_SCR:

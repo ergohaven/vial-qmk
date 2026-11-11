@@ -24,6 +24,16 @@ enum {
     EH_USR1,
     EH_USR2,
     EH_USR3,
+    // Append after the existing 64 Vial custom slots; keep saved keymaps stable.
+    EH_STK_TG = QK_USER,
+    EH_STK_ON,
+    EH_STK_OFF,
+    EH_L_STK_TG,
+    EH_L_STK_ON,
+    EH_L_STK_OFF,
+    EH_R_STK_TG,
+    EH_R_STK_ON,
+    EH_R_STK_OFF,
 };
 
 typedef enum { ROT_0, ROT_90, ROT_180, ROT_270 } orientation_t;

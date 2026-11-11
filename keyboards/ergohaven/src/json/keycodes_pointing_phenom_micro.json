@@ -11,3 +11,12 @@
 ,{"name": "EH_USR1", "shortName": "Right\nSniper", "title": "Set right pointing device to sniper mode"}
 ,{"name": "EH_USR2", "shortName": "Right\nScroll", "title": "Set right pointing device to scroll mode"}
 ,{"name": "EH_USR3", "shortName": "Right\nText", "title": "Set right pointing device to text mode"}
+,{"name": "EH_STK_TG", "shortName": "Sticky\nToggle", "title": "Toggle sticky mode for both pointing devices"}
+,{"name": "EH_STK_ON", "shortName": "Sticky\nOn", "title": "Enable sticky mode for both pointing devices"}
+,{"name": "EH_STK_OFF", "shortName": "Sticky\nOff", "title": "Disable sticky mode for both pointing devices"}
+,{"name": "EH_L_STK_TG", "shortName": "L Sticky\nToggle", "title": "Toggle sticky mode for the left pointing device"}
+,{"name": "EH_L_STK_ON", "shortName": "L Sticky\nOn", "title": "Enable sticky mode for the left pointing device"}
+,{"name": "EH_L_STK_OFF", "shortName": "L Sticky\nOff", "title": "Disable sticky mode for the left pointing device"}
+,{"name": "EH_R_STK_TG", "shortName": "R Sticky\nToggle", "title": "Toggle sticky mode for the right pointing device"}
+,{"name": "EH_R_STK_ON", "shortName": "R Sticky\nOn", "title": "Enable sticky mode for the right pointing device"}
+,{"name": "EH_R_STK_OFF", "shortName": "R Sticky\nOff", "title": "Disable sticky mode for the right pointing device"}
