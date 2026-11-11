@@ -11,3 +11,6 @@
 ,{"name": "EH_USR1", "shortName": "Mode\nUser 1", "title": "First user define mode for trackball"}
 ,{"name": "EH_USR2", "shortName": "Mode\nUser 2", "title": "Second user define mode for trackball"}
 ,{"name": "EH_USR3", "shortName": "Mode\nUser 3", "title": "Third user define mode for trackball"}
+,{"name": "EH_STK_TG", "shortName": "Sticky\nToggle", "title": "Toggle sticky mode for both pointing devices"}
+,{"name": "EH_STK_ON", "shortName": "Sticky\nOn", "title": "Enable sticky mode for both pointing devices"}
+,{"name": "EH_STK_OFF", "shortName": "Sticky\nOff", "title": "Disable sticky mode for both pointing devices"}
