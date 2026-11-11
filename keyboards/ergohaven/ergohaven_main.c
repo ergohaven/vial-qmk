@@ -166,7 +166,10 @@ bool pre_process_record_kb(uint16_t keycode, keyrecord_t* record) {
     } else
 #    endif
     {
-        display_process_keyevent(record->event.key.row, record->event.key.col, record->event.pressed);
+#if defined(KEYBOARD_ergohaven_sm62)
+        if (IS_KEYEVENT(record->event) && record->event.key.row < MATRIX_ROWS && record->event.key.col < MATRIX_COLS)
+#endif
+            display_process_keyevent(record->event.key.row, record->event.key.col, record->event.pressed);
 #    ifdef EH_APP_LAYOUT_ENABLE
 #        ifdef COMBO_ENABLE
         if (IS_KEYEVENT(record->event) && record->event.key.row < MATRIX_ROWS && record->event.key.col < MATRIX_COLS) {
@@ -175,6 +178,12 @@ bool pre_process_record_kb(uint16_t keycode, keyrecord_t* record) {
             // Entropy replaces/disables its layout while the key is held. Zero
             // means the press used QMK's normal keymap/layer-cache path.
             static uint16_t combo_keycodes[MATRIX_ROWS][MATRIX_COLS];
+#if defined(KEYBOARD_ergohaven_sm62)
+            static uint32_t combo_revisions[MATRIX_ROWS][MATRIX_COLS];
+            static uint8_t combo_layers[MATRIX_ROWS][MATRIX_COLS];
+            uint32_t *held_revision = &combo_revisions[record->event.key.row][record->event.key.col];
+            uint8_t *held_layer = &combo_layers[record->event.key.row][record->event.key.col];
+#endif
             uint16_t *held_keycode = &combo_keycodes[record->event.key.row][record->event.key.col];
             if (record->event.pressed) {
                 uint16_t app_keycode;
@@ -183,12 +192,19 @@ bool pre_process_record_kb(uint16_t keycode, keyrecord_t* record) {
                     // KC_NO needs a nonzero sentinel: get_record_keycode treats
                     // zero as "look up the Vial keymap".
                     *held_keycode = app_keycode == KC_NO ? UINT16_MAX : app_keycode;
+#if defined(KEYBOARD_ergohaven_sm62)
+                    hid_app_layout_capture_identity(held_revision, held_layer);
+#endif
                 }
             }
             uint16_t app_keycode = *held_keycode;
             if (!record->event.pressed) *held_keycode = 0;
             if (app_keycode != 0) {
                 record->keycode = app_keycode;
+#if defined(KEYBOARD_ergohaven_sm62)
+                record->app_layout_revision = *held_revision;
+                record->app_layout_layer = *held_layer;
+#endif
                 return true;
             }
         }
@@ -216,7 +232,11 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
     // Combo delays and replays candidate key events. Dispatch the Entropy
     // binding only after it has either rejected the combo or passed the key.
     if (IS_KEYEVENT(record->event) &&
+#if defined(KEYBOARD_ergohaven_sm62)
+        hid_app_layout_process_cached_keyevent(record->event.key.row, record->event.key.col, record->event.pressed, record->keycode, record->app_layout_revision, record->app_layout_layer)) return false;
+#else
         hid_app_layout_process_keyevent(record->event.key.row, record->event.key.col, record->event.pressed)) return false;
+#endif
 #endif
     // Some Vial keymaps need to consume keyboard-range user slots before shared
     // Ergohaven handlers see them.
@@ -447,6 +467,24 @@ void matrix_scan_kb(void) { // The very important timer.
     matrix_scan_user();
 }
 
+#if defined(KEYBOARD_ergohaven_sm62) && defined(EH_HAS_DISPLAY) && defined(SPLIT_KEYBOARD)
+void matrix_slave_scan_kb(void) {
+    /* matrix_post_scan dispatches peripherals here, not to matrix_scan_kb.
+     * Read only this half's cooked rows (debounce writes at its hand offset).
+     * Stage edges only: display policy and LVGL remain in housekeeping. */
+    static matrix_row_t previous_display_matrix[MATRIX_ROWS / 2];
+    uint8_t             offset = is_keyboard_left() ? 0 : MATRIX_ROWS / 2;
+    for (uint8_t row = 0; row < MATRIX_ROWS / 2; ++row) {
+        matrix_row_t current = matrix_get_row(offset + row);
+        matrix_row_t changed = current ^ previous_display_matrix[row];
+        for (uint8_t col = 0; col < MATRIX_COLS; ++col)
+            if (changed & ((matrix_row_t)1 << col)) display_process_keyevent(offset + row, col, (current & ((matrix_row_t)1 << col)) != 0);
+        previous_display_matrix[row] = current;
+    }
+    matrix_slave_scan_user();
+}
+#endif
+
 void keyboard_post_init_kb(void) {
 #ifdef CONSOLE_ENABLE
     debug_enable = true;
@@ -584,7 +622,9 @@ void housekeeping_task_kb(void) {
     housekeeping_task_split_oled();
 #endif
     housekeeping_task_ruen();
+#ifndef SM62_SINGLE_USER_HOUSEKEEPING
     housekeeping_task_user();
+#endif
 }
 
 void suspend_power_down_kb(void) {

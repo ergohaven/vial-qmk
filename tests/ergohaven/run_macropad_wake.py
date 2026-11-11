@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Production HID/display/screen bodies + real LVGL; USB/clock/storage/panel boundaries injected."""
 from pathlib import Path
+from native_vial_firewall import firewall_source
 import argparse, re, subprocess
 from macropad_native_support import validate_lvgl, write_stubs
 from macropad_wake_scenarios import scenarios
@@ -42,7 +43,7 @@ screen += layout[layout.index('static bool     key_pressed'):layout.index('stati
 screen += layout[layout.index('static uint8_t prev_layer ='):layout.index('static uint8_t screen_layout_control_for_label')]
 for name in ['get_keycode','get_encoder_keycode','screen_layout_control_for_label','set_key_pressed','finish_key_press_animations','screen_layout_set_layer_name','screen_layout_header_name','screen_layout_builtin_key_icon','screen_layout_set_key_content','screen_layout_refresh_key_content','screen_layout_load','screen_layout_housekeep']:
     screen += function(layout,name)
-text = (ROOT/'tests/ergohaven/macropad_wake.c').read_text().replace('SCREEN_STATE',state).replace('HID_PRODUCTION',hid).replace('DISPLAY_PRODUCTION',bodies).replace('LAYOUT_PRODUCTION',screen)
+text = (ROOT/'tests/ergohaven/macropad_wake.c').read_text().replace('SCREEN_STATE',state).replace('HID_PRODUCTION',firewall_source(source,keycodes_included=True)+hid).replace('DISPLAY_PRODUCTION',bodies).replace('LAYOUT_PRODUCTION',screen)
 src = a.output/'wake.c'
 src.write_text(text)
 exe = a.output/'wake'
@@ -58,6 +59,12 @@ subprocess.run([*cmd,*['-I'+str(d) for d in includes],str(src),*fonts,*sorted(st
 empty = subprocess.run([str(exe)], input='', text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 (a.output/'empty-input.txt').write_text(empty.stdout)
 assert empty.returncode != 0, 'zero-check run falsely succeeded'
+# The host integration replays every prefix, including the initial sleep-only
+# prefix. S asserts a real state transition and must count as executed coverage.
+initial = subprocess.run([str(exe)], input='S\n', text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+(a.output/'initial-host-prefix.txt').write_text(initial.stdout)
+assert initial.returncode == 0, initial.stdout
+assert 'PASS 1 ' in initial.stdout, initial.stdout
 total = 0
 for name, commands in scenarios().items():
     (a.output/(name+'.stdin')).write_text(commands)

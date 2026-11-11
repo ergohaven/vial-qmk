@@ -15,6 +15,7 @@
  */
 
 #include "keyboard.h"
+#include "sm62_trace.h"
 
 void platform_setup(void);
 
@@ -46,13 +47,22 @@ int main(void) {
 
     /* Main loop */
     while (true) {
+        sm62_trace_loop();
+        sm62_trace_edge(0,true);
         protocol_pre_task();
+        sm62_trace_edge(0,false);
+        sm62_trace_edge(1,true);
         protocol_keyboard_task();
+        sm62_trace_edge(1,false);
+        sm62_trace_edge(2,true);
         protocol_post_task();
+        sm62_trace_edge(2,false);
 
 #ifdef RAW_ENABLE
         void raw_hid_task(void);
+        sm62_trace_edge(3,true);
         raw_hid_task();
+        sm62_trace_edge(3,false);
 #endif
 
 #ifdef CONSOLE_ENABLE
@@ -60,18 +70,24 @@ int main(void) {
         console_task();
 #endif
 
-#ifdef QUANTUM_PAINTER_ENABLE
+#if defined(QUANTUM_PAINTER_ENABLE) && !defined(SM62_DUALCORE_RENDER)
         // Run Quantum Painter task
         void qp_internal_task(void);
+        sm62_trace_edge(4,true);
         qp_internal_task();
+        sm62_trace_edge(4,false);
 #endif
 
 #ifdef DEFERRED_EXEC_ENABLE
         // Run deferred executions
         void deferred_exec_task(void);
+        sm62_trace_edge(5,true);
         deferred_exec_task();
+        sm62_trace_edge(5,false);
 #endif // DEFERRED_EXEC_ENABLE
 
+        sm62_trace_edge(6,true);
         housekeeping_task();
+        sm62_trace_edge(6,false);
     }
 }

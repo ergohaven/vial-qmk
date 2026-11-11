@@ -1,4 +1,7 @@
 #include "qmk_settings.h"
+#if defined(KEYBOARD_ergohaven_sm62)
+#    include "keyboards/ergohaven/sm62/flash_guard.h"
+#endif
 
 #include <stddef.h>
 #include <string.h>
@@ -214,6 +217,9 @@ void qmk_settings_init(void) {
 }
 
 void qmk_settings_reset(void) {
+#if defined(KEYBOARD_ergohaven_sm62)
+    if (!sm62_flash_begin()) return;
+#endif
     QS.grave_esc_override = 0;
     QS.auto_shift = 0;
     QS.auto_shift_timeout = AUTO_SHIFT_TIMEOUT;
@@ -262,6 +268,9 @@ void qmk_settings_reset(void) {
 
     /* to trigger all callbacks */
     qmk_settings_init();
+#if defined(KEYBOARD_ergohaven_sm62)
+    sm62_flash_end();
+#endif
 }
 
 void qmk_settings_query(uint16_t qsid_gt, void *buffer, size_t sz) {
@@ -332,14 +341,31 @@ int qmk_settings_set(uint16_t qsid, const void *setting, size_t maxsz) {
     if (!set)
         return -1;
 
+    #if defined(KEYBOARD_ergohaven_sm62)
+    if (!sm62_flash_begin()) return -1;
+    #endif
     int ret = set(proto, setting, maxsz);
+#if defined(KEYBOARD_ergohaven_sm62)
+    if (ret != 0) {
+        sm62_flash_end();
+        return ret;
+    }
+#else
     if (ret != 0)
         return ret;
+#endif
+    #if defined(KEYBOARD_ergohaven_sm62)
+    if (!sm62_flash_ok()) { sm62_flash_end(); return -1; }
+    #endif
 
     qmk_settings_notify_t notify = pgm_read_ptr(&proto->notify);
     if (notify)
         notify();
+    #if defined(KEYBOARD_ergohaven_sm62)
+    return sm62_flash_end() ? 0 : -1;
+    #else
     return 0;
+    #endif
 }
 
 uint16_t qs_get_tapping_term(uint16_t keycode, keyrecord_t *record) {

@@ -1,0 +1,35 @@
+{
+  "purpose": "TEST19 current28 KEYMAP native characterization; no production bodies embedded",
+  "production_reference": {
+    "keyboards/ergohaven/sm62/config.h": "16c9795d034f2bc578a5abb2d9b33077dd76fb9c79685d699437f504355876ca",
+    "keyboards/ergohaven/sm62/screen_keymap.c": "321c5c20e0564a5b9cbc65027c7fe4589d1c9a0695709b2037279ca2071c6825",
+    "keyboards/ergohaven/sm62/render_owner.c": "6c9e4973652c06d76356d1b5a7e025ac33c1f19ee1b6e9d87b37344c42144a76",
+    "quantum/painter/lvgl/qp_lvgl.c": "8b7527f79a4ef3d312f89a5a54428d11a7c3531035482bc04be3e0d4e784c892",
+    "tests/ergohaven/macropad_native_support.py": "015ba379ea72d22c126a9a903f1bb69e218cacb13073fead223fc6e897ab6909"
+  },
+  "provenance": {
+    "inputs/main.c": "iteration14-video/geometry-probe/rows28/main.c with its first #include common.h supplied by generator instead",
+    "inputs/generate_fixture.py": "fixture generation segment of iteration5-timer-fairness/green-panels/run.py; dynamic repo/output paths, production_geometry.h instead of rows4/slice literals, local main input, no mutation option",
+    "inputs/expected_rows28.json": "rows28 subset of iteration14-video/geometry-probe/results.json plus rows28 SHA256 subset of pixel-comparison.json; unchanged assertions",
+    "inputs/validate_lvgl.py": "exact iteration15-rows28/qualification/qualify.py validate_lvgl function, ONLY T manifest directory and approved-overlay path relocated to INPUTS; imports and sha helper added",
+    "inputs/sm62-lvgl-blobs.json": "byte-identical production tests/ergohaven manifest",
+    "inputs/sm62-lvgl-cooperative-blobs.json": "byte-identical production tests/ergohaven manifest",
+    "inputs/approved-overlay.json": "byte-identical iteration6-final/review-timer/approved-overlay.json"
+  },
+  "native_support_original_untouched": true,
+  "limitations": [
+    "No physical timing/causality proof",
+    "Master role only, both physical side geometries",
+    "Synthetic hardware and input-edge boundary; no production debounce scanner object",
+    "No new rows4 run or full panels/recovery suite claim; original geometry and recovery evidence stays external"
+  ],
+  "input_sha256": {
+    "inputs/approved-overlay.json": "2ce6b005c651731a32dc3fd4fe709d6d36063f861efa1f1f2b4c413db0567bd3",
+    "inputs/expected_rows28.json": "12987dabfb16f39e795d13514d13fd935547a05b2e070c538d5f79993a704ef1",
+    "inputs/generate_fixture.py": "b5d1b9480ecd67d616271fde5e61a3da111610ce8bca51d3d021dcc5454a01ea",
+    "inputs/main.c": "22adecb51cb3807b5a37c4b2f66ec786fb19d501a34425d6f6cd803080eda186",
+    "inputs/sm62-lvgl-blobs.json": "94c0c6d1e047747c2ed66c3ca0f6a742723347e2240bc54693d43250af883bbf",
+    "inputs/sm62-lvgl-cooperative-blobs.json": "97ac27e9d3ca75e6cb5f114e49a2490d4cee83d6be49fbe1bdeb36421171f9b6",
+    "inputs/validate_lvgl.py": "f38e3adc305fc01bd6f640b83119e399f54e9f20ba9be0fceb2ff03bf867f6ff"
+  }
+}

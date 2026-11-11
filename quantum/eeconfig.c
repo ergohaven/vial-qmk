@@ -6,6 +6,9 @@
 #include "action_layer.h"
 #include "nvm_eeconfig.h"
 #include "keycode_config.h"
+#if defined(KEYBOARD_ergohaven_sm62)
+#    include "keyboards/ergohaven/sm62/flash_guard.h"
+#endif
 
 #ifdef BACKLIGHT_ENABLE
 #    include "backlight.h"
@@ -68,9 +71,14 @@ __attribute__((weak)) void eeconfig_init_kb(void) {
 }
 
 void eeconfig_init_quantum(void) {
+#if defined(KEYBOARD_ergohaven_sm62)
+    if (!sm62_flash_begin()) return;
+#endif
     nvm_eeconfig_erase();
 
+#if !defined(KEYBOARD_ergohaven_sm62)
     eeconfig_enable();
+#endif
 
     debug_config_t debug_config = {0};
     eeconfig_update_debug(&debug_config);
@@ -167,6 +175,12 @@ void eeconfig_init_quantum(void) {
     extern void eeconfig_force_flush_led_matrix(void);
     eeconfig_force_flush_led_matrix();
 #endif // LED_MATRIX_ENABLE
+#if defined(KEYBOARD_ergohaven_sm62)
+    /* A failed default/reset must never advertise a valid core record.
+     * The core magic is written last, after VIA/native defaults succeeded. */
+    if (sm62_flash_ok()) eeconfig_enable();
+    sm62_flash_end();
+#endif
 }
 
 void eeconfig_init(void) {

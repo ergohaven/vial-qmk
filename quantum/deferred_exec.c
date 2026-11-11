@@ -13,7 +13,15 @@
 // Helpers
 //
 
+#if defined(SM62_DUALCORE_RENDER)
+/* Token uniqueness is table-local. QP's advanced tables belong to core1,
+ * the ordinary deferred table to core0; do not race a shared ++ counter. */
+extern bool sm62_render_is_owner(void);
+static deferred_token current_tokens[2];
+#    define current_token current_tokens[sm62_render_is_owner() ? 1 : 0]
+#else
 static deferred_token current_token = 0;
+#endif
 
 static inline bool token_can_be_used(deferred_executor_t *table, size_t table_count, deferred_token token) {
     if (token == INVALID_DEFERRED_TOKEN) {
