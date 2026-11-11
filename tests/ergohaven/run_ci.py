@@ -14,6 +14,7 @@ def commands(output, lvgl):
         ['tests/ergohaven_app_combo.py'],
         ['tests/ergohaven_display/run.py', 'all'],
         ['tests/ergohaven/test_phenom_settings_sync.py'],
+        ['tests/ergohaven/test_split_state_sync.py'],
         ['tests/ergohaven/test_rgblight_sync.py'],
         ['tests/ergohaven/test_macropad_product_name.py'],
         ['tests/ergohaven/run_macropad_bugs.py', str(output / 'encoder'), '--only', '002'],

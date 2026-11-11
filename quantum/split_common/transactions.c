@@ -1060,6 +1060,9 @@ void slave_rpc_info_callback(uint8_t initiator2target_buffer_size, const void *i
 }
 
 void slave_rpc_exec_callback(uint8_t initiator2target_buffer_size, const void *initiator2target_buffer, uint8_t target2initiator_buffer_size, void *target2initiator_buffer) {
+    // An absent callback must not return a previous RPC response as fresh data.
+    memset(split_shmem->rpc_s2m_buffer, 0, sizeof(split_shmem->rpc_s2m_buffer));
+
     // We can assume that the buffer lengths are correctly set, now, given that sequentially the rpc_info callback was already executed.
     // Go through the rpc_info and execute _that_ transaction's callback, with the scratch buffers as inputs.
     // As a safety precaution we check that the received payload matches its checksum first.

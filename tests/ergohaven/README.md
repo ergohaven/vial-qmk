@@ -89,8 +89,9 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/ergohaven -p tes
 PYTHONDONTWRITEBYTECODE=1 python3 tests/ergohaven/run_ci.py /absolute/scratch/ci-native --lvgl /path/to/pinned/lvgl
 ```
 
-The wave executes nine commands: the full native runner, application combo,
-display `all` (EEPROM and flash), Phenom settings sync, product-name validation,
+The wave executes ten commands: the full native runner, application combo,
+display `all` (EEPROM and flash), Phenom settings sync, split state reconciliation,
+product-name validation,
 encoder 002, default/app-layout LVGL labels 004, and wake (9 scenarios / 27 checks
 plus empty-input rejection). It continues after a failed command and returns
 nonzero if any command fails. Command count is not an assertion or case count.
@@ -138,3 +139,23 @@ display/USB or companion-native OS-action execution is certified.
 Both probes use `-Wall -Wextra -Werror` and UBSan. Only the LVGL probe disables
 GCC's `type-limits` warning for QMK's existing unsigned `IS_QK_BASIC` range macro;
 it keeps all other warnings fatal. These commands do not run the broader suite.
+
+## Split settings reconciliation
+
+```sh
+python3 tests/ergohaven/test_split_state_sync.py
+```
+
+Compiles the production initialization, setters, receivers, cache declarations and
+housekeeping for Phenom/Mini/Micro and the shared LED-only and LED/pointing paths.
+The 120 scenarios cover initial reconciliation, local edits, failures before and
+after peer application (including reverting the desired value), observed split
+disconnect/reconnect, a booting peer without registered receivers, peripheral send
+suppression, the 100ms throttle and unchanged state suppression. Master and peer
+layout-option RAM are separate. An injected receive during local EEPROM loading
+checks that initialization cannot overwrite an accepted setting. RPC, clock and settings storage are simulated; this does not
+verify physical serial timing, EEPROM persistence or whole-keymap equality. The
+existing Phenom probe separately executes the real QMK RPC protocol with failures
+at all four transaction stages, missing callbacks, corrupt metadata and stale responses (36 cases).
+Both halves must run matching firmware; older peers cannot provide the applied
+acknowledgement. Silent resets without an observed disconnect are not detected.

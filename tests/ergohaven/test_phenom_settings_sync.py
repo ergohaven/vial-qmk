@@ -19,7 +19,7 @@ VARIANTS = ("phenom", "phenom_mini", "phenom_micro")
 
 
 def function(text, name):
-    match = re.search(r"^(?:static )?(?:void|bool) " + name + r"\([^\n]*\) \{", text, re.M)
+    match = re.search(r"^(?:static )?(?:inline )?(?:void|bool) " + name + r"\([^\n]*\) \{", text, re.M)
     if match is None:
         raise ValueError(f"Missing production function: {name}")
     start = match.start()
@@ -68,10 +68,11 @@ static split_transaction_desc_t split_transaction_table[NUM_TOTAL_TRANSACTIONS];
 static kb_settings_split_pointing_t desired, peer, phenom_synced_devices;
 static bool phenom_synced_devices_valid = false, phenom_applied_devices_valid = true;
 static uint32_t phenom_synced_raw;
+
 static struct { uint32_t raw; } phenom_via_config;
 typedef struct { uint8_t raw[4]; } kb_settings_led_colors_t;
 static kb_settings_led_colors_t phenom_synced_led_colors;
-static bool master = true, connected = true;
+static bool master = true, connected = true, corrupt_info;
 static uint32_t now;
 static int attempts, fail_stage = -1;
 static bool is_keyboard_master(void) { return master; }
@@ -92,10 +93,11 @@ static uint8_t crc8(const void *data, size_t len) {
 static void slave_rpc_info_callback(uint8_t, const void *, uint8_t, void *);
 static void slave_rpc_exec_callback(uint8_t, const void *, uint8_t, void *);
 static bool transport_write(int id, const void *data, uint8_t len) {
-    if (id == PUT_RPC_INFO) ++attempts;
+    if (id == PUT_RPC_INFO && ((const rpc_sync_info_t *)data)->payload.transaction_id == RPC_PHENOM_SPLIT_POINTING_SETTINGS) ++attempts;
     if (fail_stage == id) return false;
     if (id == PUT_RPC_INFO) {
         memcpy(&memory.rpc_info, data, len);
+        if (corrupt_info) memory.rpc_info.checksum ^= 1;
         slave_rpc_info_callback(len, data, 0, NULL);
     } else if (id == PUT_RPC_REQ_DATA) {
         memcpy(memory.rpc_m2s_buffer, data, len);
@@ -105,7 +107,7 @@ static bool transport_write(int id, const void *data, uint8_t len) {
     return true;
 }
 static bool transport_read(int id, void *data, uint8_t len) {
-    (void)data; (void)len;
+    if (len) memcpy(data, memory.rpc_s2m_buffer, len);
     return fail_stage != id;
 }
 #define transaction_rpc_send(id, len, data) transaction_rpc_exec(id, len, data, 0, NULL)
@@ -130,10 +132,26 @@ static void set_b(void) {
 int main(int argc, char **argv) {
     if (argc != 2) return 2;
     _Static_assert(sizeof(kb_settings_split_pointing_t) == 40, "Unexpected payload layout");
+    if (!strcmp(argv[1], "unregistered_response") || !strcmp(argv[1], "invalid_checksum_response")) {
+        uint8_t response = 0;
+        if (!strcmp(argv[1], "invalid_checksum_response")) {
+            split_transaction_table[RPC_PHENOM_SPLIT_POINTING_SETTINGS].slave_callback = phenom_sync_split_pointing_settings_rpc;
+            corrupt_info = true;
+        }
+        memset(memory.rpc_s2m_buffer, 1, sizeof(memory.rpc_s2m_buffer));
+        CHECK(transaction_rpc_exec(RPC_PHENOM_SPLIT_POINTING_SETTINGS, sizeof(desired), &desired, 1, &response), "transport succeeds without callback");
+        CHECK(response == 0, "unexecuted callback must not return a stale acknowledgement");
+        return 0;
+    }
     split_transaction_table[RPC_PHENOM_SPLIT_POINTING_SETTINGS].slave_callback =
         phenom_sync_split_pointing_settings_rpc;
     set_a();
-    if (!strcmp(argv[1], "slave")) {
+    if (!strcmp(argv[1], "peer_booting")) {
+        split_transaction_table[RPC_PHENOM_SPLIT_POINTING_SETTINGS].slave_callback = NULL;
+        tick(); CHECK(!phenom_synced_devices_valid, "unregistered receiver cannot acknowledge settings");
+        split_transaction_table[RPC_PHENOM_SPLIT_POINTING_SETTINGS].slave_callback = phenom_sync_split_pointing_settings_rpc;
+        tick(); CHECK(attempts == 2 && !memcmp(&desired, &peer, sizeof(peer)), "retry when receiver becomes ready");
+    } else if (!strcmp(argv[1], "slave")) {
         master = false; tick();
         CHECK(attempts == 0, "slave must not initiate RPC");
     } else if (!strcmp(argv[1], "throttle")) {
@@ -196,10 +214,13 @@ def harness(variant):
     rpc = (ROOT / "quantum/split_common/transactions.c").read_text()
     return "\n".join([
         PREAMBLE, buffer, payload, SUPPORT,
-        function(pointing, "phenom_sync_split_pointing_settings_rpc"),
+        "\n".join(re.findall(r"^static bool\s+phenom_synced_(?:raw|led_colors)_valid[^;]*;", pointing, re.M)),
         function(rpc, "slave_rpc_info_callback"),
         function(rpc, "slave_rpc_exec_callback"),
         function(rpc, "transaction_rpc_exec"),
+        function((ROOT / "keyboards/ergohaven/src/eh_split_sync.h").read_text(), "eh_sync_settings"),
+        function((ROOT / "keyboards/ergohaven/src/eh_split_sync.h").read_text(), "eh_sync_settings_ack"),
+        function(pointing, "phenom_sync_split_pointing_settings_rpc"),
         function(pointing, "housekeeping_task_user"), SCENARIOS,
     ])
 
@@ -207,7 +228,8 @@ def harness(variant):
 class SettingsSyncTests(unittest.TestCase):
     def test_production_sync(self):
         cases = ("startup", "slave", "throttle", "reconnect",
-                 "revert_after_final_failure", "retry_0", "retry_1", "retry_2", "retry_3")
+                 "revert_after_final_failure", "retry_0", "retry_1", "retry_2", "retry_3",
+                 "unregistered_response", "invalid_checksum_response", "peer_booting")
         with tempfile.TemporaryDirectory(prefix="phenom-sync-", dir=os.environ.get("TMPDIR")) as tmp:
             for variant in VARIANTS:
                 source = Path(tmp) / f"{variant}.c"
