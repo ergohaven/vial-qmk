@@ -65,6 +65,8 @@ static void transfer_matrix_values(matrix_row_t raw[], matrix_row_t cooked[], ui
 // we use num_rows rather than MATRIX_ROWS to support split keyboards
 void debounce_init(uint8_t num_rows) {
     debounce_counters = malloc(num_rows * MATRIX_COLS * sizeof(debounce_counter_t));
+    counters_need_update = matrix_need_update = cooked_changed = false;
+    if (!debounce_counters) return;
     int i             = 0;
     for (uint8_t r = 0; r < num_rows; r++) {
         for (uint8_t c = 0; c < MATRIX_COLS; c++) {
@@ -79,6 +81,16 @@ void debounce_free(void) {
 }
 
 bool debounce(matrix_row_t raw[], matrix_row_t cooked[], uint8_t num_rows, bool changed) {
+    if (!debounce_counters) {
+        /* No per-key timing state: reject raw presses, release any cooked
+         * keys, and remain fail-closed until successful initialization. */
+        bool released = false;
+        for (uint8_t row = 0; row < num_rows; ++row) {
+            released |= cooked[row] != 0;
+            cooked[row] = 0;
+        }
+        return released;
+    }
     bool updated_last = false;
     cooked_changed    = false;
 

@@ -60,6 +60,10 @@
 #endif
 
 static bool spiStarted = false;
+#if defined(SM62_DUALCORE_RENDER)
+/* Sole owner reads after a complete QP return and synchronous SPI teardown. */
+bool sm62_spi_quiescent(void) { return !spiStarted; }
+#endif
 #if SPI_SELECT_MODE == SPI_SELECT_MODE_NONE
 static pin_t current_slave_pin     = NO_PIN;
 static bool  current_cs_active_low = true;
@@ -125,6 +129,14 @@ __attribute__((weak)) void spi_init(void) {
 }
 
 bool spi_start_extended(spi_start_config_t *start_config) {
+#if defined(QP_LVGL_SPI_TRANSACTION) && defined(MCU_RP)
+    /* The SM62 synchronous transaction must be able to abandon a false
+     * start without owning the mutex. Reject reentrancy and every RP config
+     * failure before acquisition (including divisor overflow in rounding).
+     * Other targets retain their existing API path. No call can yield here. */
+    if (spiStarted || start_config->slave_pin == NO_PIN || start_config->lsb_first ||
+        start_config->mode > 3 || start_config->divisor > 128) return false;
+#endif
 #if (SPI_USE_MUTUAL_EXCLUSION == TRUE)
     spiAcquireBus(&SPI_DRIVER);
 #endif // (SPI_USE_MUTUAL_EXCLUSION == TRUE)

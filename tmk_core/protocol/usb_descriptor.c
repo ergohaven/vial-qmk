@@ -1227,9 +1227,14 @@ const USB_Descriptor_String_t PROGMEM SerialNumberString = {
 #            define SERIAL_NUMBER_LENGTH (sizeof(hardware_id_t) * 2)
 #        endif
 
+#        ifndef SERIAL_NUMBER_PREFIX
+#            define SERIAL_NUMBER_PREFIX ""
+#        endif
+#        define SERIAL_NUMBER_PREFIX_LENGTH (sizeof(USBSTR(SERIAL_NUMBER_PREFIX)) / sizeof(wchar_t) - 1)
+
 #        define SERIAL_NUMBER_DESCRIPTOR_SIZE                                            \
             (sizeof(USB_Descriptor_Header_t)                     /* Descriptor header */ \
-             + (((SERIAL_NUMBER_LENGTH) + 1) * sizeof(wchar_t))) /* Length of serial number, with potential extra character as we're converting 2 nibbles at a time */
+             + ((SERIAL_NUMBER_PREFIX_LENGTH + (SERIAL_NUMBER_LENGTH) + 1) * sizeof(wchar_t))) /* Prefix plus ID, with potential extra character as we're converting 2 nibbles at a time */
 
 uint8_t SerialNumberString[SERIAL_NUMBER_DESCRIPTOR_SIZE] = {0};
 
@@ -1244,15 +1249,20 @@ void set_serial_number_descriptor(void) {
     hardware_id_t            id        = get_hardware_id();
     USB_Descriptor_String_t* desc      = (USB_Descriptor_String_t*)SerialNumberString;
 
+    static const wchar_t prefix[] = USBSTR(SERIAL_NUMBER_PREFIX);
+    for (size_t i = 0; i + 1 < sizeof(prefix) / sizeof(prefix[0]); ++i) {
+        desc->UnicodeString[i] = prefix[i];
+    }
+
     // Copy across nibbles from the hardware ID as unicode hex characters
     int      length = MIN(sizeof(id) * 2, SERIAL_NUMBER_LENGTH);
     uint8_t* p      = (uint8_t*)&id;
     for (int i = 0; i < length; i += 2) {
-        desc->UnicodeString[i + 0] = hex_str[p[i / 2] >> 4];
-        desc->UnicodeString[i + 1] = hex_str[p[i / 2] & 0xF];
+        desc->UnicodeString[SERIAL_NUMBER_PREFIX_LENGTH + i + 0] = hex_str[p[i / 2] >> 4];
+        desc->UnicodeString[SERIAL_NUMBER_PREFIX_LENGTH + i + 1] = hex_str[p[i / 2] & 0xF];
     }
 
-    desc->Header.Size = sizeof(USB_Descriptor_Header_t) + (length * sizeof(wchar_t)); // includes header, don't count null terminator
+    desc->Header.Size = sizeof(USB_Descriptor_Header_t) + ((SERIAL_NUMBER_PREFIX_LENGTH + length) * sizeof(wchar_t)); // includes header, don't count null terminator
     desc->Header.Type = DTYPE_String;
 }
 

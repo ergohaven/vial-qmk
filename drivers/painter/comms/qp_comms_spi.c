@@ -23,10 +23,60 @@ bool qp_comms_spi_init(painter_device_t device) {
     return true;
 }
 
+#ifdef QP_LVGL_SPI_TRANSACTION
+static painter_device_t transaction_device;
+static uint16_t transaction_depth;
+static bool transaction_acquired, transaction_failed;
+
+bool qp_comms_spi_transaction_begin(painter_device_t device) {
+    painter_driver_t *driver = (painter_driver_t *)device;
+    if (transaction_device || !driver || !driver->validate_ok ||
+        driver->comms_vtable != &spi_comms_with_dc_vtable.base) return false;
+    transaction_device = device;
+    transaction_depth = 0;
+    transaction_acquired = transaction_failed = false;
+    return true;
+}
+
+bool qp_comms_spi_transaction_end(painter_device_t device) {
+    if (!device || transaction_device != device) return false;
+    bool ok = !transaction_failed && transaction_depth == 0;
+    if (transaction_acquired) {
+        spi_stop();
+        painter_driver_t *driver = (painter_driver_t *)device;
+        qp_comms_spi_config_t *config = (qp_comms_spi_config_t *)driver->comms_config;
+        gpio_write_pin_high(config->chip_select_pin);
+    }
+    transaction_device = NULL;
+    transaction_depth = 0;
+    transaction_acquired = false;
+    return ok;
+}
+#endif
+
 bool qp_comms_spi_start(painter_device_t device) {
     painter_driver_t *     driver       = (painter_driver_t *)device;
     qp_comms_spi_config_t *comms_config = (qp_comms_spi_config_t *)driver->comms_config;
 
+#ifdef QP_LVGL_SPI_TRANSACTION
+    if (transaction_device) {
+        if (transaction_device != device || transaction_failed || transaction_depth == UINT16_MAX) {
+            transaction_failed = true;
+            return false;
+        }
+        if (transaction_depth == 0) {
+            if (!transaction_acquired) {
+                if (!spi_start(comms_config->chip_select_pin, comms_config->lsb_first, comms_config->mode, comms_config->divisor)) {
+                    transaction_failed = true;
+                    return false;
+                }
+                transaction_acquired = true;
+            } else gpio_write_pin_low(comms_config->chip_select_pin);
+        }
+        ++transaction_depth;
+        return true;
+    }
+#endif
     return spi_start(comms_config->chip_select_pin, comms_config->lsb_first, comms_config->mode, comms_config->divisor);
 }
 
@@ -37,6 +87,15 @@ uint32_t qp_comms_spi_send_data(painter_device_t device, const void *data, uint3
 
     while (bytes_remaining > 0) {
         uint32_t bytes_this_loop = QP_MIN(bytes_remaining, max_msg_length);
+#ifdef QP_LVGL_SPI_TRANSACTION
+        if (transaction_device) {
+            if (transaction_device != device || !transaction_depth || transaction_failed ||
+                spi_transmit(p, bytes_this_loop) < 0) {
+                transaction_failed = true;
+                break;
+            }
+        } else
+#endif
         spi_transmit(p, bytes_this_loop);
         p += bytes_this_loop;
         bytes_remaining -= bytes_this_loop;
@@ -48,6 +107,16 @@ uint32_t qp_comms_spi_send_data(painter_device_t device, const void *data, uint3
 void qp_comms_spi_stop(painter_device_t device) {
     painter_driver_t *     driver       = (painter_driver_t *)device;
     qp_comms_spi_config_t *comms_config = (qp_comms_spi_config_t *)driver->comms_config;
+#ifdef QP_LVGL_SPI_TRANSACTION
+    if (transaction_device) {
+        if (transaction_device != device || transaction_depth == 0) {
+            transaction_failed = true;
+            return;
+        }
+        if (--transaction_depth == 0) gpio_write_pin_high(comms_config->chip_select_pin);
+        return;
+    }
+#endif
     spi_stop();
     gpio_write_pin_high(comms_config->chip_select_pin);
 }
@@ -101,6 +170,13 @@ void qp_comms_spi_dc_reset_send_command(painter_device_t device, uint8_t cmd) {
     painter_driver_t *              driver       = (painter_driver_t *)device;
     qp_comms_spi_dc_reset_config_t *comms_config = (qp_comms_spi_dc_reset_config_t *)driver->comms_config;
     gpio_write_pin_low(comms_config->dc_pin);
+#ifdef QP_LVGL_SPI_TRANSACTION
+    if (transaction_device) {
+        if (transaction_device != device || !transaction_depth || transaction_failed || spi_write(cmd) < 0)
+            transaction_failed = true;
+        return;
+    }
+#endif
     spi_write(cmd);
 }
 

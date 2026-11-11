@@ -72,6 +72,14 @@ static void qp_internal_display_timeout_task(void) {
 STATIC_ASSERT((QUANTUM_PAINTER_TASK_THROTTLE) > 0 && (QUANTUM_PAINTER_TASK_THROTTLE) < 1000, "QUANTUM_PAINTER_TASK_THROTTLE must be between 1 and 999");
 
 void qp_internal_task(void) {
+#ifdef LV_USE_COOPERATIVE_REFR
+    bool qp_lvgl_refr_pending(void);
+    void qp_lvgl_internal_tick(void);
+    if (qp_lvgl_refr_pending()) {
+        qp_lvgl_internal_tick();
+        return;
+    }
+#endif
     // Perform throttling of the internal processing of Quantum Painter
     static uint32_t last_tick = 0;
     uint32_t        now       = timer_read32();
@@ -95,7 +103,7 @@ void qp_internal_task(void) {
 #endif
 
     // Flush (render) dirty regions to corresponding displays
-#if !defined(QUANTUM_PAINTER_DEBUG_ENABLE_FLUSH_TASK_OUTPUT)
+#if !defined(QUANTUM_PAINTER_DEBUG_ENABLE_FLUSH_TASK_OUTPUT) && !defined(SM62_DUALCORE_RENDER)
     bool old_debug_state = debug_enable;
     debug_enable         = false;
 #endif // defined(QUANTUM_PAINTER_DEBUG_ENABLE_FLUSH_TASK_OUTPUT)
@@ -104,7 +112,7 @@ void qp_internal_task(void) {
             qp_flush(qp_devices[i]);
         }
     }
-#if !defined(QUANTUM_PAINTER_DEBUG_ENABLE_FLUSH_TASK_OUTPUT)
+#if !defined(QUANTUM_PAINTER_DEBUG_ENABLE_FLUSH_TASK_OUTPUT) && !defined(SM62_DUALCORE_RENDER)
     debug_enable = old_debug_state;
 #endif // defined(QUANTUM_PAINTER_DEBUG_ENABLE_FLUSH_TASK_OUTPUT)
 }

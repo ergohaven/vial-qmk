@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Focused native production-source probes, following run_native.py conventions."""
 import argparse
+from native_vial_firewall import firewall_source
 from macropad_native_support import validate_lvgl, write_stubs
 from pathlib import Path
 import re
@@ -51,7 +52,7 @@ if a.only == '002':
     events = events[events.index('/* key matrix position */'):events.index('/* Common keypos_t object factory */')]
     modes = source('keyboards/ergohaven/macropad/display_modes.c')
     states = modes[modes.index('typedef enum {'):modes.index('eh_screen_t current_screen;')]
-    text = (ROOT/'tests/ergohaven/macropad_encoder.c').read_text().replace('PRODUCTION', production).replace('EVENT_TYPES', events).replace('SCREEN_STATE', states)
+    text = (ROOT/'tests/ergohaven/macropad_encoder.c').read_text().replace('PRODUCTION', firewall_source(source,keycodes_included=True)+production).replace('EVENT_TYPES', events).replace('SCREEN_STATE', states)
 else:
     if not a.lvgl or not (a.lvgl/'lvgl.h').is_file():
         p.error('--only 004 requires --lvgl at e19410f8f8a256609da72cff549598e0df6fa4cf')

@@ -1,0 +1,12 @@
+{
+  "keyboards/ergohaven/config.h": "cae80f8687879a13c8fba14f35cf755768a5eb5a6ec0ba34e1f2f747c9acce72",
+  "keyboards/ergohaven/sm62/config.h": "7d66b4395e16402fd2e00d77e80715a25d9a6f91ec9a02305ff5563e335e5c2c",
+  "keyboards/ergohaven/sm62/rules.mk": "3adc5994e47631ea052d44b8f724a147a082364af54e2ecc5e3287a8c80dfbec",
+  "keyboards/ergohaven/sm62/keyboard.json": "4264f97bc9f5027549d254e9462821d7fddf4bac8477673f5f67545e51fe8078",
+  "keyboards/ergohaven/sm62/keymaps/v1/config.h": "a82de135909959d41da45b821c63af23b986992c1c68521e2109a0e7605745fa",
+  "keyboards/ergohaven/sm62/keymaps/v1/rules.mk": "28702e63a8b3c6be0459bb8ad433d70b7ff03c84e51b11f7454ae61b3799fd48",
+  "keyboards/ergohaven/sm62/macro_storage.h": "ced6b2c00c74e01df05c4b9a1a89998c6aa5723e3b9db7b973b3494af97dbed5",
+  "keyboards/ergohaven/sm62/vial_extension.h": "0d1feb97552896e6141f875f2836050fe48c267e6d39658ad10694a12ca208b5",
+  "quantum/vial.h": "60db52651f02d887714cf9ae2f1abb2abfdcd4fc76d0158b5c5b4610bd656cf7",
+  "quantum/nvm/eeprom/nvm_dynamic_keymap.c:declarations": "2eed4e567c7e9c98d8cc1146e4b9c5706376fe85b1bfd5637788224ec8f53e27"
+}

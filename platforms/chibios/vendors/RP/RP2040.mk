@@ -17,6 +17,7 @@ ADEFS  += -DCRT0_VTOR_INIT=1 \
 CFLAGS += -DPICO_NO_FPGA_CHECK \
           -DNDEBUG
 
+
 #
 # Pico SDK source and header files needed by QMK and ChibiOS
 ##############################################################################

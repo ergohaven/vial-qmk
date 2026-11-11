@@ -13,6 +13,9 @@
 #include <debug.h>
 #include <qmk_settings.h>
 #include "via.h"
+#if defined(KEYBOARD_ergohaven_sm62)
+#    include "keyboards/ergohaven/sm62/sm62_settings.h"
+#endif
 
 char layer_names[DYNAMIC_KEYMAP_LAYER_COUNT][LAYER_LABEL_SIZE];
 
@@ -20,6 +23,8 @@ __attribute__((weak)) void kb_settings_led_colors_init(void) {}
 __attribute__((weak)) void kb_settings_led_colors_reset(void) {}
 __attribute__((weak)) void kb_settings_lcd_init(void) {}
 __attribute__((weak)) void kb_settings_lcd_reset(void) {}
+__attribute__((weak)) void kb_settings_extra_init(void) {}
+__attribute__((weak)) void kb_settings_extra_reset(void) {}
 __attribute__((weak)) uint8_t get_layer_rgb_color(uint8_t layer) {
     (void)layer;
     return 0;
@@ -269,8 +274,13 @@ void kb_settings_layer_labels_reset(void) {
 }
 
 void kb_settings_layer_labels_init(void) {
-    for (int i = 0; i < DYNAMIC_KEYMAP_LAYER_COUNT; ++i)
+    for (int i = 0; i < DYNAMIC_KEYMAP_LAYER_COUNT; ++i) {
         eeconfig_read_kb_datablock(layer_names[i], KB_SETTINGS_LAYER_LABELS_OFFSET + i * LAYER_LABEL_SIZE, LAYER_LABEL_SIZE);
+        /* Native records are 16-byte C strings (15 text bytes + NUL), unlike
+         * the independent 22-byte application names. Corrupt storage must not
+         * bleed into the next row/render snapshot. Sanitize RAM only. */
+        layer_names[i][LAYER_LABEL_SIZE - 1] = '\0';
+    }
 }
 
 void kb_settings_reset(void) {
@@ -284,6 +294,7 @@ void kb_settings_reset(void) {
     eh_date_reset();
     eh_extra_settings_flush();
 #endif
+    kb_settings_extra_reset();
     kb_settings_init();
 }
 
@@ -304,6 +315,7 @@ void kb_settings_init(void) {
 #endif
     kb_settings_led_colors_init();
     kb_settings_lcd_init();
+    kb_settings_extra_init();
 }
 
 #define DECLARE_SETTING_NOTIFY(id, _get, _set, _notify) {.qsid = id, .get = _get, .set = _set, .notify = _notify}
@@ -407,8 +419,17 @@ bool layer_name_updated = false;
 static int layer_name_set(const qmk_settings_proto_t *proto, const void *setting, size_t maxsz) {
     int layer = proto->qsid - 200;
     if (layer < 0 || layer >= DYNAMIC_KEYMAP_LAYER_COUNT) return -1;
-    dprintf("layer_name_set %d %s\n", layer, (const char *)setting);
-    snprintf(layer_names[layer], sizeof(layer_names[layer]), (const char *)setting);
+    /* Native names are literal bytes: read only the supplied source extent
+     * and retain the existing 15-byte text limit, independent of app names. */
+    const char *name = setting;
+    size_t len = 0;
+    while (len < maxsz && len < sizeof(layer_names[layer]) - 1 && name[len] != '\0') {
+        layer_names[layer][len] = name[len];
+        ++len;
+    }
+    layer_names[layer][len] = '\0';
+    /* Log the terminated native copy, never an unbounded host payload. */
+    dprintf("layer_name_set %d %s\n", layer, layer_names[layer]);
     eeconfig_update_kb_datablock(layer_names[layer], KB_SETTINGS_LAYER_LABELS_OFFSET + LAYER_LABEL_SIZE * layer, LAYER_LABEL_SIZE);
     layer_name_updated = true;
     return 0;
@@ -1066,7 +1087,7 @@ static int simple_joystick_mode_set(const qmk_settings_proto_t *proto, const voi
 
 #endif
 
-#ifndef EH_QMK_SETTINGS_DISABLE_LAYER_LEDS
+#if !defined(EH_QMK_SETTINGS_DISABLE_LAYER_LEDS) && !defined(KEYBOARD_ergohaven_sm62)
 static int leds_color_get(const qmk_settings_proto_t *proto, void *setting, size_t maxsz) {
     uint8_t layer = (uint8_t)(proto->qsid - 300);
     uint8_t value;
@@ -1174,6 +1195,9 @@ static int lcd_timeout_set(const qmk_settings_proto_t *proto, const void *settin
     (void)proto;
     if (maxsz < sizeof(value)) return -1;
     memcpy(&value, setting, sizeof(value));
+#if defined(KEYBOARD_ergohaven_sm62)
+    if (value >= sizeof(timeout_variants)) return -1;
+#endif
     if (value < sizeof(timeout_variants)) {
         set_lcd_timeout_mins(timeout_variants[value]);
     } else {
@@ -1602,7 +1626,29 @@ qmk_settings_proto_t kb_protos[KB_SETTINGS_NPROTOS] PROGMEM = {
     DECLARE_SETTING(213, layer_name_get, layer_name_set),
     DECLARE_SETTING(214, layer_name_get, layer_name_set),
     DECLARE_SETTING(215, layer_name_get, layer_name_set),
-#ifndef EH_QMK_SETTINGS_DISABLE_LAYER_LEDS
+#if defined(KEYBOARD_ergohaven_sm62)
+    DECLARE_SETTING(230, sm62_setting_get, sm62_setting_set),
+    DECLARE_SETTING(231, sm62_setting_get, sm62_setting_set),
+    DECLARE_SETTING(232, sm62_setting_get, sm62_setting_set),
+    DECLARE_SETTING(233, sm62_setting_get, sm62_setting_set),
+    DECLARE_SETTING(234, sm62_setting_get, sm62_setting_set),
+    DECLARE_SETTING(235, sm62_setting_get, sm62_setting_set),
+    DECLARE_SETTING(236, sm62_setting_get, sm62_setting_set),
+    DECLARE_SETTING(237, sm62_setting_get, sm62_setting_set),
+    DECLARE_SETTING(238, sm62_setting_get, sm62_setting_set),
+    DECLARE_SETTING(239, sm62_setting_get, sm62_setting_set),
+    DECLARE_SETTING(240, sm62_setting_get, sm62_setting_set),
+    DECLARE_SETTING(241, sm62_setting_get, sm62_setting_set),
+    DECLARE_SETTING(242, sm62_setting_get, sm62_setting_set),
+    DECLARE_SETTING(243, sm62_setting_get, sm62_setting_set),
+    DECLARE_SETTING(244, sm62_setting_get, sm62_setting_set),
+    DECLARE_SETTING(245, sm62_setting_get, sm62_setting_set),
+    DECLARE_SETTING(246, sm62_setting_get, sm62_setting_set),
+    DECLARE_SETTING(247, sm62_setting_get, sm62_setting_set),
+    DECLARE_SETTING(248, sm62_setting_get, sm62_setting_set),
+    DECLARE_SETTING(249, sm62_setting_get, sm62_setting_set),
+#endif
+#if !defined(EH_QMK_SETTINGS_DISABLE_LAYER_LEDS) && !defined(KEYBOARD_ergohaven_sm62)
     DECLARE_SETTING(300, leds_color_get, leds_color_set),
     DECLARE_SETTING(301, leds_color_get, leds_color_set),
     DECLARE_SETTING(302, leds_color_get, leds_color_set),

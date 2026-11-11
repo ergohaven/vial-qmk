@@ -113,7 +113,33 @@ int dynamic_keymap_set_alt_repeat_key(uint8_t index, const vial_alt_repeat_key_e
 }
 #endif
 
+#ifdef SM62_VIAL_LEGACY_EXTENSION
+#    include "keyboards/ergohaven/sm62/vial_extension.h"
+#    include "via.h"
+#if defined(KEYBOARD_ergohaven_sm62)
+#    include "keyboards/ergohaven/sm62/flash_guard.h"
+#endif
+/* Commit extra defaults before touching legacy data or temporarily unlocking.
+ * Failure leaves VIA invalid so the next boot retries initialization. */
 void dynamic_keymap_reset(void) {
+    if (!dynamic_keymap_reset_checked()) via_eeprom_set_valid(false);
+}
+bool dynamic_keymap_reset_checked(void) {
+#if defined(KEYBOARD_ergohaven_sm62)
+    if (!sm62_flash_begin()) return false;
+    bool restore_valid = via_eeprom_is_valid();
+    via_eeprom_set_valid(false);
+    if (!sm62_flash_ok() || sm62_vial_ext_reset() != 0) {
+        sm62_flash_failed();
+        sm62_flash_end();
+        return false;
+    }
+#else
+    if (sm62_vial_ext_reset() != 0) return false;
+#endif
+#else
+void dynamic_keymap_reset(void) {
+#endif
 #ifdef VIAL_ENABLE
     /* temporarily unlock the keyboard so we can set hardcoded QK_BOOT keycode */
     bool vial_unlocked_prev = vial_unlocked;
@@ -145,7 +171,11 @@ void dynamic_keymap_reset(void) {
 #ifdef VIAL_TAP_DANCE_ENABLE
     {
         vial_tap_dance_entry_t td = { KC_NO, KC_NO, KC_NO, KC_NO, TAPPING_TERM };
+#ifdef SM62_VIAL_LEGACY_EXTENSION
+        for (size_t i = 0; i < SM62_VIAL_LEGACY_ENTRIES; ++i) {
+#else
         for (size_t i = 0; i < VIAL_TAP_DANCE_ENTRIES; ++i) {
+#endif
             dynamic_keymap_set_tap_dance(i, &td);
         }
     }
@@ -154,7 +184,11 @@ void dynamic_keymap_reset(void) {
 #ifdef VIAL_COMBO_ENABLE
     {
         vial_combo_entry_t combo = { 0 };
+#ifdef SM62_VIAL_LEGACY_EXTENSION
+        for (size_t i = 0; i < SM62_VIAL_LEGACY_ENTRIES; ++i)
+#else
         for (size_t i = 0; i < VIAL_COMBO_ENTRIES; ++i)
+#endif
             dynamic_keymap_set_combo(i, &combo);
     }
 #endif
@@ -164,7 +198,11 @@ void dynamic_keymap_reset(void) {
         vial_key_override_entry_t ko = { 0 };
         ko.layers = ~0;
         ko.options = vial_ko_option_activation_negative_mod_up | vial_ko_option_activation_required_mod_down | vial_ko_option_activation_trigger_down;
+#ifdef SM62_VIAL_LEGACY_EXTENSION
+        for (size_t i = 0; i < SM62_VIAL_LEGACY_ENTRIES; ++i)
+#else
         for (size_t i = 0; i < VIAL_KEY_OVERRIDE_ENTRIES; ++i)
+#endif
             dynamic_keymap_set_key_override(i, &ko);
     }
 #endif
@@ -180,6 +218,14 @@ void dynamic_keymap_reset(void) {
 #ifdef VIAL_ENABLE
     /* re-lock the keyboard */
     vial_unlocked = vial_unlocked_prev;
+#endif
+#ifdef SM62_VIAL_LEGACY_EXTENSION
+#if defined(KEYBOARD_ergohaven_sm62)
+    if (sm62_flash_ok() && restore_valid) via_eeprom_set_valid(true);
+    return sm62_flash_end();
+#else
+    return true;
+#endif
 #endif
 }
 
@@ -242,7 +288,18 @@ static uint16_t decode_keycode(uint16_t kc) {
     return kc;
 }
 
+#ifdef SM62_MACRO_OVERLAY
+#    include "keyboards/ergohaven/sm62/macro_storage.h"
+static void dynamic_keymap_macro_send_impl(uint8_t id);
 void dynamic_keymap_macro_send(uint8_t id) {
+    if (!sm62_macro_read_begin()) return;
+    dynamic_keymap_macro_send_impl(id);
+    sm62_macro_read_end();
+}
+static void dynamic_keymap_macro_send_impl(uint8_t id) {
+#else
+void dynamic_keymap_macro_send(uint8_t id) {
+#endif
     if (id >= DYNAMIC_KEYMAP_MACRO_COUNT) {
         return;
     }

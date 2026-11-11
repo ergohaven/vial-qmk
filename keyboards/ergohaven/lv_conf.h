@@ -11,8 +11,17 @@
 #include_next <lv_conf.h>
 
 /* change default font */
+#if defined(KEYBOARD_ergohaven_sm62)
+#undef LV_FONT_MONTSERRAT_10
+#define LV_FONT_MONTSERRAT_10 1
+#endif
+
 #undef LV_FONT_MONTSERRAT_14
+#if defined(KEYBOARD_ergohaven_sm62)
+#define LV_FONT_MONTSERRAT_14 1
+#else
 #define LV_FONT_MONTSERRAT_14 0
+#endif
 
 #undef LV_FONT_MONTSERRAT_28
 #define LV_FONT_MONTSERRAT_28 1
