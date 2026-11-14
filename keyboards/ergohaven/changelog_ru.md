@@ -1,3 +1,47 @@
+## 4.2.0
+
+QMK/Vial firmware for supported Ergohaven keyboards and pointing devices, with Macropad display refinements and more reliable split-half settings and lighting synchronization.
+
+### Features
+
+- Added application-identity-aware display wake for Macropad v2/v3 through Entropy: switching applications wakes an enabled standby display without treating repeated layout snapshots as new activity or overriding a disabled display or volume mode.
+
+### Improvements
+
+- Made Macropad application-layout shortcut labels static, single-line and scaled to fit, while preserving ordinary multiline labels in builds without application layouts and restoring the normal size for subsequent labels.
+- Distinguished Backspace and Delete with left- and right-facing icons, preserving the approved Backspace outline and using its exact horizontal mirror for Delete.
+- Updated the Macropad v3 product name to Macropad while retaining its USB vendor/product identity.
+- Added conservative CI selection and verified same-tree PR coverage reuse for production pushes, while keeping manual and release validation full. Expanded source-backed wake, label, encoder, split-settings and RGB-layer regressions and made the ZIP CRC-corruption test deterministic.
+
+### Fixes
+
+- Fixed Macropad encoder volume-overlay selection to follow the binding that actually executes, including application layers, selected stacks and modified volume keys.
+- Fixed right-side modifier labels in Macropad application layouts without changing legacy label formatting in other builds.
+- Fixed stale split-half LED, pointing and layout settings after startup, settings changes and detected reconnects, including Phenom, Phenom Mini and Phenom Micro. Transfers are cached as synchronized only after the receiver acknowledges application, and failed transfers are retried.
+- Prevented boot-time settings reception from being overwritten by local initialization and cleared stale RPC response data so an unavailable receiver cannot appear to acknowledge a new transfer.
+- Fixed received split RGB layer changes not redrawing static lighting until a later mode or color change.
+- Restored application-layout Combo regression source extraction after the display-wake hook was introduced.
+
+### Verification
+
+- Local release-scope validation verified all 31 official firmware targets, 38 Vial definitions and 8 intentional exclusions; the 31 normalized UF2 filenames are unique and match the previous release's naming convention.
+- All 19 focused release-scope/version/publisher contract tests and all 3 native-runner contract tests passed. These are Python/source-contract checks, not firmware compilation or native firmware execution.
+- Release-owned runtime, display/product, USB and both Vial version fields are consistently set to `4.2.0`, including development-only and retired keymaps; all non-version bytes in those 64 owning files were preserved.
+- Exact-candidate firmware and complete native CI, fresh UF2 checksums/structure/storage-boundary verification, and release-asset readback are pending. One real-history CI-policy test is blocked by the shallow preparation checkout; the other 37 policy/workflow tests passed.
+- This candidate has not been hardware-tested across the model and revision matrix; no ELF-to-UF2 comparison or new flash-headroom measurement is claimed. Earlier Macropad v3 measurements must not be substituted for a fresh `4.2.0` build.
+
+### Contributors
+
+- @Yurii-Q ([#51](https://github.com/ergohaven/vial-qmk/pull/51)).
+- @IgorArkhipov ([#54](https://github.com/ergohaven/vial-qmk/pull/54), [#55](https://github.com/ergohaven/vial-qmk/pull/55)).
+- @kissetfall ([#51](https://github.com/ergohaven/vial-qmk/pull/51), [#52](https://github.com/ergohaven/vial-qmk/pull/52), [#53](https://github.com/ergohaven/vial-qmk/pull/53), [#55](https://github.com/ergohaven/vial-qmk/pull/55), release-scope maintenance and release preparation).
+
+Choose the UF2 matching your keyboard model, hardware revision and module configuration. Update both halves of split keyboards to matching firmware so the receiver can acknowledge settings synchronization.
+
+HPD v2 LCD/trackball (`v2_lcd_ball`) and Macropad v2 CCW (`v2_ccw`) firmware builds remain excluded from this and future official releases; their source keymaps remain available for personal/development builds.
+
+**Full changelog:** https://github.com/ergohaven/vial-qmk/compare/4.1.0...4.2.0
+
 ## 4.1.0
 
 - Added application layouts for M4CR0Pad v2/v3, including v2_ccw, with automatic switching, host-provided labels and encoder actions through Entropy.
