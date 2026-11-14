@@ -9,6 +9,11 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / 'tests/ergohaven'))
+from native_vial_firewall import firewall_source
+from native_resident_boundary import READONLY_FLASH_SOURCE
 
 p = argparse.ArgumentParser()
 p.add_argument('--firmware', type=Path, default=Path(__file__).resolve().parents[4])
@@ -36,6 +41,10 @@ hid = source('keyboards/ergohaven/hid.c')
 quantum = source('quantum/quantum.c')
 production = hid[hid.index('#    define EH_APP_LAYOUT_PROTOCOL_VERSION'):hid.index('\nhid_data_t *get_hid_data')].rsplit('#endif', 1)[0]
 header = (Path(__file__).parent / 'pipeline_boundary.h').read_text()
+# Shared with repeat/scan generators. Keep the actual lock state and firewall,
+# and pass this reader so historical --ref controls use matching dependencies.
+header += firewall_source(source, keycodes_included=True)
+header += READONLY_FLASH_SOURCE
 processors = ''
 for name in ['key_override', 'tap_dance', 'combo']:
     processors += stripped(source(f'quantum/process_keycode/process_{name}.h'))

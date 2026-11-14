@@ -1,6 +1,6 @@
 {
-    "firmware": {"version": "4.2.1"},
-    "firmwareVersion": "4.2.1",
+    "firmware": {"version": "4.2.0"},
+    "firmwareVersion": "4.2.0",
     "lighting": "vialrgb",
     "matrix": {
         "rows": 5,

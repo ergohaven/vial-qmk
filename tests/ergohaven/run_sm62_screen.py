@@ -2,6 +2,7 @@
 """Actual SM62 tile/header rendering with pinned LVGL; panel/storage clocks injected."""
 from pathlib import Path
 from native_vial_firewall import firewall_source
+from native_resident_boundary import READONLY_FLASH_SOURCE
 import argparse,re,subprocess
 from macropad_native_support import validate_lvgl,write_stubs
 ROOT=Path(__file__).resolve().parents[2]
@@ -44,7 +45,7 @@ static const char *layer_name(uint8_t l){(void)l;return "Persistent Default";}
 static const char *hid_sm62_default_layer_name(uint8_t l){return layer_name(l);}
 static uint16_t hid_sm62_default_keycode(uint8_t l,uint8_t r,uint8_t c){return dynamic_keymap_get_keycode(l,r,c);}
 '''
-body=r'''
+body=READONLY_FLASH_SOURCE+r'''
 LV_FONT_DECLARE(eh_font_iosevka_18);LV_FONT_DECLARE(sm62_font_zen_medium_17);LV_FONT_DECLARE(sm62_font_zen_medium_28);
 typedef struct {lv_obj_t *box,*primary,*secondary,*shifted;char primary_text[64];} key_widgets_t;
 static struct {uint8_t cyrillic_enabled;} settings;

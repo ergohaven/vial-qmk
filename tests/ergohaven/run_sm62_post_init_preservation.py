@@ -20,7 +20,10 @@ source=r'''
 #include <assert.h>
 #include "quantum/keycodes.h"
 #include "keyboards/ergohaven/sm62/config.h"
-_Static_assert(VIAL_TAP_DANCE_ENTRIES == 32 && VIAL_COMBO_ENTRIES == 32 && VIAL_KEY_OVERRIDE_ENTRIES == 32, "exercise actual capacity32 config");
+_Static_assert(SM62_RESERVED_TD_BYTES == 40U && VIAL_COMBO_ENTRIES == 32 && VIAL_KEY_OVERRIDE_ENTRIES == 32, "exercise actual legacy geometry with TD disabled");
+#ifdef VIAL_TAP_DANCE_ENABLE
+#error "post-init preservation must exercise the normal TD-disabled configuration"
+#endif
 #undef SM62_PRESERVE_LEGACY_DEFAULT
 #define SM62_PRESERVE_LEGACY_DEFAULT
 #define DYNAMIC_KEYMAP_LAYER_COUNT 16

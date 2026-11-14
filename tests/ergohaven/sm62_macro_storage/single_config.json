@@ -1,8 +1,8 @@
 {
-  "keyboards/ergohaven/config.h": "e97a49d82fa9e192bff4f3ec7f97d4fb6cb304dd5515d8abe7ffd6d3f27f615a",
+  "keyboards/ergohaven/config.h": "7b4b84376dd1878ce2f6f5d58748c4a7e85d8ff80cafc9284c7f01e3dc08f695",
   "keyboards/ergohaven/sm62/config.h": "81b01f91cf3fb17b5f578fb0d7a6170357edbb08f28060b40137463cad99dd54",
   "keyboards/ergohaven/sm62/rules.mk": "3adc5994e47631ea052d44b8f724a147a082364af54e2ecc5e3287a8c80dfbec",
-  "keyboards/ergohaven/sm62/keyboard.json": "54af56b23f319955530fa93b13441f49c1b56edd0d013f18f4cb95a3d4b1fa1e",
+  "keyboards/ergohaven/sm62/keyboard.json": "cffdcbdf3e9462dc45c03436fab3cd5663294d28cfca51d7043d5f703e117eb4",
   "keyboards/ergohaven/sm62/keymaps/v1/config.h": "a82de135909959d41da45b821c63af23b986992c1c68521e2109a0e7605745fa",
   "keyboards/ergohaven/sm62/keymaps/v1/rules.mk": "28702e63a8b3c6be0459bb8ad433d70b7ff03c84e51b11f7454ae61b3799fd48",
   "keyboards/ergohaven/sm62/macro_storage.h": "ced6b2c00c74e01df05c4b9a1a89998c6aa5723e3b9db7b973b3494af97dbed5",

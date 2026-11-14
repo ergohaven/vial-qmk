@@ -3,6 +3,7 @@ import importlib.util
 from pathlib import Path
 import sys
 import unittest
+from test_native_fixture_boundaries import NativeFixtureBoundaries
 
 PATH = Path(__file__).with_name('run_ci.py')
 
@@ -66,7 +67,7 @@ class NativeCI(unittest.TestCase):
         peer = next(i for i, cmd in enumerate(commands) if cmd[1].endswith('run_resident100_peer.py'))
         restart = commands[peer + 1]
         self.assertEqual(restart[2:], ['/external/output/resident-peer/resident100_peer',
-                                     '/external/output/fixtures', '/external/output/resident-restart'])
+                                     '/external/output/resident100/fixtures', '/external/output/resident-restart'])
         for command in commands[11:]:
             self.assertNotIn('--legacy-abort-only', command, 'retain the complete fault campaigns')
         macro = next(cmd for cmd in commands if cmd[1].endswith('sm62_macro_storage/test_macro_storage.py'))

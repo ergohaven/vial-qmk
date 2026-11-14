@@ -7,6 +7,7 @@ import argparse
 import subprocess
 import resource
 import json
+import hashlib
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
@@ -33,8 +34,16 @@ post = body(common, 'bool matrix_post_scan(')
 getter = body(common, 'inline matrix_row_t matrix_get_row(').replace('inline ', '')
 weak = body(common, '__attribute__((weak)) void matrix_slave_scan_kb(')
 current = (ROOT / 'keyboards/ergohaven/ergohaven_main.c').read_text()
-before = (ROOT.parent / 'review-fix-before/keyboards/ergohaven/ergohaven_main.c').read_text()
-baseline = (ROOT.parent.parent / 'sm62-test14-display-cooperative/firmware/keyboards/ergohaven/ergohaven_main.c').read_text()
+# Frozen source-backed controls execute without private sibling checkouts or
+# Git history. The unavailable intermediate checkout is represented honestly
+# by a wrong-dispatch mutation of pinned fixed source, not invented history.
+controls = json.loads((HERE / 'peer_capture_controls.json').read_text())
+assert controls['schema'] == 1
+pins = {'baseline-peer-missing': 'c785abf20cd6287dcab88683d250f45a3474f9c73cb8b4214d07d0b09d4142d6',
+        'baseline-unreachable': 'df00323ed2f3ab31500bcdc7fea52de2ac98f7ff2135e8eda98201990f92ea48'}
+assert {c['name'] for c in controls['controls']} == set(pins) and len(controls['controls']) == 2
+for control in controls['controls']:
+    assert hashlib.sha256(control['hooks'].encode()).hexdigest() == control['sha256'] == pins[control['name']], control['name']
 head = '''#include <stdbool.h>
 #include <stdint.h>
 #include <assert.h>
@@ -101,9 +110,8 @@ def hooks(source):
 
 
 resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
-variants = [('current', hooks(current), False),
-            ('baseline-unreachable', hooks(before), True),
-            ('baseline-peer-missing', hooks(baseline), True)]
+variants = [('current', hooks(current), False)]
+variants += [(c['name'], c['hooks'], True) for c in controls['controls']]
 if 'void matrix_slave_scan_kb(' in current:
     variants += [
         ('mutation-slave-hook-missing', body(current, 'void matrix_scan_kb(') + weak, True),
@@ -111,9 +119,12 @@ if 'void matrix_slave_scan_kb(' in current:
         ('mutation-slave-user-missing', hooks(current).replace('matrix_slave_scan_user();', ''), True),
     ]
 results = []
+# Materialize every variant before building so construction audits can inspect
+# all exact translation units without compiling or faking native run results.
+for name, source, _ in variants:
+    (OUT / (name + '.c')).write_text(head + getter + capture + source + post + main)
 for name, source, peripheral_failure in variants:
     c = OUT / (name + '.c')
-    c.write_text(head + getter + capture + source + post + main)
     exe = OUT / name
     build = subprocess.run(['gcc', '-std=gnu11', '-Wall', '-Wextra', '-Werror', '-Wno-unused-function', str(c), '-o', str(exe)], capture_output=True, text=True)
     (OUT / (name + '-build.log')).write_text(build.stdout + build.stderr)

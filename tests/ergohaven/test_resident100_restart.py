@@ -8,6 +8,9 @@ exe=Path(sys.argv[1]).resolve();fixtures=Path(sys.argv[2]);out=Path(sys.argv[3])
 flash=out/'flash.bin';assert not flash.exists(),'require fresh output'
 raws=[(fixtures/f'full{s:02}.bin').read_bytes() for s in range(100)]
 assert all(len(raw)==4560 for raw in raws) and len(set(raws))==100
+# fixture_max() in resident100_native.c: control0 maps to matrix[0][5],
+# no active encoder stack, and the public name is layer0, not BEGIN.name.
+assert all(struct.unpack('<H',raw[64:66])[0]==9 and raw[4192:4215]==bytes([22])+b'A'*22 and raw[3040]==0 for raw in raws),'require actual resident100 C producer fixtures'
 class Peer:
  def __init__(self):self.p=subprocess.Popen([str(exe),str(flash)],stdin=subprocess.PIPE,stdout=subprocess.PIPE,text=True)
  def line(self,s):
@@ -37,7 +40,7 @@ for s,raw in enumerate(raws):
  assert command(p,0,s,raw,1000+s)[3]==0
  a=command(p,3,s,raw,2000+s);assert a[3]==0 and a[8:28]==raw[43:63] and struct.unpack('<I',a[28:])[0]==zlib.crc32(raw)
  assert command(p,2,s,raw,3000+s)[3]==0
- state=p.state();expected_key=struct.unpack('<H',raw[64:66])[0];assert state['active']==1 and state['revision']==struct.unpack('<I',raw[3:7])[0] and state['key0']==expected_key and state['writes']==0 and bytes.fromhex(state['name_hex'])==raw[10:32]
+ state=p.state();expected_key=9;assert state['active']==1 and state['revision']==struct.unpack('<I',raw[3:7])[0] and state['key0']==expected_key and state['writes']==0 and bytes.fromhex(state['name_hex'])==b'A'*22
  down=json.loads(p.line('KEY 0 5 1'));up=json.loads(p.line('KEY 0 5 0'));assert down['handled']==1 and up['handled']==1 and up['ups']==down['ups']+1 and down['down_code']==expected_key and up['up_code']==expected_key
  # Recover exact original full payload via real READ, before/after ENUM.
  recovered=b''

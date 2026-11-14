@@ -41,8 +41,8 @@ class ReleaseScope(unittest.TestCase):
 class ReleaseIdentity(unittest.TestCase):
     def test_all_independent_version_owners_are_aligned(self):
         root = ROOT / 'keyboards/ergohaven'
-        self.assertRegex((root / 'config.h').read_text(), r'#define EH_FIRMWARE_VERSION 0x00040201\b')
-        self.assertIn('#define EH_VERSION_STR "4.2.1"', (root / 'ergohaven.h').read_text())
+        self.assertRegex((root / 'config.h').read_text(), r'#define EH_FIRMWARE_VERSION 0x00040200\b')
+        self.assertIn('#define EH_VERSION_STR "4.2.0"', (root / 'ergohaven.h').read_text())
         definitions = sorted(root.glob('**/vial.json'))
         self.assertEqual(len(definitions), 39)
         # Keep strings (including comment-like text) intact while stripping comments.
@@ -53,33 +53,52 @@ class ReleaseIdentity(unittest.TestCase):
                 preamble = token.sub(lambda m: m[0] if m[0].startswith('"') else '', preamble)
                 firmware = re.findall(r'"firmware"\s*:\s*\{([^{}]*)\}', preamble)
                 self.assertEqual(len(firmware), 1)
-                self.assertEqual(re.findall(r'"version"\s*:\s*"([^"]+)"', firmware[0]), ['4.2.1'])
-                self.assertEqual(re.findall(r'"firmwareVersion"\s*:\s*"([^"]+)"', preamble), ['4.2.1'])
+                self.assertEqual(re.findall(r'"version"\s*:\s*"([^"]+)"', firmware[0]), ['4.2.0'])
+                self.assertEqual(re.findall(r'"firmwareVersion"\s*:\s*"([^"]+)"', preamble), ['4.2.0'])
         usb = []
         for path in sorted(root.glob('**/keyboard.json')):
             versions = re.findall(r'"device_version"\s*:\s*"([^"]+)"', path.read_text())
             if versions:
                 usb.append(path)
                 with self.subTest(owner=path.relative_to(ROOT)):
-                    self.assertEqual(versions, ['4.2.1'])
+                    self.assertEqual(versions, ['4.2.0'])
         self.assertEqual(len(usb), 25)
 
 
 class ReleasePublication(unittest.TestCase):
-    def test_421_notes_keep_rmk_sections_and_protected_history(self):
+    def test_420_notes_keep_rmk_sections_and_protected_history(self):
         path = 'keyboards/ergohaven/changelog_ru.md'
         text = (ROOT / path).read_text()
-        self.assertTrue(text.startswith('## 4.2.1\n'))
-        notes, previous = text.split('## 4.2.0\n', 1)
+        self.assertTrue(text.startswith('## 4.2.0\n'))
+        self.assertEqual(text.count('## 4.2.0\n'), 1)
+        self.assertNotIn('## 4.2.1\n', text)
+        notes, previous = text.split('## 4.1.0\n', 1)
         for heading in ['Features', 'Improvements', 'Fixes', 'Verification', 'Contributors']:
             self.assertIn('### ' + heading + '\n', notes)
-        self.assertIn('@Yurii-Q', notes)
-        self.assertIn('/pull/56', notes)
-        self.assertIn('4.2.0...4.2.1', notes)
-        original = subprocess.check_output(['git', 'show', '4.2.0:' + path], cwd=ROOT, text=True)
-        self.assertEqual('## 4.2.0\n' + previous, original)
+        for contributor in ['@Yurii-Q', '@IgorArkhipov', '@kissetfall']:
+            self.assertIn(contributor, notes)
+        for number in range(51, 57):
+            self.assertIn('/pull/' + str(number), notes)
+        self.assertIn('4.1.0...4.2.0', notes)
+        self.assertIn('resident100', notes)
+        self.assertIn('SINGLE/core0', notes)
+        self.assertIn('replacement', notes)
+        # The published tag is explicitly approved for replacement. Pin its original
+        # commit, not a mutable tag, and freeze only the 4.1.0-and-older suffix.
+        baseline = '8f3d4f17b79b169c10226822d2ed616fa2f6d75b'
+        original = subprocess.check_output(['git', 'show', baseline + ':' + path], cwd=ROOT)
+        self.assertEqual(('## 4.1.0\n' + previous).encode(),
+                         b'## 4.1.0\n' + original.split(b'## 4.1.0\n', 1)[1])
+        # Retain every substantive feature/improvement/fix from the old 4.2.0.
+        old_notes = original.decode().split('## 4.1.0\n', 1)[0]
+        for section in ['Features', 'Improvements', 'Fixes']:
+            body = old_notes.split('### ' + section + '\n', 1)[1].split('### ', 1)[0]
+            for bullet in body.splitlines():
+                if bullet.startswith('- '):
+                    self.assertIn(bullet, notes)
         publisher = (ROOT / '.github/workflows/release.yml').read_bytes()
-        original_publisher = subprocess.check_output(['git', 'show', '4.2.0:.github/workflows/release.yml'], cwd=ROOT)
+        original_publisher = subprocess.check_output(
+            ['git', 'show', baseline + ':.github/workflows/release.yml'], cwd=ROOT)
         self.assertEqual(publisher, original_publisher)
         self.assertIn(b'draft: true', publisher)
 

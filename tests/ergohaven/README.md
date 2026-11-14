@@ -101,13 +101,43 @@ interop and path/optimization guards, GPIO/geometry and LVGL profile contracts,
 and source-extracted processing/display/debounce/peer-capture controls.
 
 `sm62_interop/fixtures.py` generates deterministic FULL4560 **test inputs** from
-the existing interop fixture producer. Their frozen original digests are tested;
-these are not firmware images or fabricated execution results. Fixture creation
-precedes compact-USB compatibility and resident peer/restart consumers. The
-restart probe compares live values with those independent input bytes rather
-than assuming a private external fixture's fixed key/name. `run_sm62_layout_reserve.py`
-already invokes the real flash-backend probe; the compatibility alias
-`run_resident_three.py` forwards to resident100 and is not run twice.
+its independent interop producer; frozen original digests remain tested. Those
+inputs still feed compact-USB compatibility. Restart instead consumes the actual
+`resident100_native.c` producer: `run_resident100.py` creates `resident100/fixtures`
+and the wave explicitly sets `SM62_FIXTURE_DIR` to that directory. Its 100 distinct
+maximum records retain keycode9 at logical control0 / physical matrix[0][5], zero
+active encoder stacks, and a 22-byte `A` layer0 name. The restart oracle checks
+those exact values, not `BEGIN.name`: public display names prefer the selected
+encoder-stack name or the layer name before falling back to the application name.
+Both producers and all byte-exact restart/READ/delete/no-wear assertions remain.
+`run_sm62_layout_reserve.py` already invokes the real flash-backend probe; the
+compatibility alias `run_resident_three.py` is not run twice.
+
+`test_native_fixture_boundaries.py`, included by `test_run_ci.py`, audits the
+complete generated C at the compiler boundary without invoking GCC. It checks
+unchanged production HID/processor bodies, the real shared Vial firewall, NOR
+linkage, normal TD-disabled preservation geometry, actual C producer wiring,
+trace-header inclusion and pinned self-contained peer controls. Construction
+checks mock LVGL admission only to reach generation; the normal native runners
+still validate all 606 base blobs before compilation. Optional
+`NATIVE_FIXTURE_EVIDENCE=/absolute/path` retains generated C and input hashes.
+These Python contracts and their corruption/permissive-firewall mutation controls
+are **not native behavior passes** and never replace the complete wave.
+
+Rendering/processor fixtures share `native_resident_boundary.py`: erased NOR reads,
+actual geometry/declarations, and assertion-failing writes (not fake successful
+storage). Persistent suites retain their writable NOR model. Post-init uses the
+shipping 40 reserved TD bytes with TD disabled, Combo32 and KO32; repeat/scan
+remain explicitly TD-enabled engine/synthetic-cost controls, not normal TD or
+physical scan-time certification. Scan uses the production no-op trace header.
+
+`run_peer_capture.py` keeps all role/side, release, callback and transport checks.
+Its historical missing-hook control is frozen from source revision
+`05ec665ecf879b3eee4362d966980365bbd34663`; the unreachable-observer control is
+an explicitly labeled wrong-dispatch mutation of pinned
+`d5bc1f85726bf282fba6951c5568c2acc9e0c77b` source, not a claimed reconstruction of
+an unavailable private checkout. `peer_capture_controls.json` records provenance
+and SHA256 pins; neither Git history nor sibling checkouts are execution inputs.
 
 The wave continues after a failed command and returns nonzero if any command
 fails. Command count is not a test/assertion count. CLI output must be fresh,

@@ -12,6 +12,8 @@ prefix = (HERE/'run_repeat_display.py').read_text().split("cases = (HERE/")[0]
 exec(compile(prefix, str(HERE/'run_repeat_display.py'), 'exec'), ns)
 a, ROOT, body, stripped, source = (ns[k] for k in ['a','ROOT','body','stripped','source'])
 header = ns['header'].replace('static void action_exec(keyevent_t e) { (void)e; assert(!"complex native Vial action is outside fixture"); }','static void action_exec(keyevent_t e);')
+# Normal SINGLE uses this header's real no-op branch, not diagnostic tracing.
+header += '#include "sm62_trace.h"\n'
 display = ns['display'].replace('static struct {uint8_t mode,cyrillic_enabled;} local_settings={3,1};', 'typedef struct {uint8_t mode,cyrillic_enabled,keymap_enabled,ship_enabled,ship_timeout_s;} sm62_side_settings_t;\nstatic sm62_side_settings_t local_settings={3,1,1,0,0};')
 native = ns['native'].replace('static void on_dance_finished(tap_dance_state_t *state, void *user_data) {', 'static void on_dance_finished(tap_dance_state_t *state, void *user_data) { printf("native_finish t=%u pressed=%u count=%u interrupted=%u\\n",now,state->pressed,state->count,state->interrupted);')
 base = header + ns['ns']['production'] + ns['headers'] + ns['fixture'] + ns['native_prefix'] + native + ns['processors'] + display + ns['ns']['pre'] + ns['ns']['kb'] + body(ns['ns']['quantum'], 'uint16_t get_record_keycode(') + body(ns['ns']['quantum'], 'bool pre_process_record_quantum(') + ns['ns']['chain']

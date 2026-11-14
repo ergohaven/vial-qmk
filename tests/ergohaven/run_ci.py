@@ -44,7 +44,7 @@ def commands(output, lvgl):
         ['tests/ergohaven/sm62_interop/fixtures.py', '--output', str(output / 'fixtures')],
         ['tests/ergohaven/test_compact_usb_compat.py', str(output / 'fixtures/full00.bin'), str(output / 'compact-usb')],
         ['tests/ergohaven/run_resident100_peer.py', str(output / 'resident-peer')],
-        ['tests/ergohaven/test_resident100_restart.py', str(output / 'resident-peer/resident100_peer'), str(output / 'fixtures'), str(output / 'resident-restart')],
+        ['tests/ergohaven/test_resident100_restart.py', str(output / 'resident-peer/resident100_peer'), str(output / 'resident100/fixtures'), str(output / 'resident-restart')],
         ['tests/ergohaven/sm62_macro_storage/test_macro_storage.py', '--source-root', str(ROOT), '--output-dir', str(output / 'macro-storage')],
         ['tests/ergohaven/sm62_locked_boot/run.py', '--output-dir', str(output / 'locked-boot')],
         ['tests/ergohaven/sm62_locked_boot/run_via_optional.py', '--source-root', str(ROOT), '--output-dir', str(output / 'via-optional')],
@@ -66,7 +66,8 @@ def run(invocations, output):
     output.mkdir(parents=True, exist_ok=True)
     temporary = output / 'tmp'
     temporary.mkdir(exist_ok=True)
-    env = dict(os.environ, TMPDIR=str(temporary), AGENT_BUILD_CACHE=str(output), PYTHONDONTWRITEBYTECODE='1')
+    env = dict(os.environ, TMPDIR=str(temporary), AGENT_BUILD_CACHE=str(output), PYTHONDONTWRITEBYTECODE='1',
+               SM62_FIXTURE_DIR=str(output / 'resident100/fixtures'))
     failures = 0
     for index, command in enumerate(invocations, 1):
         print(f'[{index}/{len(invocations)}] {command}', flush=True)

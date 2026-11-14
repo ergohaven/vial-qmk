@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "description": "Self-contained immutable snippets; hardware/dispatch/capture assertions remain current. No git/network/sibling checkout required to execute.",
+  "controls": [
+    {
+      "name": "baseline-peer-missing",
+      "revision": "05ec665ecf879b3eee4362d966980365bbd34663",
+      "path": "keyboards/ergohaven/ergohaven_main.c",
+      "source_blob": "3d94e109b70aee89f72f2d4496901c7ba4fc18dd",
+      "source_sha256": "d7e6b746ae4897283e95821429b22680d3887d9a6420f9c73e4c0439f4b1b272",
+      "kind": "historical missing peer hook",
+      "hooks": "void matrix_scan_kb(void) { // The very important timer.\n#ifdef EH_APP_LAYOUT_ENABLE\n    hid_app_layout_task();\n#endif\n#ifdef EH_HAS_DISPLAY\n#    if defined(DIRECT_PINS) && PAL_USE_CALLBACKS\n    if (display_wake_interrupt_pending) {\n        display_wake_interrupt_pending = false;\n        display_process_matrix_press();\n    }\n#    endif\n\n    // This runs immediately after QMK has debounced the physical matrix and\n    // before keycode processing or the next LVGL/Quantum Painter task. A\n    // rising edge therefore leaves standby on the first accepted press.\n    static matrix_row_t previous_display_matrix[MATRIX_ROWS];\n    bool                display_matrix_pressed = false;\n    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {\n        matrix_row_t current = matrix_get_row(row);\n        display_matrix_pressed |= (current & ~previous_display_matrix[row]) != 0;\n        previous_display_matrix[row] = current;\n    }\n    if (display_matrix_pressed) display_process_matrix_press();\n#endif\n\n    if (is_alt_tab_active) {\n        if (timer_elapsed(alt_tab_timer) > 650) {\n            unregister_code(keymap_config.swap_lctl_lgui ? KC_LGUI : KC_LALT);\n            is_alt_tab_active = false;\n        }\n    }\n\n    matrix_scan_user();\n}\n__attribute__((weak)) void matrix_slave_scan_kb(void) {\n    matrix_slave_scan_user();\n}\n",
+      "sha256": "c785abf20cd6287dcab88683d250f45a3474f9c73cb8b4214d07d0b09d4142d6"
+    },
+    {
+      "name": "baseline-unreachable",
+      "revision": "d5bc1f85726bf282fba6951c5568c2acc9e0c77b",
+      "path": "keyboards/ergohaven/ergohaven_main.c",
+      "source_blob": "cc6e0982cd902c486a316f5a0be3f36b27dff57f",
+      "source_sha256": "afa4b16712da806df395843a8573c28590899f291ee053a2e948692d84e53bc8",
+      "kind": "source-derived wrong-dispatch mutation, NOT an unavailable historical checkout",
+      "hooks": "void matrix_scan_kb(void) { // The very important timer.\n#ifdef EH_APP_LAYOUT_ENABLE\n    hid_app_layout_task();\n#endif\n#ifdef EH_HAS_DISPLAY\n#    if defined(DIRECT_PINS) && PAL_USE_CALLBACKS\n    if (display_wake_interrupt_pending) {\n        display_wake_interrupt_pending = false;\n        display_process_matrix_press();\n    }\n#    endif\n\n    // This runs immediately after QMK has debounced the physical matrix and\n    // before keycode processing or the next LVGL/Quantum Painter task. A\n    // rising edge therefore leaves standby on the first accepted press.\n    static matrix_row_t previous_display_matrix[MATRIX_ROWS];\n    bool                display_matrix_pressed = false;\n    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {\n        matrix_row_t current = matrix_get_row(row);\n        display_matrix_pressed |= (current & ~previous_display_matrix[row]) != 0;\n        previous_display_matrix[row] = current;\n    }\n    if (display_matrix_pressed) display_process_matrix_press();\n#endif\n\n    if (is_alt_tab_active) {\n        if (timer_elapsed(alt_tab_timer) > 650) {\n            unregister_code(keymap_config.swap_lctl_lgui ? KC_LGUI : KC_LALT);\n            is_alt_tab_active = false;\n        }\n    }\n\n    if (!is_keyboard_master()) {\n\n    /* matrix_post_scan dispatches peripherals here, not to matrix_scan_kb.\n     * Read only this half's cooked rows (debounce writes at its hand offset).\n     * Stage edges only: display policy and LVGL remain in housekeeping. */\n    static matrix_row_t previous_display_matrix[MATRIX_ROWS / 2];\n    uint8_t             offset = is_keyboard_left() ? 0 : MATRIX_ROWS / 2;\n    for (uint8_t row = 0; row < MATRIX_ROWS / 2; ++row) {\n        matrix_row_t current = matrix_get_row(offset + row);\n        matrix_row_t changed = current ^ previous_display_matrix[row];\n        for (uint8_t col = 0; col < MATRIX_COLS; ++col)\n            if (changed & ((matrix_row_t)1 << col)) display_process_keyevent(offset + row, col, (current & ((matrix_row_t)1 << col)) != 0);\n        previous_display_matrix[row] = current;\n    }\n        }\n    matrix_scan_user();\n}\n__attribute__((weak)) void matrix_slave_scan_kb(void) {\n    matrix_slave_scan_user();\n}\n",
+      "sha256": "df00323ed2f3ab31500bcdc7fea52de2ac98f7ff2135e8eda98201990f92ea48"
+    }
+  ]
+}

@@ -1,51 +1,13 @@
-## 4.2.1
-
-QMK/Vial firmware for supported Ergohaven keyboards and pointing devices, adding Space Mission 62 (SM62) production-PCB support to the common release matrix. SM62 uses one RP2040/4 MiB image for both halves and the synchronous SINGLE/core0 renderer; this is not the old 2 MiB Pico prototype or an experimental DUAL/core1 build.
-
-### Features
-
-- Added the official `ergohaven/sm62:v1` target with the production 62-key matrix, 16 layers, split application-layout publication and device-specific USB serial identity ([#56](https://github.com/ergohaven/vial-qmk/pull/56)).
-- Added SM62 resident100 storage: 100 application profiles plus one rotating copy-on-write spare, separate from Native Default, with compact transfers and persistent readback. SM62 provides 109 macros in a 6066-byte copy-on-write overlay; Tap Dance is disabled while its historical EEPROM bytes remain reserved ([#56](https://github.com/ergohaven/vial-qmk/pull/56)).
-- Added independent per-half Clock, Player, Ship and Keymap views, persistent display-off, brightness and timeout controls, Cyrillic legends, date/language visibility and keypress focus. Factory defaults are LEFT Clock, RIGHT Ship and a 350 ms temporary keymap hold; valid saved production settings are retained ([#56](https://github.com/ergohaven/vial-qmk/pull/56)).
-
-### Improvements
-
-- Expanded the official firmware matrix from 31 to 32 targets without removing existing targets or reinstating retired release configurations.
-- Added production SINGLE SM62 qualification to the existing serial native CI owner: 47 commands, preserving the previous 11 unchanged. Coverage includes application/split codecs and recovery, display/keymap/player controls, resident100 restart/readback, complete macro fault campaigns, locked boot, settings deadlines and the actual production-C interop bridge. Historical cooperative/core1 probes requiring a different LVGL overlay are not production SINGLE qualification.
-- Aligned shared firmware/display identity, all 25 USB descriptors and both version fields in all 39 Vial definitions to `4.2.1`, including personal/development keymaps. The version update does not change protocol, storage geometry or production runtime behavior.
-
-### Fixes
-
-- Integrated SM62 guarded persistent-storage and interrupted-import handling, locked assignment/publication boundaries, preservation-safe post-init and bounded split/RPC recovery from the contributed production stack ([#56](https://github.com/ergohaven/vial-qmk/pull/56)). These are SM62 integration changes, not newly claimed fixes to previously shipped non-SM62 targets.
-- Preserved the shared split RPC acknowledgement and stale-response protections already shipped in `4.2.0` while combining the SM62 stack. No historical cooperative renderer or permissive storage/security fallback is selected.
-- Reconciled native qualification inputs with the actual shipping SINGLE configuration and made compact-USB/restart fixture generation self-contained, without external application checkouts or private fixture paths.
-
-### Verification
-
-- **Local source preparation only.** Release scope reconciles 32 targets, 39 Vial definitions and 8 intentional exclusions. Version-token-only updates preserve every non-version byte in all 66 identity owners. Native runner, fixture, release-identity and production-board contracts were executed; they are not firmware builds or native firmware execution.
-- The local CI-policy/source-contract suite retains one known full-history error in this shallow preparation checkout. The owning official planner checks out full history; no history guard is weakened or bypassed.
-- A managed-storage attempt to run a focused SM62 native probe was refused before execution because the agent cache budget was reached. No current-candidate native-C or ARM build is claimed. The complete native wave and all 32 firmware builds are assigned to final hosted CI on the final candidate; no duplicate local ARM matrix is required.
-- Fresh candidate/tag CI, artifact inventory/checksums, UF2 structure and reserved-storage bounds, and release-asset readback remain pending. Physical keyboard/display/USB/split/power-loss validation is separate and has not been performed here. Earlier contributor or integration build results are not validation of this version-bumped source.
-- The published `4.2.0` tag, release history, excluded-target policy and tag-push draft-first publisher remain unchanged. Replace this preparation-only verification with exact-tag CI and artifact receipts before publishing `4.2.1`.
-
-### Contributors
-
-- @Yurii-Q — the SM62 SINGLE resident100 production stack, display/application integration, guarded storage and source-backed qualification fixtures ([#56](https://github.com/ergohaven/vial-qmk/pull/56), original contribution [`d5bc1f85`](https://github.com/ergohaven/vial-qmk/commit/d5bc1f85726bf282fba6951c5568c2acc9e0c77b)). The original PR remains open; local code inclusion is not a GitHub PR merge.
-- @kissetfall — integration preserving shared split RPC protections, official release/native-CI integration and release preparation ([integration](https://github.com/ergohaven/vial-qmk/commit/0218f2da7cce343e91773275e248b84350e8c864)). Contributors already credited in `4.2.0` remain in its unchanged entry below.
-
-Back up your layout before updating and use an Entropy build supporting the SM62 application/resident protocol. Choose the UF2 matching the model, revision and modules. Flash matching firmware to both halves; the SM62 production image selects handedness using GP29 (high=LEFT, low=RIGHT), independently of which half is connected over USB. Do not use this image on the old 2 MiB Pico prototype. The version bump alone does not require resetting an existing production SM62 or erasing its saved settings.
-
-HPD v2 LCD/trackball (`v2_lcd_ball`) and Macropad v2 CCW (`v2_ccw`) remain excluded from this and future official releases; their source keymaps remain available for personal/development builds.
-
-**Full changelog:** https://github.com/ergohaven/vial-qmk/compare/4.2.0...4.2.1
-
 ## 4.2.0
 
-QMK/Vial firmware for supported Ergohaven keyboards and pointing devices, with Macropad display refinements and more reliable split-half settings and lighting synchronization.
+QMK/Vial firmware for supported Ergohaven keyboards and pointing devices, combining Macropad display refinements and more reliable split-half settings/lighting synchronization with Space Mission 62 (SM62) production-PCB support. SM62 uses one RP2040/4 MiB image for both halves and the synchronous SINGLE/core0 renderer; this is not the old 2 MiB Pico prototype or an experimental DUAL/core1 build.
 
 ### Features
 
 - Added application-identity-aware display wake for Macropad v2/v3 through Entropy: switching applications wakes an enabled standby display without treating repeated layout snapshots as new activity or overriding a disabled display or volume mode.
+- Added the official `ergohaven/sm62:v1` target with the production 62-key matrix, 16 layers, split application-layout publication and device-specific USB serial identity ([#56](https://github.com/ergohaven/vial-qmk/pull/56)).
+- Added SM62 resident100 storage: 100 application profiles plus one rotating copy-on-write spare, separate from Native Default, with compact transfers and persistent readback. SM62 provides 109 macros in a 6066-byte copy-on-write overlay; Tap Dance is disabled while its historical EEPROM bytes remain reserved ([#56](https://github.com/ergohaven/vial-qmk/pull/56)).
+- Added independent per-half Clock, Player, Ship and Keymap views, persistent display-off, brightness and timeout controls, Cyrillic legends, date/language visibility and keypress focus. Factory defaults are LEFT Clock, RIGHT Ship and a 350 ms temporary keymap hold; valid saved production settings are retained ([#56](https://github.com/ergohaven/vial-qmk/pull/56)).
 
 ### Improvements
 
@@ -53,6 +15,9 @@ QMK/Vial firmware for supported Ergohaven keyboards and pointing devices, with M
 - Distinguished Backspace and Delete with left- and right-facing icons, preserving the approved Backspace outline and using its exact horizontal mirror for Delete.
 - Updated the Macropad v3 product name to Macropad while retaining its USB vendor/product identity.
 - Added conservative CI selection and verified same-tree PR coverage reuse for production pushes, while keeping manual and release validation full. Expanded source-backed wake, label, encoder, split-settings and RGB-layer regressions and made the ZIP CRC-corruption test deterministic.
+- Expanded the official firmware matrix from 31 to 32 targets without removing existing targets or reinstating retired release configurations.
+- Added production SINGLE SM62 qualification to the existing serial native CI owner: 47 commands, preserving the previous 11 unchanged. Coverage includes application/split codecs and recovery, display/keymap/player controls, resident100 restart/readback, complete macro fault campaigns, locked boot, settings deadlines and the actual production-C interop bridge. Historical cooperative/core1 probes requiring a different LVGL overlay are not production SINGLE qualification.
+- Aligned shared firmware/display identity, all 25 USB descriptors and both version fields in all 39 Vial definitions to `4.2.0`, including personal/development keymaps. The version update does not change protocol, storage geometry or production runtime behavior.
 
 ### Fixes
 
@@ -62,24 +27,28 @@ QMK/Vial firmware for supported Ergohaven keyboards and pointing devices, with M
 - Prevented boot-time settings reception from being overwritten by local initialization and cleared stale RPC response data so an unavailable receiver cannot appear to acknowledge a new transfer.
 - Fixed received split RGB layer changes not redrawing static lighting until a later mode or color change.
 - Restored application-layout Combo regression source extraction after the display-wake hook was introduced.
+- Integrated SM62 guarded persistent-storage and interrupted-import handling, locked assignment/publication boundaries, preservation-safe post-init and bounded split/RPC recovery from the contributed production stack ([#56](https://github.com/ergohaven/vial-qmk/pull/56)). These are SM62 integration changes, not newly claimed fixes to previously shipped non-SM62 targets.
+- Preserved the shared split RPC acknowledgement and stale-response protections from the original `4.2.0` source while combining the SM62 stack. No historical cooperative renderer or permissive storage/security fallback is selected.
+- Reconciled native qualification inputs with the actual shipping SINGLE configuration and made compact-USB/restart fixture generation self-contained, without external application checkouts or private fixture paths.
 
 ### Verification
 
-- Local release-scope validation verified all 31 official firmware targets, 38 Vial definitions and 8 intentional exclusions; the 31 normalized UF2 filenames are unique and match the previous release's naming convention.
-- All 19 focused release-scope/version/publisher contract tests and all 3 native-runner contract tests passed. These are Python/source-contract checks, not firmware compilation or native firmware execution.
-- Release-owned runtime, display/product, USB and both Vial version fields are consistently set to `4.2.0`, including development-only and retired keymaps; all non-version bytes in those 64 owning files were preserved.
-- Exact-candidate firmware and complete native CI, fresh UF2 checksums/structure/storage-boundary verification, and release-asset readback are pending. One real-history CI-policy test is blocked by the shallow preparation checkout; the other 37 policy/workflow tests passed.
-- This candidate has not been hardware-tested across the model and revision matrix; no ELF-to-UF2 comparison or new flash-headroom measurement is claimed. Earlier Macropad v3 measurements must not be substituted for a fresh `4.2.0` build.
+- **Replacement preparation only; fresh exact-source CI is pending.** The official release scope contains 32 targets, 39 Vial definitions and 8 intentional exclusions; the previous publication's 31-target/38-definition checks do not qualify this SM62-inclusive replacement.
+- Shared numeric/display identity, all 25 USB descriptors and both fields in all 39 Vial definitions are aligned to `4.2.0`. The 66 identity owners change only version tokens relative to the prepared SM62 candidate; protocol, storage geometry and other production runtime bytes are retained. These are source-contract guarantees, not firmware compilation or native firmware execution.
+- The earlier candidate's hosted native failures require repaired fixtures and a fresh complete native wave. Earlier successful non-SM62 builds, old `4.2.0` test totals, and contributor/integration results are historical evidence only, not validation of this replacement source. Local native/ARM builds were not repeated because the managed agent cache budget was reached.
+- Full-history CI-policy validation remains assigned to the official full-history checkout; the shallow local preparation checkout must not bypass the real-history guard. Fresh complete native CI, all 32 exact-source firmware builds, artifact inventory/checksums, UF2 structure and reserved-storage bounds, and release-asset download/readback remain pending.
+- The user approved replacing the already-published `4.2.0` tag and its complete UF2/checksum set with this coherent rebuilt SM62-inclusive source. Tag/release replacement is a separate parent-owned publication step; no `4.2.1` release is intended. Retain the original tag/release evidence and finalize this preparation-only verification from the new exact-tag receipts before publication. The excluded-target policy and draft-first publisher are unchanged.
+- Physical keyboard/display/USB/split/power-loss validation has not been performed here. No new ELF-to-UF2 comparison or flash-headroom measurement is claimed; old Macropad v3 measurements must not stand in for a new build.
 
 ### Contributors
 
-- @Yurii-Q ([#51](https://github.com/ergohaven/vial-qmk/pull/51)).
-- @IgorArkhipov ([#54](https://github.com/ergohaven/vial-qmk/pull/54), [#55](https://github.com/ergohaven/vial-qmk/pull/55)).
-- @kissetfall ([#51](https://github.com/ergohaven/vial-qmk/pull/51), [#52](https://github.com/ergohaven/vial-qmk/pull/52), [#53](https://github.com/ergohaven/vial-qmk/pull/53), [#55](https://github.com/ergohaven/vial-qmk/pull/55), release-scope maintenance and release preparation).
+- @Yurii-Q — Macropad display, shortcut, wake and encoder behavior ([#51](https://github.com/ergohaven/vial-qmk/pull/51)); the SM62 SINGLE resident100 production stack, display/application integration, guarded storage and source-backed qualification fixtures ([#56](https://github.com/ergohaven/vial-qmk/pull/56), original contribution [`d5bc1f85`](https://github.com/ergohaven/vial-qmk/commit/d5bc1f85726bf282fba6951c5568c2acc9e0c77b)). Code from #56 is included; inclusion does not imply that the original PR was merged on GitHub.
+- @IgorArkhipov — split-half settings reconciliation and received RGB-layer redraw ([#54](https://github.com/ergohaven/vial-qmk/pull/54), [#55](https://github.com/ergohaven/vial-qmk/pull/55)).
+- @kissetfall — Macropad regression integration ([#51](https://github.com/ergohaven/vial-qmk/pull/51)), CI selection/coverage reuse ([#52](https://github.com/ergohaven/vial-qmk/pull/52)), deterministic ZIP regression ([#53](https://github.com/ergohaven/vial-qmk/pull/53)), split-protection integration ([#55](https://github.com/ergohaven/vial-qmk/pull/55), [SM62 integration](https://github.com/ergohaven/vial-qmk/commit/0218f2da7cce343e91773275e248b84350e8c864)), official release/native-CI integration, release-scope maintenance and release preparation.
 
-Choose the UF2 matching your keyboard model, hardware revision and module configuration. Update both halves of split keyboards to matching firmware so the receiver can acknowledge settings synchronization.
+Back up your layout before updating and use an Entropy build supporting the SM62 application/resident protocol. Choose the UF2 matching your model, hardware revision and module configuration. Update both halves of split keyboards to matching firmware so the receiver can acknowledge settings synchronization. The SM62 production image selects handedness using GP29 (high=LEFT, low=RIGHT), independently of which half is connected over USB; do not use it on the old 2 MiB Pico prototype. Version alignment alone does not require resetting an existing production SM62 or erasing its saved settings.
 
-HPD v2 LCD/trackball (`v2_lcd_ball`) and Macropad v2 CCW (`v2_ccw`) firmware builds remain excluded from this and future official releases; their source keymaps remain available for personal/development builds.
+HPD v2 LCD/trackball (`v2_lcd_ball`) and Macropad v2 CCW (`v2_ccw`) remain excluded from this and future official releases; their source keymaps remain available for personal/development builds.
 
 **Full changelog:** https://github.com/ergohaven/vial-qmk/compare/4.1.0...4.2.0
 
