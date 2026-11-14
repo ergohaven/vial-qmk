@@ -1,6 +1,6 @@
 {
-    "firmware": {"version": "4.2.0", "capabilities_revision": 2},
-    "firmwareVersion": "4.2.0",
+    "firmware": {"version": "4.2.1", "capabilities_revision": 2},
+    "firmwareVersion": "4.2.1",
     "matrix": {
         "rows": 10,
         "cols": 6

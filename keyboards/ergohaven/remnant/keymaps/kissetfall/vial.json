@@ -1,6 +1,6 @@
 {
-    "firmware": {"version": "4.2.0"},
-    "firmwareVersion": "4.2.0",
+    "firmware": {"version": "4.2.1"},
+    "firmwareVersion": "4.2.1",
     "name": "Remnant",
     "vendorId": "0x444D",
     "productId": "0x3536",

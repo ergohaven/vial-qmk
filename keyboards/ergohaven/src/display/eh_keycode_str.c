@@ -6,6 +6,9 @@
 #include "src/eh_ruen.h"
 #include "src/eh_pointing.h"
 #include <string.h>
+#if defined(SM62_DUALCORE_RENDER)
+#    include "keyboards/ergohaven/sm62/render_owner.h"
+#endif
 // Application-layout labels are single-line on the macropad only.
 #ifdef EH_APP_LAYOUT_ENABLE
 #    define EH_APP_LAYOUT_LABEL(macropad, other) macropad
@@ -17,6 +20,9 @@
 #endif
 
 bool eh_keycode_str_uses_mac_modifiers(void) {
+#if defined(SM62_DUALCORE_RENDER)
+    if (sm62_render_is_owner()) return sm62_view_mac_modifiers();
+#endif
 #ifdef OS_DETECTION_ENABLE
     os_variant_t os = detected_host_os();
     return os == OS_MACOS || os == OS_IOS;

@@ -1,0 +1,22 @@
+{
+  "src/core/lv_refr.c": {
+    "base": "b9b569f90fc713bc1da9fea325ad9d1663d150e6",
+    "patched": "c6ee9069450c2dbcdcaa33d23d745d3458a435ae"
+  },
+  "src/core/lv_refr.h": {
+    "base": "984168a96896b6c6787cdc74a09e416c4eb1475d",
+    "patched": "7c36a1a724d9fa0853c19a6813834fa504c0a6af"
+  },
+  "src/hal/lv_hal_disp.h": {
+    "base": "6abbab1f9bbeb1e624e6357a0c7a21d38acbc934",
+    "patched": "4dd69d455043c67d8836fda98a39f4a7a760a597"
+  },
+  "src/misc/lv_timer.c": {
+    "base": "d8dd55b7a222797330ae21db649b4679dcc32152",
+    "patched": "eced600e9efa4f2c666b3c50682ce2045879e4b0"
+  },
+  "src/hal/lv_hal_disp.c": {
+    "base": "9a8e42d28227b56d18ea177d8530d2596ecf2554",
+    "patched": "3c29c43c36fafad46dc0b877b45b6f0b9f57f495"
+  }
+}

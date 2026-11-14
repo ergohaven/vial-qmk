@@ -1,0 +1,7 @@
+{
+  "path": "src/misc/lv_timer.c",
+  "historical_overlay_blob": "eced600e9efa4f2c666b3c50682ce2045879e4b0",
+  "candidate_blob": "e7ba614ada69d7ae8e7fd82ceeee7ef3dd941c53",
+  "candidate_sha256": "92eb59b8cdeb0aae6f808227431a287d874b4d38671804869abb338ee1313513",
+  "scope": "Allow exactly this one candidate replacement; retain base checks, exact overlay path set, and all other 605 blob checks."
+}

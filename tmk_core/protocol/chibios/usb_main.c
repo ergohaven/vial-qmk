@@ -16,6 +16,7 @@
 #include <string.h>
 
 #include "usb_main.h"
+#include "sm62_trace.h"
 #include "usb_report_handling.h"
 
 #include "host.h"
@@ -532,7 +533,53 @@ extern bool eh_background_process_hid(uint8_t *data, uint8_t length);
 #ifdef EH_STANDBY_BACKGROUND_ENABLE
 extern void eh_background_note_config_read(uint8_t command, uint8_t subcommand);
 #endif
+#ifdef SM62_RAW_HID_FRAME_GATE
+#    include "lvgl.h"
+#    if defined(SM62_DUALCORE_RENDER)
+extern bool sm62_render_busy(void);
+#        define SM62_RAW_REFRESH_PENDING() sm62_render_busy()
+#    else
+#        define SM62_RAW_REFRESH_PENDING() lv_disp_refr_pending(NULL)
+#    endif
+extern bool hid_app_layout_packet_safe_during_refresh(const uint8_t *data, uint8_t length);
+#endif
 void raw_hid_task(void) {
+#ifdef SM62_RAW_HID_FRAME_GATE
+    /* One aligned retained head, never bypassed. Stop dequeuing at a blocked
+     * head so the endpoint supplies backpressure rather than dropping packets.
+     * Eight dispatches is a work-count bound, not a single-handler time bound. */
+    static uint64_t retained[RAW_EPSIZE / sizeof(uint64_t)];
+    static bool retained_valid;
+    uint8_t *buffer = (uint8_t *)retained;
+    unsigned budget = 8;
+    while (budget) {
+        if (!retained_valid) {
+            if (!receive_report(USB_ENDPOINT_OUT_RAW, buffer, RAW_EPSIZE)) break;
+            retained_valid = true;
+        }
+        if (SM62_RAW_REFRESH_PENDING() && !hid_app_layout_packet_safe_during_refresh(buffer, RAW_EPSIZE)) return;
+        retained_valid = false;
+        --budget;
+#    ifdef EH_STANDBY_BACKGROUND_ENABLE
+        eh_background_note_config_read(buffer[0], buffer[1]);
+#    endif
+        sm62_trace_count(15);
+        raw_hid_receive(buffer, RAW_EPSIZE);
+    }
+#    ifdef EH_FAST_UPLOAD_ENABLE
+    /* Independent endpoint: no FAST parser during a frame, same shared budget
+     * otherwise. The current SM62 target does not enable FAST uploads. */
+    if (SM62_RAW_REFRESH_PENDING()) return;
+    uint8_t fast_buffer[FAST_EPSIZE];
+    while (budget && receive_report(USB_ENDPOINT_OUT_FAST, fast_buffer, sizeof(fast_buffer))) {
+        --budget;
+        uint8_t command = fast_buffer[0];
+        if (eh_background_process_hid(fast_buffer, sizeof(fast_buffer)) && command != 0xB5) {
+            send_report(USB_ENDPOINT_IN_FAST, fast_buffer, sizeof(fast_buffer));
+        }
+    }
+#    endif
+#else
     uint8_t buffer[RAW_EPSIZE];
     while (receive_report(USB_ENDPOINT_OUT_RAW, buffer, sizeof(buffer))) {
 #ifdef EH_STANDBY_BACKGROUND_ENABLE
@@ -549,6 +596,7 @@ void raw_hid_task(void) {
         }
     }
 #endif
+#endif /* SM62_RAW_HID_FRAME_GATE */
 }
 
 #endif

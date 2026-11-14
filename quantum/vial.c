@@ -135,7 +135,7 @@ void vial_init(void) {
 #endif
 }
 
-__attribute__((unused)) static uint16_t vial_keycode_firewall(uint16_t in) {
+uint16_t vial_keycode_firewall(uint16_t in) {
     if (in == QK_BOOT && !vial_unlocked)
         return 0;
     return in;
@@ -587,6 +587,7 @@ uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
 #endif
 }
 
+#ifdef VIAL_TAP_DANCE_ENABLE
 uint16_t tap_dance_count(void) {
     return VIAL_TAP_DANCE_ENTRIES;
 }
@@ -596,6 +597,7 @@ tap_dance_action_t* tap_dance_get(uint16_t tap_dance_idx) {
         return NULL;
     return &tap_dance_actions[tap_dance_idx];
 }
+#endif
 #endif
 
 #ifdef VIAL_COMBO_ENABLE

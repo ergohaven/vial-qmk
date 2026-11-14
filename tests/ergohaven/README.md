@@ -89,18 +89,61 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/ergohaven -p tes
 PYTHONDONTWRITEBYTECODE=1 python3 tests/ergohaven/run_ci.py /absolute/scratch/ci-native --lvgl /path/to/pinned/lvgl
 ```
 
-The wave executes ten commands: the full native runner, application combo,
-display `all` (EEPROM and flash), Phenom settings sync, split state reconciliation,
-product-name validation,
-encoder 002, default/app-layout LVGL labels 004, and wake (9 scenarios / 27 checks
-plus empty-input rejection). It continues after a failed command and returns
-nonzero if any command fails. Command count is not an assertion or case count.
-Temporary sources, binaries and logs are under the output directory, never the
-source checkout. CI initializes **only** `lib/lvgl`, verifies HEAD equals
-`e19410f8f8a256609da72cff549598e0df6fa4cf`, and uses system GCC/Python; the focused
-LVGL runners independently verify every pinned C/header blob before compiling.
-No full MCU dependency initialization is needed for native coverage. Native
-success does not certify ARM linking, firmware size or physical-device behavior.
+The wave executes **47 serial commands**; the original 11 commands remain in the
+same order, including received split RGB-layer reconciliation. SM62 production
+qualification follows in this same runner, not a second CI job or parallel runner:
+application-layout/legacy/cached/delta/RLE split, defaults, flash reservation and
+backend guards, peer backlight/power/rejoin/RPC, startup/FIFO/Default storage,
+post-init preservation, real base-LVGL keymap/player, resident100, compact USB,
+100-profile fresh-process restart and byte-exact readback, complete macro fault
+campaigns, locked boot and optional-Vial ingress, settings deadlines, production-C
+interop and path/optimization guards, GPIO/geometry and LVGL profile contracts,
+and source-extracted processing/display/debounce/peer-capture controls.
+
+`sm62_interop/fixtures.py` generates deterministic FULL4560 **test inputs** from
+the existing interop fixture producer. Their frozen original digests are tested;
+these are not firmware images or fabricated execution results. Fixture creation
+precedes compact-USB compatibility and resident peer/restart consumers. The
+restart probe compares live values with those independent input bytes rather
+than assuming a private external fixture's fixed key/name. `run_sm62_layout_reserve.py`
+already invokes the real flash-backend probe; the compatibility alias
+`run_resident_three.py` forwards to resident100 and is not run twice.
+
+The wave continues after a failed command and returns nonzero if any command
+fails. Command count is not a test/assertion count. CLI output must be fresh,
+absolute after resolution, and outside the source checkout and its ancestors.
+The runner scopes child `TMPDIR` and `AGENT_BUILD_CACHE` to its external wave
+output so the strict source-backed interop/deadline consumers also work on hosted
+CI. Locally, admit the wave through the owner's managed-storage wrapper first;
+this environment variable does not authorize bypassing its budget gate.
+
+CI initializes **only** `lib/lvgl`, verifies HEAD equals
+`e19410f8f8a256609da72cff549598e0df6fa4cf`, and uses system GCC/Python, make and
+GNU binutils. Supply that same initialized `lib/lvgl` to `--lvgl`: several original
+SM62 generators intentionally resolve the repository dependency directly. All
+production SINGLE LVGL probes validate the complete pinned base; no cooperative
+patches are applied. No full MCU dependency initialization or companion-app
+checkout is needed for this wave. Full firmware builds remain in the official
+matrix. Native success does not certify ARM linking, size or physical behavior.
+
+Historical/prototype-only runners are deliberately not promoted to SINGLE CI:
+`run_sm62_display.py` (partial-frame cooperative cases), `run_sm62_timer_ownership.py`,
+`run_sm62_orbit_idle.py`, `sm62_test19/run_rows28.py`, and board-local
+`run_cooperative_spike.py`, `run_display_candidate.py`, `run_display_guards.py`
+require the absent experimental five-file LVGL overlay, its approved timer,
+cooperative slicing, or old private absolute inputs. Shipping SINGLE has
+`SM62_OLD_RENDERER`, base LVGL and no slice-ms define; changing runtime or supplying
+that overlay just to pass historical tests would qualify a different product.
+`sm62_usb_identity/run.py --firmware-only --phase ci` executes the existing real
+serial-formatter and hardware-ID-provider cases using shipping config macros,
+including its `#undef SERIAL_NUMBER` against a command-line model serial. This
+portable mode needs only the native compiler; it does not claim normal generated
+ARM-build flag resolution or companion Rust key routing. The original full mode
+still requires saved ARM flags and the companion host source; that cross-project
+boundary remains separate final qualification. The old
+`tests/sm62_matrix_port.py` is an archival QMK-CLI header-generation
+probe; current production GPIO/all-62-layout identity is guarded by
+`test_sm62_production_board.py`, alongside the official SM62 firmware build.
 
 ## Focused Macropad БАГ-002 / БАГ-004 regressions
 

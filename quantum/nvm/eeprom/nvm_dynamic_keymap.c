@@ -8,6 +8,13 @@
 #include "nvm_dynamic_keymap.h"
 #include "nvm_eeprom_eeconfig_internal.h"
 #include "nvm_eeprom_via_internal.h"
+#ifdef SM62_MACRO_OVERLAY
+#    include "keyboards/ergohaven/sm62/macro_storage.h"
+#    include "keyboards/ergohaven/sm62/flash_guard.h"
+#endif
+#ifdef SM62_VIAL_LEGACY_EXTENSION
+#    include "keyboards/ergohaven/sm62/vial_extension.h"
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -57,8 +64,18 @@ STATIC_ASSERT(DYNAMIC_KEYMAP_EEPROM_MAX_ADDR <= 65535, "DYNAMIC_KEYMAP_EEPROM_MA
 // Tap-dance
 #define VIAL_TAP_DANCE_EEPROM_ADDR (VIAL_QMK_SETTINGS_EEPROM_ADDR + VIAL_QMK_SETTINGS_SIZE)
 
-#ifdef VIAL_TAP_DANCE_ENABLE
+#if defined(SM62_VIAL_LEGACY_EXTENSION) && defined(SM62_RESERVED_TD_BYTES)
+/* Physical reservation is independent of executable/advertised TD capacity.
+ * Removing TD must not reinterpret existing Combo/KO/macros as old TD bytes. */
+STATIC_ASSERT(SM62_RESERVED_TD_BYTES == 40U, "SM62 historical TD extent changed");
+#define VIAL_TAP_DANCE_SIZE SM62_RESERVED_TD_BYTES
+#elif defined(VIAL_TAP_DANCE_ENABLE)
+#ifdef SM62_VIAL_LEGACY_EXTENSION
+STATIC_ASSERT(VIAL_TAP_DANCE_ENTRIES == 32, "SM62 extension requires 32 entries");
+#define VIAL_TAP_DANCE_SIZE (sizeof(vial_tap_dance_entry_t) * SM62_VIAL_LEGACY_ENTRIES)
+#else
 #define VIAL_TAP_DANCE_SIZE (sizeof(vial_tap_dance_entry_t) * VIAL_TAP_DANCE_ENTRIES)
+#endif
 #else
 #define VIAL_TAP_DANCE_SIZE 0
 #endif
@@ -67,7 +84,12 @@ STATIC_ASSERT(DYNAMIC_KEYMAP_EEPROM_MAX_ADDR <= 65535, "DYNAMIC_KEYMAP_EEPROM_MA
 #define VIAL_COMBO_EEPROM_ADDR (VIAL_TAP_DANCE_EEPROM_ADDR + VIAL_TAP_DANCE_SIZE)
 
 #ifdef VIAL_COMBO_ENABLE
+#ifdef SM62_VIAL_LEGACY_EXTENSION
+STATIC_ASSERT(VIAL_COMBO_ENTRIES == 32, "SM62 extension requires 32 entries");
+#define VIAL_COMBO_SIZE (sizeof(vial_combo_entry_t) * SM62_VIAL_LEGACY_ENTRIES)
+#else
 #define VIAL_COMBO_SIZE (sizeof(vial_combo_entry_t) * VIAL_COMBO_ENTRIES)
+#endif
 #else
 #define VIAL_COMBO_SIZE 0
 #endif
@@ -76,7 +98,12 @@ STATIC_ASSERT(DYNAMIC_KEYMAP_EEPROM_MAX_ADDR <= 65535, "DYNAMIC_KEYMAP_EEPROM_MA
 #define VIAL_KEY_OVERRIDE_EEPROM_ADDR (VIAL_COMBO_EEPROM_ADDR + VIAL_COMBO_SIZE)
 
 #ifdef VIAL_KEY_OVERRIDE_ENABLE
+#ifdef SM62_VIAL_LEGACY_EXTENSION
+STATIC_ASSERT(VIAL_KEY_OVERRIDE_ENTRIES == 32, "SM62 extension requires 32 entries");
+#define VIAL_KEY_OVERRIDE_SIZE (sizeof(vial_key_override_entry_t) * SM62_VIAL_LEGACY_ENTRIES)
+#else
 #define VIAL_KEY_OVERRIDE_SIZE (sizeof(vial_key_override_entry_t) * VIAL_KEY_OVERRIDE_ENTRIES)
+#endif
 #else
 #define VIAL_KEY_OVERRIDE_SIZE 0
 #endif
@@ -238,11 +265,24 @@ void nvm_dynamic_keymap_update_buffer(uint32_t offset, uint32_t size, uint8_t *d
     }
 }
 
+#ifdef SM62_MACRO_OVERLAY
+STATIC_ASSERT(DYNAMIC_KEYMAP_MACRO_EEPROM_ADDR == 2968u && DYNAMIC_KEYMAP_MACRO_EEPROM_SIZE == SM62_MACRO_LEGACY_SIZE, "Historical macro prefix must not move");
+void sm62_macro_legacy_read(uint32_t offset, uint32_t size, uint8_t *data) {
+    for (uint32_t i=0;i<size;i++) data[i]=eeprom_read_byte((const void *)(uintptr_t)(DYNAMIC_KEYMAP_MACRO_EEPROM_ADDR+offset+i));
+}
+#endif
 uint32_t nvm_dynamic_keymap_macro_size(void) {
+#ifdef SM62_MACRO_OVERLAY
+    return SM62_MACRO_SIZE;
+#else
     return DYNAMIC_KEYMAP_MACRO_EEPROM_SIZE;
+#endif
 }
 
 void nvm_dynamic_keymap_macro_read_buffer(uint32_t offset, uint32_t size, uint8_t *data) {
+#ifdef SM62_MACRO_OVERLAY
+    sm62_macro_read(offset, size, data);
+#else
     void *   source = (void *)(uintptr_t)(DYNAMIC_KEYMAP_MACRO_EEPROM_ADDR + offset);
     uint8_t *target = data;
     for (uint16_t i = 0; i < size; i++) {
@@ -254,9 +294,13 @@ void nvm_dynamic_keymap_macro_read_buffer(uint32_t offset, uint32_t size, uint8_
         source++;
         target++;
     }
+#endif
 }
 
 void nvm_dynamic_keymap_macro_update_buffer(uint32_t offset, uint32_t size, uint8_t *data) {
+#ifdef SM62_MACRO_OVERLAY
+    if (!sm62_macro_update(offset, size, data)) sm62_flash_failed();
+#else
     void *   target = (void *)(uintptr_t)(DYNAMIC_KEYMAP_MACRO_EEPROM_ADDR + offset);
     uint8_t *source = data;
     for (uint16_t i = 0; i < size; i++) {
@@ -266,9 +310,13 @@ void nvm_dynamic_keymap_macro_update_buffer(uint32_t offset, uint32_t size, uint
         source++;
         target++;
     }
+#endif
 }
 
 void nvm_dynamic_keymap_macro_reset(void) {
+#ifdef SM62_MACRO_OVERLAY
+    if (!sm62_macro_reset()) sm62_flash_failed();
+#else
     void *  start     = (void *)(uintptr_t)(DYNAMIC_KEYMAP_MACRO_EEPROM_ADDR);
     void *  end       = (void *)(uintptr_t)(DYNAMIC_KEYMAP_MACRO_EEPROM_ADDR + DYNAMIC_KEYMAP_MACRO_EEPROM_SIZE);
     long    remaining = end - start;
@@ -279,6 +327,7 @@ void nvm_dynamic_keymap_macro_reset(void) {
         start += this_loop;
         remaining -= this_loop;
     }
+#endif
 }
 
 #ifdef QMK_SETTINGS
@@ -301,6 +350,9 @@ void nvm_dynamic_keymap_set_qmk_settings(uint16_t offset, uint8_t value) {
 
 #ifdef VIAL_TAP_DANCE_ENABLE
 int nvm_dynamic_keymap_get_tap_dance(uint8_t index, vial_tap_dance_entry_t *entry) {
+#ifdef SM62_VIAL_LEGACY_EXTENSION
+    if (index >= SM62_VIAL_LEGACY_ENTRIES) return sm62_vial_ext_get(0, index, entry);
+#endif
     if (index >= VIAL_TAP_DANCE_ENTRIES)
         return -1;
 
@@ -311,6 +363,9 @@ int nvm_dynamic_keymap_get_tap_dance(uint8_t index, vial_tap_dance_entry_t *entr
 }
 
 int nvm_dynamic_keymap_set_tap_dance(uint8_t index, const vial_tap_dance_entry_t *entry) {
+#ifdef SM62_VIAL_LEGACY_EXTENSION
+    if (index >= SM62_VIAL_LEGACY_ENTRIES) return sm62_vial_ext_set(0, index, entry);
+#endif
     if (index >= VIAL_TAP_DANCE_ENTRIES)
         return -1;
 
@@ -323,6 +378,9 @@ int nvm_dynamic_keymap_set_tap_dance(uint8_t index, const vial_tap_dance_entry_t
 
 #ifdef VIAL_COMBO_ENABLE
 int nvm_dynamic_keymap_get_combo(uint8_t index, vial_combo_entry_t *entry) {
+#ifdef SM62_VIAL_LEGACY_EXTENSION
+    if (index >= SM62_VIAL_LEGACY_ENTRIES) return sm62_vial_ext_get(1, index, entry);
+#endif
     if (index >= VIAL_COMBO_ENTRIES)
         return -1;
 
@@ -333,6 +391,9 @@ int nvm_dynamic_keymap_get_combo(uint8_t index, vial_combo_entry_t *entry) {
 }
 
 int nvm_dynamic_keymap_set_combo(uint8_t index, const vial_combo_entry_t *entry) {
+#ifdef SM62_VIAL_LEGACY_EXTENSION
+    if (index >= SM62_VIAL_LEGACY_ENTRIES) return sm62_vial_ext_set(1, index, entry);
+#endif
     if (index >= VIAL_COMBO_ENTRIES)
         return -1;
 
@@ -345,6 +406,9 @@ int nvm_dynamic_keymap_set_combo(uint8_t index, const vial_combo_entry_t *entry)
 
 #ifdef VIAL_KEY_OVERRIDE_ENABLE
 int nvm_dynamic_keymap_get_key_override(uint8_t index, vial_key_override_entry_t *entry) {
+#ifdef SM62_VIAL_LEGACY_EXTENSION
+    if (index >= SM62_VIAL_LEGACY_ENTRIES) return sm62_vial_ext_get(2, index, entry);
+#endif
     if (index >= VIAL_KEY_OVERRIDE_ENTRIES)
         return -1;
 
@@ -355,6 +419,9 @@ int nvm_dynamic_keymap_get_key_override(uint8_t index, vial_key_override_entry_t
 }
 
 int nvm_dynamic_keymap_set_key_override(uint8_t index, const vial_key_override_entry_t *entry) {
+#ifdef SM62_VIAL_LEGACY_EXTENSION
+    if (index >= SM62_VIAL_LEGACY_ENTRIES) return sm62_vial_ext_set(2, index, entry);
+#endif
     if (index >= VIAL_KEY_OVERRIDE_ENTRIES)
         return -1;
 

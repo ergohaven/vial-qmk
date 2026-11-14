@@ -53,6 +53,11 @@ typedef struct keyrecord_t {
 #if defined(COMBO_ENABLE) || defined(REPEAT_KEY_ENABLE)
     uint16_t keycode;
 #endif
+#if defined(KEYBOARD_ergohaven_sm62) && defined(EH_APP_LAYOUT_ENABLE) && defined(COMBO_ENABLE)
+    // Copied with the record through combo buffering/replay, never re-resolved.
+    uint32_t app_layout_revision;
+    uint8_t  app_layout_layer;
+#endif
 } keyrecord_t;
 
 /* Execute action per keyevent */

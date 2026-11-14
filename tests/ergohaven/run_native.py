@@ -154,7 +154,15 @@ for rev,size in [('rev2',2097152),('rev3',4194304)]:
  out.append(run('background_'+rev,background,['-DPICO_FLASH_SIZE_BYTES='+str(size),'-DWEAR_LEVELING_RP2040_FLASH_BASE=0x1fc000','-DEH_FAST_UPLOAD_ENABLE']))
 # Extract whole function bodies verbatim; mock only LVGL and peripheral calls.
 def function(path,name):
- src=(ROOT/path).read_text();m=re.search(r'^(?:static )?[a-zA-Z_][^\n;]*\b'+name+r'\([^;\n]*\)\s*\{',src,re.M)
+ src=(ROOT/path).read_text();matches=list(re.finditer(r'^(?:static )?[a-zA-Z_][^\n;]*\b'+name+r'\([^;\n]*\)\s*\{',src,re.M))
+ # This fixture is Macropad, not SM62. The port has an earlier board-only
+ # power implementation; keep the actual non-SM62 branch rather than stubbing
+ # its missing transitive hardware calls.
+ if path=='keyboards/ergohaven/src/display/eh_display.c' and name=='display_turn_on':
+  assert len(matches)==2 and 'sm62_request_display_power(true)' in src[matches[0].start():matches[1].start()]
+  m=matches[1]
+ else:
+  m=matches[0] if matches else None
  assert m,name
  start=m.start();pos=src.index('{',start);depth=1;end=pos+1
  while depth:
@@ -212,6 +220,8 @@ void display_apply_background_color(uint8_t r,uint8_t g,uint8_t b){(void)r;(void
 void display_apply_button_style(uint8_t s){(void)s;}
 void display_apply_brightness(void){}void display_apply_clock_settings(void){}
 void kb_settings_ruen_reset(void){} void kb_settings_layer_labels_reset(void){} void kb_settings_pointing_reset(void){} void kb_settings_split_pointing_reset(void){} void kb_settings_led_colors_reset(void){}
+/* The optional extra-settings hook is weak/no-op for Macropad. */
+void kb_settings_extra_reset(void){}
 void kb_settings_init(void){kb_settings_lcd_init();}
 '''
 # Keep the actual reset body and type/constant definitions from rev3, without unrelated getters.
@@ -261,14 +271,55 @@ uint16_t keycode_at_keymap_location_raw(int layer,int row,int column) { return l
 void dynamic_keymap_set_keycode(int layer,int row,int column,uint16_t keycode) {
     assert(vial_unlocked && keycode==layer*4+row*2+column); writes++;
 }
-"""+function('quantum/dynamic_keymap.c','dynamic_keymap_reset')+r"""
+#define SM62_VIAL_LEGACY_EXTENSION
+#define BUILD_ID 0x123456
+#define VIA_EEPROM_MAGIC_ADDR 0
+static uint8_t marker[3], extension_flash[2][4096];
+static bool extension_erase_fails;
+void eeprom_update_byte(void *address,uint8_t value) {
+    uintptr_t offset=(uintptr_t)address; assert(offset<sizeof(marker)); marker[offset]=value;
+}
+const uint8_t *sm62_vial_flash_bank(unsigned bank) { assert(bank<2); return extension_flash[bank]; }
+bool sm62_vial_flash_erase(unsigned bank) {
+    assert(bank<2); if (extension_erase_fails) return false;
+    memset(extension_flash[bank],255,4096); return true;
+}
+bool sm62_vial_flash_program(unsigned bank,unsigned offset,const uint8_t *page) {
+    assert(bank<2 && offset%256==0 && offset+256<=4096);
+    for (unsigned i=0;i<256;i++) {
+        assert((extension_flash[bank][offset+i]&page[i])==page[i]);
+        extension_flash[bank][offset+i]&=page[i];
+    }
+    return true;
+}
+#include "../head/keyboards/ergohaven/sm62/vial_extension.c"
+"""
+# Retain the real conditional reset region: its checked and legacy definitions
+# share a body across #else. A brace-only function extractor cannot select it.
+keymap=(ROOT/'quantum/dynamic_keymap.c').read_text()
+checked=keymap[keymap.index('bool dynamic_keymap_reset_checked(void) {'):keymap.index('void dynamic_keymap_get_buffer(')]
+reset_flags+='\n'+function('quantum/via.c','via_eeprom_set_valid')
+reset_flags+='\n#ifdef SM62_VIAL_LEGACY_EXTENSION\n'+checked
+reset_flags+='\n'+function('quantum/dynamic_keymap.c','dynamic_keymap_reset')+r"""
 int main(void) {
+    memset(extension_flash,255,sizeof(extension_flash));
     for(unsigned unlocked=0;unlocked<2;unlocked++) for(unsigned active=0;active<2;active++) {
         vial_unlocked=unlocked; vial_unlock_in_progress=active;
+        via_eeprom_set_valid(true);
         writes=erases=0; dynamic_keymap_reset();
         assert(vial_unlocked==unlocked && vial_unlock_in_progress==active && writes==8 && erases==1);
+        assert(marker[0]==0x56 && marker[1]==0x34 && marker[2]==0x12);
+        /* Populate real extension storage; fail only its NOR erase boundary. */
+        uint8_t entry[10]={1};
+        assert(sm62_vial_ext_set(1,4,entry)==0);
+        extension_erase_fails=true; writes=erases=0; dynamic_keymap_reset();
+        assert(vial_unlocked==unlocked && vial_unlock_in_progress==active && writes==0 && erases==0);
+        assert(marker[0]==255 && marker[1]==255 && marker[2]==255);
+        extension_erase_fails=false;
+        assert(dynamic_keymap_reset_checked());
     }
     puts("unlock flags: actual public bool declarations/definitions; reset temporarily unlocks and restores both initial states without changing progress: PASS");
+    puts("checked reset: real extension journal success/failure, real VIA marker invalidation, no legacy writes on failure in all four lock/progress states: PASS");
 }
 """
 out.append(run('unlock_reset_flags',reset_flags))

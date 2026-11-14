@@ -1,0 +1,12 @@
+{
+  "source_elf": "SM62_TEST20_CLOCK_FOCUS_COMMON.elf",
+  "elf_sha256": "5aa64dad12e8c26e29c711b012c8fdabedddb863db1e70e6950675e45f3dc3a2",
+  "symbol": "keymaps",
+  "shape": [
+    16,
+    10,
+    7
+  ],
+  "encoding": "LE uint16",
+  "sha256": "c81f5d2a6bc5ee6c1f3274ebfcbcbcf000aa7333e8fee1cd504b3aa03bf15507"
+}

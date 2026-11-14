@@ -1,0 +1,158 @@
+{
+  "functions": [
+    "lv_refr_area_part",
+    "lv_refr_obj",
+    "lv_draw_label",
+    "lv_draw_sw_letter",
+    "lv_font_get_glyph_dsc",
+    "lv_font_get_glyph_bitmap"
+  ],
+  "measurements": [
+    {
+      "rows": 28,
+      "left": 1,
+      "master": 1,
+      "label": "full-keymap",
+      "flushes": 11,
+      "pixels": 67200,
+      "completed_refreshes": 1,
+      "worker_steps": 3,
+      "functions": [
+        10,
+        496,
+        57,
+        18,
+        99,
+        15
+      ],
+      "panel_flush_callbacks": 10
+    },
+    {
+      "rows": 28,
+      "left": 1,
+      "master": 1,
+      "label": "press-0-0",
+      "flushes": 11,
+      "pixels": 67200,
+      "completed_refreshes": 1,
+      "worker_steps": 3,
+      "functions": [
+        10,
+        496,
+        57,
+        18,
+        135,
+        15
+      ],
+      "panel_flush_callbacks": 10
+    },
+    {
+      "rows": 28,
+      "left": 1,
+      "master": 1,
+      "label": "press-0-1-focus",
+      "flushes": 2,
+      "pixels": 4761,
+      "completed_refreshes": 1,
+      "worker_steps": 1,
+      "functions": [
+        1,
+        43,
+        3,
+        1,
+        5,
+        1
+      ],
+      "panel_flush_callbacks": 1
+    },
+    {
+      "rows": 28,
+      "left": 0,
+      "master": 1,
+      "label": "full-keymap",
+      "flushes": 11,
+      "pixels": 67200,
+      "completed_refreshes": 1,
+      "worker_steps": 3,
+      "functions": [
+        10,
+        496,
+        57,
+        18,
+        99,
+        15
+      ],
+      "panel_flush_callbacks": 10
+    },
+    {
+      "rows": 28,
+      "left": 0,
+      "master": 1,
+      "label": "press-0-0",
+      "flushes": 11,
+      "pixels": 67200,
+      "completed_refreshes": 1,
+      "worker_steps": 3,
+      "functions": [
+        10,
+        496,
+        57,
+        18,
+        135,
+        15
+      ],
+      "panel_flush_callbacks": 10
+    },
+    {
+      "rows": 28,
+      "left": 0,
+      "master": 1,
+      "label": "press-0-1-focus",
+      "flushes": 2,
+      "pixels": 4761,
+      "completed_refreshes": 1,
+      "worker_steps": 1,
+      "functions": [
+        1,
+        43,
+        3,
+        1,
+        5,
+        1
+      ],
+      "panel_flush_callbacks": 1
+    }
+  ],
+  "panels": [
+    {
+      "left": 1,
+      "label": "full-keymap",
+      "sha256": "188608a8c595157db55ca3e07d90b4e9a358bb81d9ee7918c3af05ae90dfc1e4"
+    },
+    {
+      "left": 1,
+      "label": "press-0-0",
+      "sha256": "e9a7a985a568666ba33bf1e6a7ed35236919e6e60abb611b11b6d570c401bb5d"
+    },
+    {
+      "left": 1,
+      "label": "press-0-1-focus",
+      "sha256": "bea19daca8061d1ae3ab6ec36fb376d153d5aa5e20d17f2c056f9d29d9c86ca3"
+    },
+    {
+      "left": 0,
+      "label": "full-keymap",
+      "sha256": "ef2cc8def5a5d4b35aa20509f348c6f97ae0b0b2566fe6c3e5f22787dc3b19d8"
+    },
+    {
+      "left": 0,
+      "label": "press-0-0",
+      "sha256": "a29e35a45ff1a50d51fbedbe6db9d0d8f37c2278a5418faa462e39efb01b621c"
+    },
+    {
+      "left": 0,
+      "label": "press-0-1-focus",
+      "sha256": "fc6fd32f4db723ca260876339d173fadf2c6e9a7578a2663049a62797c038954"
+    }
+  ]
+}

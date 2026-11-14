@@ -5,6 +5,10 @@
 #include "wear_leveling.h"
 #include "wear_leveling_drivers.h"
 #include "wear_leveling_internal.h"
+#if defined(KEYBOARD_ergohaven_sm62)
+#    include "keyboards/ergohaven/sm62/flash_guard.h"
+static bool sm62_wear_needs_repair;
+#endif
 
 /*
     This wear leveling algorithm is adapted from algorithms from previous
@@ -615,7 +619,11 @@ static wear_leveling_status_t wear_leveling_playback_log(void) {
 /**
  * Wear-leveling initialization
  */
+#if defined(KEYBOARD_ergohaven_sm62)
+static wear_leveling_status_t sm62_wear_init_inner(void) {
+#else
 wear_leveling_status_t wear_leveling_init(void) {
+#endif
     wl_dprintf("Init\n");
 
     // Reset the cache
@@ -650,7 +658,11 @@ wear_leveling_status_t wear_leveling_init(void) {
  * Wear-leveling erase.
  * Post-condition: any reads from the backing store directly after an erase operation must come back as zero.
  */
+#if defined(KEYBOARD_ergohaven_sm62)
+static wear_leveling_status_t sm62_wear_erase_inner(void) {
+#else
 wear_leveling_status_t wear_leveling_erase(void) {
+#endif
     wl_dprintf("Erase\n");
 
     // Unlock the backing store
@@ -662,7 +674,11 @@ wear_leveling_status_t wear_leveling_erase(void) {
 
     // Perform the erase
     bool ret = backing_store_erase();
+#if defined(KEYBOARD_ergohaven_sm62)
+    if (ret) wear_leveling_clear_cache();
+#else
     wear_leveling_clear_cache();
+#endif
 
     // Lock the backing store if we acquired the lock successfully
     if (lock_status == STATUS_SUCCESS) {
@@ -675,7 +691,11 @@ wear_leveling_status_t wear_leveling_erase(void) {
 /**
  * Writes logical data into the backing store. Skips writes if there are no changes to values.
  */
+#if defined(KEYBOARD_ergohaven_sm62)
+static wear_leveling_status_t sm62_wear_write_inner(const uint32_t address, const void *value, size_t length) {
+#else
 wear_leveling_status_t wear_leveling_write(const uint32_t address, const void *value, size_t length) {
+#endif
     wl_assert(address + length <= (WEAR_LEVELING_LOGICAL_SIZE));
     if (address + length > (WEAR_LEVELING_LOGICAL_SIZE)) {
         return WEAR_LEVELING_FAILED;
@@ -726,6 +746,52 @@ wear_leveling_status_t wear_leveling_write(const uint32_t address, const void *v
 
     return status;
 }
+
+#if defined(KEYBOARD_ergohaven_sm62)
+/* Admit BEFORE cache/equality/write-address mutation, retaining the admission
+ * through every log word and consolidation. Nested backend entries cannot
+ * time out between an erase and its snapshot/checksum programs. */
+wear_leveling_status_t wear_leveling_init(void) {
+    if (!sm62_flash_begin()) return WEAR_LEVELING_FAILED;
+    wear_leveling_status_t status = sm62_wear_init_inner();
+    sm62_wear_needs_repair = false;
+    if (status == WEAR_LEVELING_FAILED) sm62_flash_failed();
+    return sm62_flash_end() ? status : WEAR_LEVELING_FAILED;
+}
+
+wear_leveling_status_t wear_leveling_erase(void) {
+    if (!sm62_flash_begin()) return WEAR_LEVELING_FAILED;
+    wear_leveling_status_t status = sm62_wear_erase_inner();
+    sm62_wear_needs_repair = status == WEAR_LEVELING_FAILED;
+    if (sm62_wear_needs_repair) sm62_flash_failed();
+    return sm62_flash_end() ? status : WEAR_LEVELING_FAILED;
+}
+
+wear_leveling_status_t wear_leveling_write(uint32_t address, const void *value, size_t length) {
+    if (!sm62_flash_begin()) return WEAR_LEVELING_FAILED;
+    wear_leveling_status_t status = WEAR_LEVELING_FAILED;
+    if (sm62_wear_needs_repair) {
+        /* A partial physical failure leaves the intended full cache explicitly
+         * UNCONFIRMED. Never let equality hide an identical retry. The existing
+         * legacy consolidation format is retained, including its pre-existing
+         * power-loss limitation (no journal/schema migration is implied). */
+        backing_store_lock_status_t lock_status = wear_leveling_unlock();
+        if (lock_status != STATUS_FAILURE) {
+            status = wear_leveling_consolidate_force();
+            if (lock_status == STATUS_SUCCESS && wear_leveling_lock() == STATUS_FAILURE) status = WEAR_LEVELING_FAILED;
+        }
+        if (status == WEAR_LEVELING_FAILED) goto done;
+        sm62_wear_needs_repair = false;
+    }
+    status = sm62_wear_write_inner(address, value, length);
+done:
+    if (status == WEAR_LEVELING_FAILED) {
+        sm62_wear_needs_repair = true;
+        sm62_flash_failed();
+    }
+    return sm62_flash_end() ? status : WEAR_LEVELING_FAILED;
+}
+#endif
 
 /**
  * Reads logical data from the cache.

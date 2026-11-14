@@ -10,14 +10,25 @@ import os
 import re
 import subprocess
 import tempfile
+import importlib.util
+
+# Load the common test dependency by an explicit local path.
+_spec = importlib.util.spec_from_file_location("native_vial_firewall", Path(__file__).with_name("ergohaven") / "native_vial_firewall.py")
+assert _spec is not None and _spec.loader is not None
+_firewall = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_firewall)
 
 ROOT = Path(__file__).resolve().parents[1]
 import argparse
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--source-ref', help='Read production source from a git ref (e.g. HEAD) without modifying files')
+parser.add_argument('--source-overlay', type=Path, help='Read captured pre-fix production files from this directory; other files from the tree')
+parser.add_argument('--sm62-full', action='store_true', help='SM62 geometry plus complete production event consumer')
 args = parser.parse_args()
 
 def read_source(path):
+    if args.source_overlay and (args.source_overlay / path).is_file():
+        return (args.source_overlay / path).read_text()
     if args.source_ref:
         return subprocess.check_output(['git','show',f'{args.source_ref}:{path}'],cwd=ROOT,universal_newlines=True)
     return (ROOT / path).read_text()
@@ -253,15 +264,145 @@ int main(int argc,char **argv) {
     return 0;
 }
 '''
-source = preamble + combo_header + fixtures + hid + function('keyboards/ergohaven/ergohaven_main.c', 'pre_process_record_kb') + combo + tests
+consumer = ''
+if args.sm62_full:
+    # Keep the production record container: combo copies must carry identity too.
+    record_source = read_source('quantum/action.h')
+    record_type = record_source[record_source.index('typedef struct keyrecord_t {'):record_source.index('} keyrecord_t;') + len('} keyrecord_t;')]
+    preamble = preamble.replace('typedef struct { keyevent_t event; uint16_t keycode; } keyrecord_t;', '#define KEYBOARD_ergohaven_sm62\n' + record_type)
+    preamble = preamble.replace('#define MATRIX_ROWS 5', '#define MATRIX_ROWS 10').replace('#define MATRIX_COLS 3', '#define MATRIX_COLS 7')
+    preamble += '#define KEYBOARD_ergohaven_sm62\n'
+    preamble = preamble.replace('void vial_keycode_up(uint16_t k) { (void)k; }', 'static unsigned normal_down,normal_up;\nvoid vial_keycode_up(uint16_t k) { (void)k;normal_up++; }').replace('void vial_keycode_down(uint16_t k) { (void)k; }', 'void vial_keycode_down(uint16_t k) { (void)k;normal_down++; }')
+    preamble += r'''
+#define WRD_NXT 0x7f01
+#define WRD_PRV 0x7f02
+#define WNEXT 0x7f03
+#define WPREV 0x7f04
+#define KC_RIGHT 79
+#define KC_LEFT 80
+#define KC_LGUI 227
+#define KC_LALT 226
+#define KC_TAB 43
+#define KC_CAPS 57
+#define A(k) (k)
+#define C(k) (k)
+#define S(k) (k)
+#define LAYER_NEXT 0x7f05
+#define LAYER_PREV 0x7f06
+#define EH_PRINFO 0x7f07
+#define LAYER_CYCLE_START 0
+#define LAYER_CYCLE_END 15
+#define PRODUCT "test"
+#define EH_VERSION_STR "unchanged"
+#define QMK_BUILDDATE "test"
+#define QMK_GIT_HASH "test"
+#define UNICODE_MODE_MACOS 1
+#define UNICODE_MODE_LINUX 2
+#define UNICODE_MODE_WINDOWS 3
+#define UNICODE_MODE_WINCOMPOSE 4
+#define TG_DEFAULT 0
+#define TG_M0 1
+#define TG_M1M2 2
+static struct {bool swap_lctl_lgui;} keymap_config;
+static bool is_alt_tab_active;static uint16_t alt_tab_timer;
+static void register_code16(uint16_t k){(void)k;}
+static void unregister_code16(uint16_t k){(void)k;}
+#define register_code register_code16
+#define unregister_code unregister_code16
+static void layer_move(uint8_t l){layer_state=1u<<l;}
+static void send_string(const char *s){(void)s;}
+static uint8_t get_unicode_input_mode(void){return 0;}
+static uint8_t get_ruen_toggle_mode(void){return 0;}
+static bool get_ruen_mac_layout(void){return false;}
+static bool get_led_blinks(void){return false;}
+static bool process_record_ruen(uint16_t k,keyrecord_t *r){(void)k;(void)r;return true;}
+static bool process_record_pointing(uint16_t k,keyrecord_t *r){(void)k;(void)r;return true;}
+static bool process_record_user(uint16_t k,keyrecord_t *r){(void)k;(void)r;return true;}
+bool process_record_kb(uint16_t keycode,keyrecord_t *record);
+'''
+    fixtures = fixtures.replace('mo_down, mo_up, normal_down, normal_up', 'mo_down, mo_up')
+    fixtures = fixtures.replace('} else if (record->event.pressed) normal_down++;\n    else normal_up++;', '} else if (process_record_kb(record->keycode,record)) {\n        if(record->event.pressed) { down_code=record->keycode; normal_down++; if(record->keycode==MO(1)) layer_state|=2; } else { up_code=record->keycode; normal_up++; if(record->keycode==MO(1)) layer_state&=~2U; }\n    }')
+    preamble = preamble.replace('pos.col == 0', 'pos.col == 5')
+    tests = tests.replace('event(1,0,','event(0,5,').replace('event(1,1,','event(0,4,')
+    # Macropad-only encoder selector has no SM62 equivalent; keep all key paths.
+    tests = tests.replace('case 11:stack_selector();break;', 'case 11:normal_key();break;')
+    tests = tests.replace('{.type=KEY_EVENT,.key={0,0}}','{.type=KEY_EVENT,.key={4,6}}')
+    preamble = preamble.replace('static unsigned normal_down,normal_up;', 'static unsigned normal_down,normal_up;static uint16_t down_code,up_code;').replace('(void)k;normal_down++;', 'down_code=k;normal_down++;').replace('(void)k;normal_up++;', 'up_code=k;normal_up++;')
+    tests = tests.replace('case 11:normal_key();break;', 'case 11:queued_replacement();break;')
+    tests = tests.replace('int main(int argc,char **argv)', r'''
+static void queued_replacement(void) {
+    layout();CHECK(event(0,5,true)==KC_7);
+    CHECK(normal_down==0);commit_layout(true);
+    now+=COMBO_TERM+1;combo_task();
+    CHECK(normal_down==1 && down_code==KC_7);
+    CHECK(event(0,5,false)==KC_7);CHECK(normal_up==1 && up_code==KC_7);
+    puts("queued_replacement: PASS actual pre-process/combo replay/consumer preserves press-time keycode");
+}
+int main(int argc,char **argv)''')
+    tests = tests.replace('int main(int argc,char **argv)', r'''
+static void poll_identity(uint32_t revision,uint8_t layer,uint8_t control);
+static void full_matrix(void) {
+    unsigned checks=0;
+    for(unsigned l=0;l<16;l++) for(unsigned c=0;c<62;c++){
+        layout();app_layout_revision=41;layer_state=1u<<l;app_layout_keycodes[l][c]=KC_A;
+        unsigned d=normal_down,u=normal_up;
+        uint8_t row=sm62_application_positions[c][0],col=sm62_application_positions[c][1];
+        CHECK(event(row,col,true)==KC_A);CHECK(normal_down==d+1 && down_code==KC_A);
+        layer_state=1u<<((l+1)%16);
+        CHECK(event(row,col,false)==KC_A);CHECK(normal_up==u+1 && up_code==KC_A);
+        poll_identity(41,l,c);CHECK(app_layout_event_count==0);checks++;
+    }
+    printf("full_matrix: PASS %u actual preprocess/combo/consumer held-identity paths\n",checks);
+}
+int main(int argc,char **argv)''').replace('case 12:passthrough_events();break;', 'case 12:passthrough_events();break;case 13:full_matrix();break;')
+    preamble = preamble.replace('down_code=k;normal_down++;', 'down_code=k;normal_down++;if(k==MO(1))layer_state|=2;')
+    tests = tests.replace('int main(int argc,char **argv)', r'''
+static void poll_identity(uint32_t revision,uint8_t layer,uint8_t control) {
+    uint8_t packet[32]={EH_APP_LAYOUT_EVENT_POLL,EH_APP_LAYOUT_PROTOCOL_VERSION,EH_APP_LAYOUT_EVENT_REQUEST};
+    CHECK(hid_app_layout_process_packet(packet,sizeof(packet)));
+    CHECK(packet[2]==EH_APP_LAYOUT_EVENT_RESPONSE && packet[3]==1);
+    printf("event revision=%u layer=%u control=%u expected=%u/%u/%u\n",(unsigned)app_layout_read_u32(packet+8),packet[6],packet[7],(unsigned)revision,layer,control);
+    CHECK(app_layout_read_u32(packet+8)==revision);CHECK(packet[6]==layer && packet[7]==control);
+    uint16_t sequence=packet[4]|((uint16_t)packet[5]<<8);
+    uint8_t ack[32]={EH_APP_LAYOUT_EVENT_POLL,EH_APP_LAYOUT_PROTOCOL_VERSION,EH_APP_LAYOUT_EVENT_REQUEST,sequence,sequence>>8};
+    CHECK(hid_app_layout_process_packet(ack,sizeof(ack)));CHECK(ack[3]==0);
+}
+static void replay_identity(unsigned mode) {
+    layout();app_layout_revision=41;layer_state=3;app_layout_keycodes[1][0]=KC_7;
+    CHECK(event(0,5,true)==KC_7);CHECK(normal_down==0);
+    if(mode==0) commit_layout(true);
+    if(mode==1) {uint8_t p[]={EH_APP_LAYOUT_DEACTIVATE,EH_APP_LAYOUT_PROTOCOL_VERSION};CHECK(hid_app_layout_process_packet(p,sizeof(p)));}
+    if(mode==2) {now+=EH_APP_LAYOUT_TIMEOUT_MS;hid_app_layout_task();}
+    if(mode==3) commit_layout(false);
+    if(mode==4) {CHECK(event(0,5,false)==KC_7);}
+    now+=COMBO_TERM+1;combo_task();
+    CHECK(normal_down==1 && down_code==KC_7);
+    poll_identity(41,1,0);
+    if(mode!=4) CHECK(event(0,5,false)==KC_7);
+    CHECK(normal_up==1 && up_code==KC_7);CHECK(app_layout_event_count==0);
+    puts("replay_identity: PASS immutable press metadata across real replay/session transition");
+}
+static void immediate_layer_identity(void) {
+    layout();app_layout_revision=41;app_layout_keycodes[0][0]=MO(1);
+    CHECK(event(0,5,true)==MO(1));CHECK(layer_state==3);
+    poll_identity(41,0,0);CHECK(event(0,5,false)==MO(1));
+    CHECK(normal_down==1 && normal_up==1);CHECK(app_layout_event_count==0);
+    puts("immediate_layer_identity: PASS metadata captured before synchronous MO dispatch");
+}
+int main(int argc,char **argv)''').replace('case 13:full_matrix();break;', 'case 13:full_matrix();break;case 14:case 15:case 16:case 17:case 18:replay_identity(test-14);break;case 19:immediate_layer_identity();break;')
+    consumer = function('keyboards/ergohaven/ergohaven_main.c','process_record_kb')
+source = preamble + combo_header + fixtures + _firewall.firewall_source(read_source) + hid + function('keyboards/ergohaven/ergohaven_main.c', 'pre_process_record_kb') + consumer + combo + tests
 with tempfile.TemporaryDirectory(prefix='ergohaven-app-combo-', dir=os.environ.get('TMPDIR')) as directory:
     path = Path(directory)
     (path/'test.c').write_text(source)
-    subprocess.run(['gcc','-std=c11','-O1','-g','-Wall','-Wextra','-Werror','-Wno-unused-parameter','-fsanitize=undefined','-fno-sanitize-recover=all',str(path/'test.c'),'-o',str(path/'test')],check=True)
+    subprocess.run(['gcc','-std=c11','-O1','-g','-Wall','-Wextra','-Werror','-Wno-unused-parameter','-Wno-unused-function','-I'+str(ROOT/'keyboards/ergohaven'),'-fsanitize=undefined','-fno-sanitize-recover=all',str(path/'test.c'),'-o',str(path/'test')],check=True)
     cases = ['momentary_combo_release', 'no_key_sentinel', 'transparent_binding',
              'layout_replacement', 'deactivate', 'timeout', 'disabled_commit',
              'inactive_fallback', 'unset_fallback', 'normal_key', 'rejected_combo',
              'stack_selector', 'passthrough_events']
+    if args.sm62_full:
+        cases[11] = 'queued_replacement'
+        cases.extend(['full_matrix', 'replay_revision_commit', 'replay_deactivate', 'replay_timeout', 'replay_disabled_commit', 'replay_release_before_flush', 'immediate_layer_identity'])
     failures = []
     for index, name in enumerate(cases):
         result = subprocess.run([str(path/'test'), str(index)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)

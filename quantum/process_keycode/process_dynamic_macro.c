@@ -115,6 +115,16 @@ void dynamic_macro_record_start(keyrecord_t **macro_pointer, keyrecord_t *macro_
 void dynamic_macro_play(keyrecord_t *macro_buffer, keyrecord_t *macro_end, int8_t direction) {
     dprintf("dynamic macro: slot %d playback\n", DYNAMIC_MACRO_CURRENT_SLOT());
 
+    /* Permit acyclic nesting between slots, but never reenter an active slot.
+     * Keep the slot active through the playback hook as it may also play macros.
+     */
+    static uint8_t active_playbacks = 0;
+    const uint8_t slot = direction > 0 ? 1 : 2;
+    if (active_playbacks & slot) {
+        return;
+    }
+    active_playbacks |= slot;
+
     layer_state_t saved_layer_state = layer_state;
 
     clear_keyboard();
@@ -133,6 +143,7 @@ void dynamic_macro_play(keyrecord_t *macro_buffer, keyrecord_t *macro_end, int8_
     layer_state_set(saved_layer_state);
 
     dynamic_macro_play_kb(direction);
+    active_playbacks &= (uint8_t)~slot;
 }
 
 /**

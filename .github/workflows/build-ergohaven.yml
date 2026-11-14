@@ -119,6 +119,7 @@ jobs:
           - { kb: ergohaven/k03pro/rev1/65mm, km: v1}
           - { kb: ergohaven/k03pro/rev2, km: v2_v3}
           - { kb: ergohaven/sm30, km: v1}
+          - { kb: ergohaven/sm62, km: v1}
     steps:
       - name: (actions) Checkout Vial repo
         uses: actions/checkout@v4

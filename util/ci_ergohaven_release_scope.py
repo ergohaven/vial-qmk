@@ -56,6 +56,7 @@ REQUIRED_RELEASE_TARGETS = {
     ("ergohaven/planeta/rev2", "v2"),
     ("ergohaven/remnant", "v1"),
     ("ergohaven/sm30", "v1"),
+    ("ergohaven/sm62", "v1"),
     ("ergohaven/trackball", "v1"),
     ("ergohaven/trackball", "v2"),
     ("ergohaven/velvet/rev1", "v1"),

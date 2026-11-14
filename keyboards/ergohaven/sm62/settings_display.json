@@ -1,0 +1,24 @@
+{
+  "name": "SM62 left display",
+  "fields": [
+    { "type": "select", "title": "Default mode", "qsid": 230, "variants": ["Clock", "Player", "Spaceship", "Layout"] },
+    { "type": "boolean", "title": "Idle spaceship", "qsid": 231, "bit": 0 },
+    { "type": "integer", "title": "Spaceship idle delay (seconds)", "qsid": 232, "min": 0, "max": 240, "width": 1 },
+    { "type": "boolean", "title": "Show layout on key press", "qsid": 233, "bit": 0 },
+    { "type": "integer", "title": "Layout display after key press (ms)", "qsid": 242, "min": 0, "max": 10000, "width": 2 },
+    { "type": "boolean", "title": "Cyrillic legends", "qsid": 234, "bit": 0 },
+    { "type": "boolean", "title": "Show date", "qsid": 240, "bit": 0 }
+  ]
+},
+{
+  "name": "SM62 right display",
+  "fields": [
+    { "type": "select", "title": "Default mode", "qsid": 235, "variants": ["Clock", "Player", "Spaceship", "Layout"] },
+    { "type": "boolean", "title": "Idle spaceship", "qsid": 236, "bit": 0 },
+    { "type": "integer", "title": "Spaceship idle delay (seconds)", "qsid": 237, "min": 0, "max": 240, "width": 1 },
+    { "type": "boolean", "title": "Show layout on key press", "qsid": 238, "bit": 0 },
+    { "type": "integer", "title": "Layout display after key press (ms)", "qsid": 243, "min": 0, "max": 10000, "width": 2 },
+    { "type": "boolean", "title": "Cyrillic legends", "qsid": 239, "bit": 0 },
+    { "type": "boolean", "title": "Show date", "qsid": 241, "bit": 0 }
+  ]
+}

@@ -28,6 +28,8 @@
 void vial_init(void);
 void vial_unlock_task(void);
 void vial_handle_cmd(uint8_t *data, uint8_t length);
+// Apply only at external keycode ingress; internal/factory defaults are trusted.
+uint16_t vial_keycode_firewall(uint16_t in);
 bool process_record_vial(uint16_t keycode, keyrecord_t *record);
 
 extern bool vial_unlocked;

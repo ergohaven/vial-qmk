@@ -1,3 +1,6 @@
+#ifdef SM62_VIAL_LEGACY_EXTENSION
+#    include "keyboards/ergohaven/sm62/vial_extension.h"
+#endif
 /* Copyright 2019 Jason Williams (Wilba)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -51,9 +54,16 @@
 #include "via.h"
 
 #include "raw_hid.h"
+#if defined(KEYBOARD_ergohaven_sm62)
+#    include "keyboards/ergohaven/sm62/flash_guard.h"
+#    if defined(SM62_DUALCORE_RENDER)
+#        include "keyboards/ergohaven/sm62/dualcore_trace.h"
+#    endif
+#endif
 #include "dynamic_keymap.h"
 #include "eeprom.h"
 #include "version.h" // for QMK_BUILDDATE used in EEPROM magic
+#include "quantum/nvm/nvm_eeconfig.h"
 #include "quantum/nvm/eeprom/nvm_eeprom_eeconfig_internal.h"
 #include "quantum/nvm/eeprom/nvm_eeprom_via_internal.h"
 
@@ -84,6 +94,39 @@ void via_qmk_rgb_matrix_get_value(uint8_t *data);
 // Can be called in an overriding via_init_kb() to test if keyboard level code usage of
 // EEPROM is invalid and use/save defaults.
 bool via_eeprom_is_valid(void) {
+#ifdef SM62_PRESERVE_LEGACY_DEFAULT
+    // BUILD_ID is random on clean Vial builds, not a storage-format version.
+    // Advertised capacity32 does not move the audited four-entry physical sections.
+#ifdef SM62_VIAL_LEGACY_EXTENSION
+#ifdef SM62_RESERVED_TD_BYTES
+    STATIC_ASSERT(VIAL_TAP_DANCE_ENTRIES == 0 && SM62_RESERVED_TD_BYTES == 40U,
+                  "SM62 disabled TD must preserve physical legacy gap");
+#else
+    STATIC_ASSERT(VIAL_TAP_DANCE_ENTRIES == 32, "SM62 TD extension capacity changed");
+#endif
+    STATIC_ASSERT(VIAL_COMBO_ENTRIES == 32 &&
+                  VIAL_KEY_OVERRIDE_ENTRIES == 32 && SM62_VIAL_LEGACY_ENTRIES == 4,
+                  "SM62 extension requires audited physical4/advertised32");
+#    define SM62_AUDITED_TD_ENTRIES SM62_VIAL_LEGACY_ENTRIES
+#    define SM62_AUDITED_COMBO_ENTRIES SM62_VIAL_LEGACY_ENTRIES
+#    define SM62_AUDITED_KO_ENTRIES SM62_VIAL_LEGACY_ENTRIES
+#else
+#    define SM62_AUDITED_TD_ENTRIES VIAL_TAP_DANCE_ENTRIES
+#    define SM62_AUDITED_COMBO_ENTRIES VIAL_COMBO_ENTRIES
+#    define SM62_AUDITED_KO_ENTRIES VIAL_KEY_OVERRIDE_ENTRIES
+#endif
+    STATIC_ASSERT(EECONFIG_SIZE == 366 && VIA_EEPROM_CONFIG_END == 370 &&
+                  DYNAMIC_KEYMAP_LAYER_COUNT == 16 && MATRIX_ROWS == 10 && MATRIX_COLS == 7 &&
+                  SM62_AUDITED_TD_ENTRIES == 4 && SM62_AUDITED_COMBO_ENTRIES == 4 &&
+                  SM62_AUDITED_KO_ENTRIES == 4 && VIAL_ALT_REPEAT_KEY_ENTRIES == 32,
+                  "SM62 legacy preservation requires an audited unchanged EEPROM layout");
+    // Do not replace the old marker on upgrade: even a marker write can force
+    // non-atomic wear-leveling consolidation. Explicit invalidation still works.
+    return nvm_eeconfig_is_enabled() &&
+           !(eeprom_read_byte((void *)VIA_EEPROM_MAGIC_ADDR + 0) == 0xFF &&
+             eeprom_read_byte((void *)VIA_EEPROM_MAGIC_ADDR + 1) == 0xFF &&
+             eeprom_read_byte((void *)VIA_EEPROM_MAGIC_ADDR + 2) == 0xFF);
+#else
 #ifdef VIAL_ENABLE
     uint8_t magic0 = BUILD_ID & 0xFF;
     uint8_t magic1 = (BUILD_ID >> 8) & 0xFF;
@@ -96,12 +139,15 @@ bool via_eeprom_is_valid(void) {
 #endif
 
     return (eeprom_read_byte((void *)VIA_EEPROM_MAGIC_ADDR + 0) == magic0 && eeprom_read_byte((void *)VIA_EEPROM_MAGIC_ADDR + 1) == magic1 && eeprom_read_byte((void *)VIA_EEPROM_MAGIC_ADDR + 2) == magic2);
+#endif
 }
 
 // Sets VIA/keyboard level usage of EEPROM to valid/invalid
 // Keyboard level code (eg. via_init_kb()) should not call this
 void via_eeprom_set_valid(bool valid) {
-#ifdef VIAL_ENABLE
+#ifdef SM62_PRESERVE_LEGACY_DEFAULT
+    uint8_t magic0 = 'S', magic1 = '6', magic2 = '2';
+#elif defined(VIAL_ENABLE)
     uint8_t magic0 = BUILD_ID & 0xFF;
     uint8_t magic1 = (BUILD_ID >> 8) & 0xFF;
     uint8_t magic2 = (BUILD_ID >> 16) & 0xFF;
@@ -140,16 +186,34 @@ void via_init(void) {
 }
 
 void eeconfig_init_via(void) {
+#if defined(KEYBOARD_ergohaven_sm62)
+    if (!sm62_flash_begin()) return;
+#endif
     // set the magic number to false, in case this gets interrupted
     via_eeprom_set_valid(false);
     // This resets the layout options
     via_set_layout_options(VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT);
     // This resets the keymaps in EEPROM to what is in flash.
+#ifdef SM62_VIAL_LEGACY_EXTENSION
+    if (!dynamic_keymap_reset_checked()) {
+#if defined(KEYBOARD_ergohaven_sm62)
+        sm62_flash_failed();
+        sm62_flash_end();
+#endif
+        return;
+    }
+#else
     dynamic_keymap_reset();
+#endif
     // This resets the macros in EEPROM to nothing.
     dynamic_keymap_macro_reset();
     // Save the magic number last, in case saving was interrupted
+#if defined(KEYBOARD_ergohaven_sm62)
+    if (sm62_flash_ok()) via_eeprom_set_valid(true);
+    sm62_flash_end();
+#else
     via_eeprom_set_valid(true);
+#endif
 }
 
 // This is generalized so the layout options EEPROM usage can be
@@ -213,9 +277,52 @@ __attribute__((weak)) void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
 //
 // raw_hid_send() is called at the end, with the same buffer, which was
 // possibly modified with returned values.
+#if defined(KEYBOARD_ergohaven_sm62)
+/* Native public mutations reserve admission before ANY setter/native cache
+ * mutation; ordinary reads and live host/app-layout traffic never park render.
+ * Inner VIA/Vial permission/firewall/dispatch and reply ordering stay intact. */
+static bool sm62_packet_mutates_storage(const uint8_t *data, uint8_t length) {
+    if (!length) return false;
+    switch (data[0]) {
+        case id_set_keyboard_value:
+        case id_dynamic_keymap_set_keycode:
+        case id_dynamic_keymap_reset:
+        case id_lighting_set_value:
+        case id_lighting_save:
+        case id_eeprom_reset:
+        case id_dynamic_keymap_macro_set_buffer:
+        case id_dynamic_keymap_macro_reset:
+        case id_dynamic_keymap_set_buffer:
+            return true;
+        case id_vial_prefix:
+            if (length < 2) return false;
+            switch (data[1]) {
+                case vial_set_encoder:
+                case vial_qmk_settings_set:
+                case vial_qmk_settings_reset:
+                    return true;
+                case vial_dynamic_entry_op:
+                    return length >= 3 && (data[2] == dynamic_vial_tap_dance_set || data[2] == dynamic_vial_combo_set ||
+                                          data[2] == dynamic_vial_key_override_set || data[2] == dynamic_vial_alt_repeat_key_set);
+                default: return false;
+            }
+        default: return false;
+    }
+}
+#endif
+
+#ifdef SM62_MACRO_OVERLAY
+#    include "keyboards/ergohaven/sm62/macro_storage.h"
+#endif
 void raw_hid_receive(uint8_t *data, uint8_t length) {
+#if defined(SM62_DUALCORE_RENDER)
+    sm62_dc_trace_packet(data,length);
+#endif
     uint8_t *command_id   = &(data[0]);
     uint8_t *command_data = &(data[1]);
+#if defined(KEYBOARD_ergohaven_sm62)
+    bool sm62_mutation_admitted = false;
+#endif
 
 #ifdef VIAL_ENABLE
     /* When unlock is in progress, we can only react to a subset of commands */
@@ -228,6 +335,15 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
     }
 #endif
 
+#if defined(KEYBOARD_ergohaven_sm62)
+    if (sm62_packet_mutates_storage(data, length)) {
+        if (!sm62_flash_begin()) {
+            *command_id = id_unhandled;
+            goto skip;
+        }
+        sm62_mutation_admitted = true;
+    }
+#endif
     switch (*command_id) {
         case id_get_protocol_version: {
             command_data[0] = VIA_PROTOCOL_VERSION >> 8;
@@ -313,11 +429,22 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
             break;
         }
         case id_dynamic_keymap_set_keycode: {
-            dynamic_keymap_set_keycode(command_data[0], command_data[1], command_data[2], (command_data[3] << 8) | command_data[4]);
+            uint16_t keycode = (command_data[3] << 8) | command_data[4];
+#ifdef VIAL_ENABLE
+            keycode = vial_keycode_firewall(keycode);
+#endif
+            dynamic_keymap_set_keycode(command_data[0], command_data[1], command_data[2], keycode);
             break;
         }
         case id_dynamic_keymap_reset: {
+#ifdef SM62_VIAL_LEGACY_EXTENSION
+            if (!dynamic_keymap_reset_checked()) {
+                via_eeprom_set_valid(false);
+                *command_id = id_unhandled;
+            }
+#else
             dynamic_keymap_reset();
+#endif
             break;
         }
         case id_lighting_set_value: {
@@ -408,22 +535,38 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
             uint16_t size   = command_data[2]; // size <= 28
             if (size <= 28)
                 dynamic_keymap_macro_get_buffer(offset, size, &command_data[3]);
+#ifdef SM62_MACRO_OVERLAY
+            if (size > 28 || !sm62_macro_ok()) *command_id = id_unhandled;
+#endif
             break;
         }
         case id_dynamic_keymap_macro_set_buffer: {
 #ifdef VIAL_ENABLE
             /* Until keyboard is unlocked, don't allow changing macros */
-            if (!vial_unlocked)
+            if (!vial_unlocked) {
+#ifdef SM62_MACRO_OVERLAY
+                *command_id = id_unhandled;
+#endif
                 goto skip;
+            }
 #endif
             uint16_t offset = (command_data[0] << 8) | command_data[1];
             uint16_t size   = command_data[2]; // size <= 28
             if (size <= 28)
                 dynamic_keymap_macro_set_buffer(offset, size, &command_data[3]);
+#ifdef SM62_MACRO_OVERLAY
+            if (size > 28 || !sm62_macro_ok()) *command_id = id_unhandled;
+#endif
             break;
         }
         case id_dynamic_keymap_macro_reset: {
+#ifdef SM62_MACRO_OVERLAY
+            if (!vial_unlocked) { *command_id = id_unhandled; goto skip; }
+#endif
             dynamic_keymap_macro_reset();
+#ifdef SM62_MACRO_OVERLAY
+            if (!sm62_macro_ok()) *command_id = id_unhandled;
+#endif
             break;
         }
         case id_dynamic_keymap_get_layer_count: {
@@ -473,6 +616,9 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
     }
 #ifdef VIAL_ENABLE
 skip:
+#endif
+#if defined(KEYBOARD_ergohaven_sm62)
+    if (sm62_mutation_admitted && !sm62_flash_end()) *command_id = id_unhandled;
 #endif
     // Return the same buffer, optionally with values changed
     // (i.e. returning state to the host, or the unhandled state).

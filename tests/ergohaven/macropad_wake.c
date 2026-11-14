@@ -82,7 +82,7 @@ int main(void){
    for(unsigned i=0;i<32;i++){assert(scanf("%2x",&x)==1);packet[i]=x;}
    assert(hid_app_layout_process_packet(packet,32));
   }else if(cmd=='S'){
-   now+=600;display_housekeeping_task();assert(screen_state==SCREEN_HOME);saved=last_user_activity_timer;
+   now+=600;display_housekeeping_task();assert(screen_state==SCREEN_HOME);saved=last_user_activity_timer;checks++;
   }else if(cmd=='W'){
    display_housekeeping_task();
    printf("wake check: screen=%d expected=%d name=%s\n",screen_state,SCREEN_LAYOUT,lv_label_get_text(label_layer));fflush(stdout);

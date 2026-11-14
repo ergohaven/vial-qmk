@@ -44,7 +44,11 @@ void resize_font(void *label, int32_t font_size) {
     if (font_size == 8) return lv_obj_set_style_text_font(label, &lv_font_montserrat_8, LV_PART_MAIN);
 #endif
 #if LV_FONT_MONTSERRAT_10
+    #if defined(KEYBOARD_ergohaven_sm62)
+    if (font_size <= 10) return lv_obj_set_style_text_font(label, &lv_font_montserrat_10, LV_PART_MAIN);
+#else
     if (font_size <= 10) return lv_obj_set_style_text_font(label, &lv_font_montserrat_8, LV_PART_MAIN);
+#endif
 #endif
 #if LV_FONT_MONTSERRAT_12
     if (font_size <= 12) return lv_obj_set_style_text_font(label, &lv_font_montserrat_12, LV_PART_MAIN);

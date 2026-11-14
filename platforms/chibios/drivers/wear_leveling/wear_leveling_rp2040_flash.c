@@ -19,6 +19,9 @@
 #include "wear_leveling.h"
 #include "wear_leveling_rp2040_flash_config.h"
 #include "wear_leveling_internal.h"
+#if defined(KEYBOARD_ergohaven_sm62)
+#    include "keyboards/ergohaven/sm62/flash_guard.h"
+#endif
 
 #ifndef WEAR_LEVELING_RP2040_FLASH_BULK_COUNT
 #    define WEAR_LEVELING_RP2040_FLASH_BULK_COUNT 64
@@ -182,9 +185,15 @@ bool backing_store_erase(void) {
     // Ensure the backing size can be cleanly subtracted from the flash size without alignment issues.
     STATIC_ASSERT((WEAR_LEVELING_BACKING_SIZE) % (FLASH_SECTOR_SIZE) == 0, "Backing size must be a multiple of FLASH_SECTOR_SIZE");
 
+#if defined(KEYBOARD_ergohaven_sm62)
+    if (!sm62_flash_begin()) return false;
+#endif
     interrupts = save_and_disable_interrupts();
     flash_range_erase((WEAR_LEVELING_RP2040_FLASH_BASE), (WEAR_LEVELING_BACKING_SIZE));
     restore_interrupts(interrupts);
+#if defined(KEYBOARD_ergohaven_sm62)
+    sm62_flash_end();
+#endif
 
     bs_dprintf("Backing store erase took %ldms to complete\n", ((long)(timer_read32() - start)));
     return true;
@@ -198,9 +207,15 @@ bool backing_store_write_bulk(uint32_t address, backing_store_int_t *values, siz
     uint32_t offset = (WEAR_LEVELING_RP2040_FLASH_BASE) + address;
     bs_dprintf("Write ");
     wl_dump(offset, values, sizeof(backing_store_int_t) * item_count);
+#if defined(KEYBOARD_ergohaven_sm62)
+    if (!sm62_flash_begin()) return false;
+#endif
     interrupts = save_and_disable_interrupts();
     pico_program_bulk(offset, values, item_count);
     restore_interrupts(interrupts);
+#if defined(KEYBOARD_ergohaven_sm62)
+    sm62_flash_end();
+#endif
     return true;
 }
 

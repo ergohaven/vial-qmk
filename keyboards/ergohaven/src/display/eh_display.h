@@ -26,6 +26,7 @@ __attribute__((weak)) void display_init_screens_kb(void);
 void display_turn_on(void);
 
 void display_turn_off(void);
+void display_refresh(void);
 
 bool is_display_enabled(void);
 bool display_should_wake_on_usb_resume(void);
@@ -50,6 +51,18 @@ void display_apply_button_style(uint8_t style);
 void display_apply_clock_settings(void);
 
 __attribute__((weak)) void display_button_style_changed_kb(uint8_t style);
+
+/* Optional keyboard-level persistent diagnostic marker. */
+void display_diag_mark(uint32_t stage);
+
+/* All views live below one permanently loaded LVGL root.  Switching views by
+ * visibility avoids repeated lv_scr_load() calls while the keyboard is
+ * scanning keys and the ST7789 flush task is active. */
+lv_obj_t *display_view_create(void);
+void display_show_view(lv_obj_t *view);
+void display_load_root(void);
+
+const char *display_boot_status_kb(void);
 
 const char *get_layer_label(uint8_t layer);
 
