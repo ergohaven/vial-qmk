@@ -109,8 +109,13 @@ static void diag_put32(uint8_t *p, uint32_t v) {
 /* Diagnostic RPC is registered at boot, but only executed on host request. */
 static void sm62_diag_rpc(uint8_t in_len, const void *in, uint8_t out_len, void *out) {
 #if defined(SM62_DUALCORE_RENDER)
-    if (out && out_len>=8) { memset(out,0,out_len); ((uint8_t *)out)[0]=0xD7; ((uint8_t *)out)[1]=0x62; ((uint8_t *)out)[2]=0x18; ((uint8_t *)out)[7]=0xFE; }
-    return; /* old peer/master-only statistics are not dual-core measurements */
+    if (in_len==1 && in && (*(const uint8_t *)in==5 || *(const uint8_t *)in==6))
+        sm62_dc_scan_rpc(in_len,in,out_len,out);
+    else if (out && out_len>=8) {
+        memset(out,0,out_len); ((uint8_t *)out)[0]=0xD7; ((uint8_t *)out)[1]=0x62;
+        ((uint8_t *)out)[2]=SM62_DC_TRACE_VERSION; ((uint8_t *)out)[7]=0xFE;
+    }
+    return;
 #endif
     if (in_len) { (void)sm62_fps_rpc(in_len,in,out_len,out); return; }
     (void)in_len; (void)in;
@@ -123,6 +128,11 @@ static void sm62_diag_rpc(uint8_t in_len, const void *in, uint8_t out_len, void 
     for (uint8_t i=0;i<6;i++) diag_put32(p+6+4*i,diag_absolute[i]);
     diag_put16(p+30,diag_clip(timer_read32()));
 }
+#if defined(SM62_DUALCORE_RENDER)
+bool sm62_dc_peer_scan(uint8_t command,uint8_t *reply) {
+    return is_keyboard_master() && transaction_rpc_exec(RPC_SM62_DIAG,1,&command,32,reply);
+}
+#endif
 bool sm62_diag_raw(uint8_t *data, uint8_t length) {
 #if defined(SM62_DUALCORE_RENDER)
     return sm62_dc_diag_raw(data,length);

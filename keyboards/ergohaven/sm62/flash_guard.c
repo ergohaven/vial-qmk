@@ -20,7 +20,12 @@ static bool context_valid(void) {
 #endif
 #define SM62_FLASH_PARK_TIMEOUT_US 50000U
 static sm62_flash_gate_t gate;
+#if defined(SM62_DUALCORE_RENDER)
+/* HAL launches core1 before keyboard init; no runtime-ready bypass is safe. */
+static uint32_t core1_prepared = 1U;
+#else
 static uint32_t core1_prepared;
+#endif
 static uint32_t owned_token;
 static uint8_t depth;
 static bool failed;

@@ -6,6 +6,10 @@
 #include "timer.h"
 #include "deferred_exec.h"
 #include "lvgl.h"
+#if defined(SM62_DUALCORE_RENDER)
+#    include "render_owner.h"
+#    include "qp_comms_spi.h"
+#endif
 
 typedef struct lvgl_state_t {
     uint8_t        fnc_id; // Ideally this should be the pointer of the function to run
@@ -38,15 +42,28 @@ __attribute__((weak)) void display_frame_completed(void) {}
 __attribute__((weak)) void qp_lvgl_flush_input_service(void) {}
 
 void qp_lvgl_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p) {
+#if defined(SM62_DUALCORE_RENDER)
+    if (!sm62_render_is_owner()) return;
+    if (!sm62_render_transport_ok()) { lv_disp_flush_ready(disp); return; }
+#endif
     if (selected_display) {
         uint32_t number_pixels = (area->x2 - area->x1 + 1) * (area->y2 - area->y1 + 1);
+#if defined(SM62_DUALCORE_RENDER)
+        bool started = qp_comms_spi_transaction_begin(selected_display);
+        bool success = started && qp_viewport(selected_display, area->x1, area->y1, area->x2, area->y2) &&
+                       qp_pixdata(selected_display, (void *)color_p, number_pixels) && qp_flush(selected_display);
+        if (started && !qp_comms_spi_transaction_end(selected_display)) success = false;
+        /* SPI owns permanent SRAM copies, so even a late abort cannot access
+         * this LVGL buffer. A fault stops later strips; no frame completes. */
+        sm62_render_strip_completed(success);
+        if (success && lv_disp_flush_is_last(disp)) display_frame_completed();
+#else
         qp_viewport(selected_display, area->x1, area->y1, area->x2, area->y2);
         qp_pixdata(selected_display, (void *)color_p, number_pixels);
         qp_flush(selected_display);
         qp_lvgl_flush_input_service();
-        if (lv_disp_flush_is_last(disp)) {
-            display_frame_completed();
-        }
+        if (lv_disp_flush_is_last(disp)) display_frame_completed();
+#endif
         lv_disp_flush_ready(disp);
     }
 }
@@ -76,6 +93,9 @@ static uint32_t tick_task_callback(uint32_t trigger_time, void *cb_arg) {
 // Quantum Painter LVGL Integration API: qp_lvgl_attach
 
 bool qp_lvgl_attach(painter_device_t device) {
+#if defined(SM62_DUALCORE_RENDER)
+    if (!sm62_render_is_owner()) return false;
+#endif
     qp_dprintf("qp_lvgl_start: entry\n");
     qp_lvgl_detach();
 
@@ -149,6 +169,9 @@ bool qp_lvgl_attach(painter_device_t device) {
 // Quantum Painter LVGL Integration API: qp_lvgl_detach
 
 void qp_lvgl_detach(void) {
+#if defined(SM62_DUALCORE_RENDER)
+    if (!sm62_render_is_owner()) return;
+#endif
     for (int i = 0; i < 2; ++i) {
         cancel_deferred_exec_advanced(lvgl_executors, 2, lvgl_states[i].defer_token);
     }
@@ -163,6 +186,9 @@ void qp_lvgl_detach(void) {
 // Quantum Painter LVGL Integration Internal: qp_lvgl_internal_tick
 
 void qp_lvgl_internal_tick(void) {
+#if defined(SM62_DUALCORE_RENDER)
+    if (!sm62_render_is_owner()) return;
+#endif
     static uint32_t last_lvgl_exec = 0;
     deferred_exec_advanced_task(lvgl_executors, 2, &last_lvgl_exec);
 }

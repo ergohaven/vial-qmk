@@ -2,7 +2,7 @@
 #pragma once
 #include <stdint.h>
 #include <stdbool.h>
-#define SM62_SNAPSHOT_BYTES 6144U
+#define SM62_SNAPSHOT_BYTES 3200U
 /* SPSC, two fixed slots, no RMW/allocation/RTOS lock. The current consumer
  * snapshot stays leased until it adopts its replacement at a frame boundary.
  * A full exchange simply declines a core0 reservation; input latches are NOT

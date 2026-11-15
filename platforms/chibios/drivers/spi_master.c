@@ -18,6 +18,10 @@
 #include "chibios_config.h"
 #include <ch.h>
 #include <hal.h>
+#if defined(SM62_DUALCORE_RENDER)
+#    include "display_spi.h"
+#    include "render_owner.h"
+#endif
 
 #ifndef SPI_DRIVER
 #    define SPI_DRIVER SPID2
@@ -60,11 +64,7 @@
 #endif
 
 static bool spiStarted = false;
-#if defined(SM62_DUALCORE_RENDER)
-/* Sole owner reads after a complete QP return and synchronous SPI teardown. */
-bool sm62_spi_quiescent(void) { return !spiStarted; }
-#endif
-#if SPI_SELECT_MODE == SPI_SELECT_MODE_NONE
+#if SPI_SELECT_MODE == SPI_SELECT_MODE_NONE || defined(SM62_DUALCORE_RENDER)
 static pin_t current_slave_pin     = NO_PIN;
 static bool  current_cs_active_low = true;
 #endif
@@ -72,9 +72,11 @@ static bool  current_cs_active_low = true;
 static SPIConfig spiConfig;
 
 static inline void spi_select(void) {
+#if !defined(SM62_DUALCORE_RENDER)
     spiSelect(&SPI_DRIVER);
+#endif
 
-#if SPI_SELECT_MODE == SPI_SELECT_MODE_NONE
+#if SPI_SELECT_MODE == SPI_SELECT_MODE_NONE || defined(SM62_DUALCORE_RENDER)
     if (current_slave_pin != NO_PIN) {
         gpio_write_pin(current_slave_pin, current_cs_active_low ? 0 : 1);
     }
@@ -82,16 +84,21 @@ static inline void spi_select(void) {
 }
 
 static inline void spi_unselect(void) {
-#if SPI_SELECT_MODE == SPI_SELECT_MODE_NONE
+#if SPI_SELECT_MODE == SPI_SELECT_MODE_NONE || defined(SM62_DUALCORE_RENDER)
     if (current_slave_pin != NO_PIN) {
         gpio_write_pin(current_slave_pin, current_cs_active_low ? 1 : 0);
     }
 #endif
 
+#if !defined(SM62_DUALCORE_RENDER)
     spiUnselect(&SPI_DRIVER);
+#endif
 }
 
 __attribute__((weak)) void spi_init(void) {
+#if defined(SM62_DUALCORE_RENDER)
+    if (!sm62_render_is_owner()) return;
+#endif
     static bool is_initialised = false;
     if (!is_initialised) {
         is_initialised = true;
@@ -123,12 +130,19 @@ __attribute__((weak)) void spi_init(void) {
             palSetPadMode(PAL_PORT(SPI_MISO_PIN), PAL_PAD(SPI_MISO_PIN), SPI_MISO_FLAGS);
         }
 #endif
+#if defined(SM62_DUALCORE_RENDER)
+        sm62_display_spi_stop();
+#else
         spiStop(&SPI_DRIVER);
+#endif
         spiStarted = false;
     }
 }
 
 bool spi_start_extended(spi_start_config_t *start_config) {
+#if defined(SM62_DUALCORE_RENDER)
+    if (!sm62_render_is_owner() || sm62_display_spi_failed()) return false;
+#endif
 #if defined(QP_LVGL_SPI_TRANSACTION) && defined(MCU_RP)
     /* The SM62 synchronous transaction must be able to abandon a false
      * start without owning the mutex. Reject reentrancy and every RP config
@@ -401,7 +415,7 @@ bool spi_start_extended(spi_start_config_t *start_config) {
 #endif
 
     spiStarted = true;
-#if SPI_SELECT_MODE == SPI_SELECT_MODE_NONE
+#if SPI_SELECT_MODE == SPI_SELECT_MODE_NONE || defined(SM62_DUALCORE_RENDER)
     current_slave_pin     = start_config->slave_pin;
     current_cs_active_low = start_config->cs_active_low;
 #endif
@@ -417,7 +431,17 @@ bool spi_start_extended(spi_start_config_t *start_config) {
 #    error "Unsupported SPI_SELECT_MODE"
 #endif
 
+#if defined(SM62_DUALCORE_RENDER)
+    if (!sm62_display_spi_start(&spiConfig)) {
+        spiStarted = false;
+#    if (SPI_USE_MUTUAL_EXCLUSION == TRUE)
+        spiReleaseBus(&SPI_DRIVER);
+#    endif
+        return false;
+    }
+#else
     spiStart(&SPI_DRIVER, &spiConfig);
+#endif
     spi_select();
 
     return true;
@@ -435,32 +459,55 @@ bool spi_start(pin_t slavePin, bool lsbFirst, uint8_t mode, uint16_t divisor) {
 
 spi_status_t spi_write(uint8_t data) {
     uint8_t rxData;
+#if defined(SM62_DUALCORE_RENDER)
+    if (!sm62_display_spi_transfer(&data, &rxData, 1)) return SPI_STATUS_TIMEOUT;
+#else
     spiExchange(&SPI_DRIVER, 1, &data, &rxData);
+#endif
 
     return rxData;
 }
 
 spi_status_t spi_read(void) {
     uint8_t data = 0;
+#if defined(SM62_DUALCORE_RENDER)
+    if (!sm62_display_spi_transfer(NULL, &data, 1)) return SPI_STATUS_TIMEOUT;
+#else
     spiReceive(&SPI_DRIVER, 1, &data);
+#endif
 
     return data;
 }
 
 spi_status_t spi_transmit(const uint8_t *data, uint16_t length) {
+#if defined(SM62_DUALCORE_RENDER)
+    if (!sm62_display_spi_transfer(data, NULL, length)) return SPI_STATUS_TIMEOUT;
+#else
     spiSend(&SPI_DRIVER, length, data);
+#endif
     return SPI_STATUS_SUCCESS;
 }
 
 spi_status_t spi_receive(uint8_t *data, uint16_t length) {
+#if defined(SM62_DUALCORE_RENDER)
+    if (!sm62_display_spi_transfer(NULL, data, length)) return SPI_STATUS_TIMEOUT;
+#else
     spiReceive(&SPI_DRIVER, length, data);
+#endif
     return SPI_STATUS_SUCCESS;
 }
 
 void spi_stop(void) {
+#if defined(SM62_DUALCORE_RENDER)
+    if (!sm62_render_is_owner() || !spiStarted) return;
+#endif
     if (spiStarted) {
         spi_unselect();
+#if defined(SM62_DUALCORE_RENDER)
+        sm62_display_spi_stop();
+#else
         spiStop(&SPI_DRIVER);
+#endif
         spiStarted = false;
     }
 

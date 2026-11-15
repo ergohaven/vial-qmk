@@ -83,3 +83,13 @@ SM62_CODE_FLASH_LIMIT := 0x1f2000
 OPT_DEFS += -DSM62_CODE_FLASH_LIMIT=$(SM62_CODE_FLASH_LIMIT)
 LDFLAGS += -Wl,--defsym=FLASH_LEN=$(SM62_CODE_FLASH_LIMIT)
 LDFLAGS += -Wl,-T,keyboards/ergohaven/sm62/layout_reserve.ld
+
+# Development only; physical qualification is required before changing default.
+ifeq ($(SM62_DUALCORE_RENDER),yes)
+    OPT_DEFS += -DSM62_DUALCORE_RENDER -DSM62_ISOLATED_DEVELOPMENT -DQP_LVGL_SPI_TRANSACTION -UCRT0_EXTRA_CORES_NUMBER -DCRT0_EXTRA_CORES_NUMBER=1
+    SRC += render_owner.c render_exchange.c dualcore_trace.c display_spi.c
+    LDFLAGS += -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref
+    ifeq ($(SM62_SCAN_TRACE),yes)
+        OPT_DEFS += -DSM62_SCAN_TRACE
+    endif
+endif

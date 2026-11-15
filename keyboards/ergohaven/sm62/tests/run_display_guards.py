@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Source-backed service guards and painter lifecycle, with guard mutations."""
+"""Legacy flush lifecycle and isolated inert input hook, with guard mutations.
+
+The isolated production flush is compiled by run_render_owner.py instead.
+"""
 from pathlib import Path
 import argparse,subprocess,json,resource
 HERE=Path(__file__).resolve().parent
@@ -52,11 +55,11 @@ main='''int main(int argc,char**argv){(void)argc;unsigned mode=atoi(argv[1]);
 if(mode==0){qp_lvgl_flush_input_service();assert(!calls);puts("PASS initialization");return 0;}
 protocol_keyboard_task();assert(calls==1 && max_depth==1 && sm62_input_initialized && !sm62_input_running);
 puts("PASS ordinary-task + callback and wrapper reentry");
+#ifdef SM62_DUALCORE_RENDER
+qp_lvgl_flush_input_service();assert(calls==1);puts("PASS isolated input hook inert");return 0;
+#endif
 lv_area_t a={0,239,0,3};lv_color_t p[960];lv_disp_drv_t d={0};
 unsigned extra=1;
-#ifdef SM62_DUALCORE_RENDER
-extra=0;
-#endif
 qp_lvgl_flush(&d,&a,p);assert(calls==1+extra && flushes==1 && !frames && ready==1);
 d.last=true;qp_lvgl_flush(&d,&a,p);assert(calls==1+2*extra && flushes==2 && frames==1 && ready==2);
 selected_display=0;qp_lvgl_flush(&d,&a,p);assert(calls==1+2*extra && flushes==2 && frames==1 && ready==2);
@@ -71,12 +74,12 @@ d.last=true;qp_lvgl_flush(&d,&a,p);assert(!calls && flushes==2 && frames==1 && r
 puts("PASS weak no-op without board override");return 0;}
 '''
 results=[]
-for name,src,arg,expected in [('normal-init',service,0,0),('normal-lifecycle',service,1,0),('dualcore', '#define SM62_DUALCORE_RENDER\n'+service,1,0),('generic',None,0,0),('mutation-bus',service,1,-6),('mutation-init',service.replace('!sm62_input_initialized || ',''),0,-6),('mutation-reentry',service.replace('    if (sm62_input_running) return;',''),1,-6)]:
+for name,src,arg,expected in [('normal-init',service,0,0),('normal-lifecycle',service,1,0),('isolated-input-hook', '#define SM62_DUALCORE_RENDER\n'+service,1,0),('generic',None,0,0),('mutation-bus',service,1,-6),('mutation-init',service.replace('!sm62_input_initialized || ',''),0,-6),('mutation-reentry',service.replace('    if (sm62_input_running) return;',''),1,-6)]:
  transfer=qp_flush
  if name=='mutation-bus':
   assert transfer.count('    qp_comms_stop(device);')==1
   transfer=transfer.replace('    qp_comms_stop(device);','    qp_lvgl_flush_input_service();\n    qp_comms_stop(device);')
- c=OUT/(name+'.c');c.write_text(generic_base+transfer+flush+generic_main if src is None else base+src+transfer+flush+main);exe=OUT/name
+ c=OUT/(name+'.c');c.write_text(generic_base+transfer+flush+generic_main if src is None else base+transfer+flush+src+main);exe=OUT/name
  r=subprocess.run(['gcc','-std=c11','-O1','-Wall','-Wextra','-Werror',str(c),str(default),'-o',str(exe)],capture_output=True,text=True);assert r.returncode==0,r.stderr
  r=subprocess.run([str(exe),str(arg)],capture_output=True,text=True);(OUT/(name+'.log')).write_text(r.stdout+r.stderr)
  assert r.returncode==expected,(name,r.returncode,r.stderr)

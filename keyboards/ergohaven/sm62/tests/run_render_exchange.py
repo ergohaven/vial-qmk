@@ -42,6 +42,7 @@ header = '''
 #include <stdlib.h>
 #include <string.h>
 #include "render_exchange.h"
+#define KEYBOARD_ergohaven_sm62
 #define SM62_RENDER_NATIVE_TEST
 #define SM62_DUALCORE_RENDER
 #define DYNAMIC_KEYMAP_LAYER_COUNT 16
@@ -51,6 +52,7 @@ typedef struct {uint16_t qsid;} qmk_settings_proto_t;
 '''+hid+strip((HERE.parent / "sm62_settings.h").read_text())+'\n'+strip((HERE.parent / "render_owner.h").read_text())
 fixture = r'''
 static uint16_t code=7;
+static bool side_left=true;
 static uint32_t clock_ms, native_reads, effective_reads;
 static hid_data_t hid;
 static sm62_side_settings_t settings;
@@ -61,7 +63,7 @@ void backlight_init(void) {}
 void backlight_level_noeeprom(uint8_t x) { (void)x; }
 void sm62_dc_trace_key(void) {}
 static uint32_t timer_read32(void) { return clock_ms++; }
-static bool is_keyboard_left(void) { return true; }
+static bool is_keyboard_left(void) { return side_left; }
 static bool is_keyboard_master(void) { return true; }
 static uint8_t get_current_layer(void) { return 0; }
 static uint8_t get_cur_lang(void) { return 0; }
@@ -88,10 +90,10 @@ static uint32_t get_split_lcd_timeout_ms(void) { return 600000; }
 static uint8_t matrix_get_row(uint8_t r) { (void)r; return 0; }
 static const char *sm62_effective_layer_name(uint8_t l) { (void)l; return "fixture"; }
 static uint16_t hid_sm62_default_keycode(uint8_t l,uint8_t r,uint8_t c) {
-    (void)l;(void)r;(void)c; native_reads++; return code;
+    (void)l;(void)r;(void)c; native_reads++; return code+r;
 }
 static uint16_t sm62_effective_keycode(uint8_t l,uint8_t r,uint8_t c) {
-    (void)l;(void)r;(void)c; effective_reads++; return code;
+    (void)l;(void)r;(void)c; effective_reads++; return code+r;
 }
 static bool hid_app_layout_get_visual(uint8_t l,uint8_t c,uint8_t *v,uint8_t *s) {
     (void)l;(void)c;*v=1;*s=2;return true;
@@ -132,8 +134,8 @@ static sm62_render_snapshot_t *publish(void) {
     for (unsigned i=0; dc_exchange.written==before; i++) { assert(i<1000); step(); }
     sm62_render_snapshot_t *s=sm62_exchange_adopt(&dc_exchange);
     assert(s);
-    for (unsigned l=0;l<16;l++) for(unsigned r=0;r<10;r++) for(unsigned c=0;c<7;c++) {
-        assert(s->native_codes[l][r][c]==code && s->effective_codes[l][r][c]==code);
+    for (unsigned l=0;l<16;l++) for(unsigned r=0;r<5;r++) for(unsigned c=0;c<7;c++) {
+        assert(s->native_codes[l][r][c]==code+r+(side_left?0:5) && s->effective_codes[l][r][c]==code+r+(side_left?0:5));
     }
     return s;
 }
@@ -163,6 +165,10 @@ int main(void) {
     uint8_t bytes[]={13}; dynamic_keymap_set_buffer(0,1,bytes); publish();
     /* Native reset uses the same production setter for every physical cell. */
     dynamic_keymap_reset();
+    publish();
+    side_left=false;
+    s=publish(); assert(!s->left && s->native_codes[15][4][6]==code+9);
+    side_left=true;
     publish();
     puts("PASS bounded capture, full-slot input latches, immutable leases and Vial edits");
 }

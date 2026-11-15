@@ -61,6 +61,9 @@ class NativeCI(unittest.TestCase):
             'keyboards/ergohaven/sm62/tests/run_scan_timing.py',
             'keyboards/ergohaven/sm62/tests/run_render_input.py',
             'keyboards/ergohaven/sm62/tests/run_display_guards.py',
+            'keyboards/ergohaven/sm62/tests/run_render_isolation.py',
+            'keyboards/ergohaven/sm62/tests/run_render_owner.py',
+            'keyboards/ergohaven/sm62/tests/run_render_lifecycle.py',
             'keyboards/ergohaven/sm62/tests/run_peer_capture.py',
         ])
         for script in scripts:

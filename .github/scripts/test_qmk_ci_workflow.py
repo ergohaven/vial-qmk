@@ -38,12 +38,12 @@ class QMKCIContract(unittest.TestCase):
             self.fail('Required-check shell gate is missing')
         script = 'set -euo pipefail\n' + textwrap.dedent(match.group(1))
         good = dict(PLAN_RESULT='success', SCOPE_RESULT='success', BUILD_RUN='true', NATIVE_RUN='true',
-                    BUILD_RESULT='success', NATIVE_RESULT='success', MERGE_RESULT='success',
+                    BUILD_RESULT='success', ISOLATED_RESULT='success', NATIVE_RESULT='success', MERGE_RESULT='success',
                     BUILD_REASON='full', NATIVE_REASON='full', BUILD_SOURCE='', NATIVE_SOURCE='')
-        cases = [(good, 0), ({**good, 'BUILD_RUN':'false', 'BUILD_RESULT':'skipped', 'MERGE_RESULT':'skipped'}, 0),
-                 ({**good, 'BUILD_RUN':'false', 'BUILD_RESULT':'skipped', 'MERGE_RESULT':'skipped',
+        cases = [(good, 0), ({**good, 'BUILD_RUN':'false', 'BUILD_RESULT':'skipped', 'ISOLATED_RESULT':'skipped', 'MERGE_RESULT':'skipped'}, 0),
+                 ({**good, 'BUILD_RUN':'false', 'BUILD_RESULT':'skipped', 'ISOLATED_RESULT':'skipped', 'MERGE_RESULT':'skipped',
                    'NATIVE_RUN':'false', 'NATIVE_RESULT':'skipped'}, 0)]
-        for key in ('PLAN_RESULT', 'SCOPE_RESULT', 'BUILD_RESULT', 'NATIVE_RESULT', 'MERGE_RESULT'):
+        for key in ('PLAN_RESULT', 'SCOPE_RESULT', 'BUILD_RESULT', 'ISOLATED_RESULT', 'NATIVE_RESULT', 'MERGE_RESULT'):
             cases.append(({**good, key:'failure'}, 1))
             cases.append(({**good, key:'skipped'}, 1))
         for key in ('BUILD_RUN', 'NATIVE_RUN'):

@@ -6,13 +6,21 @@
 #undef SERIAL_NUMBER
 #define SERIAL_NUMBER_USE_HARDWARE_ID TRUE
 #define SERIAL_NUMBER_PREFIX "vial:f64c2b3c:"
+#if !defined(SM62_DUALCORE_RENDER)
 #define SM62_OLD_RENDERER 1
+#endif
 /* OLD line only: synchronous historical QP/LVGL on core0. Core1 is not started.
  * Ten 240x28 RGB565 strips (13440-byte LCD draw buffer), plus the exact
  * 240x224 RGB565 Orbit scene (107520 bytes). No decoder/indexed substitute.
  * Keyboard scans run between flushed strips on core0; protocol/housekeeping
  * retain their ordinary main-loop scheduling. Physical gaps remain unmeasured. */
+#if defined(SM62_DUALCORE_RENDER)
+/* Keep the exact Orbit scene and all-layer snapshots within RP2040 SRAM. */
+#define QP_LVGL_BUFFER_DIVISOR 56
+#define QP_LVGL_BUFFER_ROWS 5
+#else
 #define QP_LVGL_BUFFER_ROWS 28
+#endif
 /* Core housekeeping_task owns the sole user dispatch, after the kb hook. */
 #define SM62_SINGLE_USER_HOUSEKEEPING
 

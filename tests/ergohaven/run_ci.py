@@ -60,6 +60,9 @@ def commands(output, lvgl):
         ['keyboards/ergohaven/sm62/tests/run_scan_timing.py', '--output', str(output / 'sm62-scan')],
         ['keyboards/ergohaven/sm62/tests/run_render_input.py', '--output', str(output / 'sm62-render-input')],
         ['keyboards/ergohaven/sm62/tests/run_display_guards.py', '--output', str(output / 'sm62-display-guards')],
+        ['keyboards/ergohaven/sm62/tests/run_render_isolation.py', '--output', str(output / 'sm62-isolation')],
+        ['keyboards/ergohaven/sm62/tests/run_render_owner.py', '--output', str(output / 'sm62-owner')],
+        ['keyboards/ergohaven/sm62/tests/run_render_lifecycle.py', '--output', str(output / 'sm62-lifecycle')],
         ['keyboards/ergohaven/sm62/tests/run_peer_capture.py', '--out', str(output / 'sm62-capture')],
     ]]
 

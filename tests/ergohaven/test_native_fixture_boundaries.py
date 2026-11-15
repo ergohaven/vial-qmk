@@ -152,7 +152,7 @@ class NativeFixtureBoundaries(unittest.TestCase):
         runner = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(runner)
         commands = runner.commands(Path('/external/output'), Path('/external/lvgl'))
-        self.assertEqual(len(commands), 49)
+        self.assertEqual(len(commands), 52)
         restart = next(c for c in commands if c[1].endswith('test_resident100_restart.py'))
         self.assertEqual(restart[3], '/external/output/resident100/fixtures')
         resident = Path(__file__).with_name('run_resident100.py').read_text()
