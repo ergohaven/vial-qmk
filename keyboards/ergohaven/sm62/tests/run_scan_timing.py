@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Native scan/debounce/Vial-TD + actual KEYMAP/LVGL. Injected costs are NOT MCU measurements."""
 import sys
+import os
 import json
 import hashlib
 import subprocess
@@ -31,7 +32,7 @@ typedef uint32_t fast_timer_t;
 #define MAKE_TICK_EVENT ((keyevent_t){.type=TICK_EVENT,.time=now})
 #define MAKE_KEYEVENT(r,c,p) ((keyevent_t){.key={.row=r,.col=c},.pressed=p,.time=now,.type=KEY_EVENT})
 static matrix_row_t raw_rows[MATRIX_ROWS], cooked_rows[MATRIX_ROWS];
-static unsigned release_at, block_at=110, block_cost, split_cost;
+static unsigned release_at, block_at=110, block_cost, split_cost, cpu_cost;
 static unsigned raw_release_at, cooked_release_at, hold_at, tap_at, last_scan, max_scan_gap;
 static bool fired, physical_down;
 static void process_record(keyrecord_t *r) {
@@ -118,7 +119,7 @@ static void sm62_settings_sync_task(void){}
 static void sm62_diag_house(uint32_t t){(void)t;}
 static void hid_app_layout_split_task(void){if(fired && split_cost){printf("modeled_split begin=%u cost=%u\\n",now,split_cost);now+=split_cost;split_cost=0;}}
 static void qp_internal_task(void){
- if(!fired && now>=block_at){fired=true;if(!off)lv_obj_invalidate(lv_scr_act());cost_due=true;lv_refr_now(NULL);}
+ if(!fired && now>=block_at){fired=true;if(!off)lv_obj_invalidate(lv_scr_act());cost_due=true;if(!off)now+=cpu_cost;lv_refr_now(NULL);}
 }
 '''
 main_source=source('quantum/main.c')
@@ -150,10 +151,14 @@ for off in [1,0]:
  log=r.stdout+r.stderr;(a.output/f'off{off}-split200.log').write_text(log);print(log,end='');results.append({'off':off,'split_cost':200,'exit':r.returncode,'log':log})
 (a.output/'results.json').write_text(json.dumps(results,indent=2))
 (a.output/'generated.sha256').write_text(hashlib.sha256(c.read_bytes()).hexdigest()+'  scan_timing.c\n')
-assert len(results)==26 and all(r['exit']==0 for r in results)
+for off in [1,0]:
+ r=subprocess.run([str(a.output/'scan_timing'),str(off),'0','0','150'],capture_output=True,text=True,env=dict(os.environ,SCAN_CPU_COST_MS='200'))
+ log=r.stdout+r.stderr;(a.output/f'off{off}-cpu200.log').write_text(log)
+ print(log,end='');results.append({'off':off,'cpu_cost':200,'exit':r.returncode,'log':log})
+assert len(results)==28 and all(r['exit']==0 for r in results)
+(a.output/'results.json').write_text(json.dumps(results,indent=2))
 # A separate behavioral assertion must actually go RED, not merely print HOLD.
 # This is RED of the injected scheduling mechanism, NOT measured physical cause.
-import os
 import resource
 resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
 red=[]
@@ -163,4 +168,8 @@ for off in [1,0]:
  red.append({'off':off,'exit':r.returncode,'log':r.stdout+r.stderr})
 (a.output/'red-control.json').write_text(json.dumps(red,indent=2))
 assert red[0]['exit']==0 and red[1]['exit']==-6
-print('CHARACTERIZATION 26/26 executed; EXPECT_TAP: OFF exit 0, ON SIGABRT (-6), uninterruptible modeled cost 200ms. No physical GREEN.')
+for off in [1,0]:
+ r=subprocess.run([str(a.output/'scan_timing'),str(off),'0','0','150'],capture_output=True,text=True,env=dict(os.environ,EXPECT_TAP='1',SCAN_CPU_COST_MS='200'))
+ (a.output/f'EXPECT_TAP-cpu200-off{off}.log').write_text(r.stdout+r.stderr)
+ assert r.returncode==(0 if off else -6),r.stdout+r.stderr
+print('CHARACTERIZATION 28/28; transfer200 and CPU200 EXPECT_TAP: OFF exit 0, ON SIGABRT (-6). Synthetic timing, no physical qualification.')

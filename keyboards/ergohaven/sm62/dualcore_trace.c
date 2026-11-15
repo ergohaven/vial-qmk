@@ -20,6 +20,21 @@ static uint32_t dc_words[SM62_DC_TRACE_WORDS]; /* core1 until done; then immutab
 static uint32_t dc_owner_token, dc_panel_start[3];
 static bool dc_live, dc_started, dc_in_part;
 
+#if defined(SM62_SCAN_TRACE)
+static uint32_t dc_scans, dc_scan_gap, dc_scan_last;
+static bool dc_scan_seen;
+#endif
+void sm62_dc_trace_scan(void) {
+#if defined(SM62_SCAN_TRACE)
+    uint32_t now = NOW();
+    uint32_t gap = now - LOAD(&dc_scan_last);
+    if (dc_scan_seen && gap > LOAD(&dc_scan_gap)) STORE(&dc_scan_gap, gap);
+    STORE(&dc_scan_last, now);
+    STORE(&dc_scans, LOAD(&dc_scans) + 1U);
+    dc_scan_seen = true;
+#endif
+}
+
 void sm62_dc_trace_loop(void) { STORE(&dc_loops,LOAD(&dc_loops)+1U); }
 void sm62_dc_trace_key(void) { STORE(&dc_keys,LOAD(&dc_keys)+1U); }
 void sm62_dc_trace_packet(const uint8_t *d,uint8_t n) {
@@ -31,6 +46,10 @@ static void dc_finish(uint32_t flags) {
     dc_words[6]=NOW(); dc_words[9]=sm62_render_screen();
     dc_words[12]=LOAD(&dc_loops); dc_words[14]=LOAD(&dc_keys); dc_words[16]=LOAD(&dc_packets);
     dc_words[18]=sm62_render_frames();
+#if defined(SM62_SCAN_TRACE)
+    dc_words[20]=LOAD(&dc_scans); dc_words[21]=LOAD(&dc_scan_gap);
+    dc_words[22]=LOAD(&dc_scan_last); dc_words[23]=1U;
+#endif
     if (dc_words[16]!=dc_words[15]) dc_words[7]|=2U;
     if (dc_started && dc_words[18]-dc_words[17]!=1U) dc_words[7]|=8U;
     dc_words[19]=NOW(); dc_live=false; dc_in_part=false;

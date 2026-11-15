@@ -2,6 +2,7 @@ int main(int argc,char **argv) {
     assert(argc==5);setbuf(stdout,NULL);
     off=atoi(argv[1]);block_cost=atoi(argv[2]);split_cost=atoi(argv[3]);release_at=atoi(argv[4]);
     unsigned initial_split_cost=split_cost;
+    const char *cpu=getenv("SCAN_CPU_COST_MS");cpu_cost=cpu ? atoi(cpu) : 0;
     now=90;combo_disable();lv_init();
     static lv_disp_draw_buf_t buf;static lv_color_t pixels[240*4];
     lv_disp_draw_buf_init(&buf,pixels,NULL,240*4);
@@ -30,7 +31,7 @@ int main(int argc,char **argv) {
      * t=302, after the t=301 hold decision. Split work still resumes on the
      * next tick, with its original boundary. These are synthetic-cost controls,
      * not MCU timing measurements or a shipping TD-enabled configuration. */
-    bool expected_hold=(initial_split_cost>=181 || (!off && block_cost>=182));
+    bool expected_hold=(initial_split_cost>=181 || (!off && (block_cost>=182 || cpu_cost>=182)));
     if(getenv("EXPECT_TAP"))assert(adds[KC_5]==1 && adds[KC_T]==0);
     assert(adds[KC_T]==expected_hold && adds[KC_5]==!expected_hold && adds[KC_R]==0);
     assert(dels[KC_T]==adds[KC_T] && dels[KC_5]==adds[KC_5]);

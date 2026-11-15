@@ -9,6 +9,7 @@
 bool sm62_dc_diag_raw(uint8_t *data, uint8_t length); /* core0 only */
 void sm62_dc_trace_poll(void); /* core1 safe boundary */
 void sm62_dc_trace_loop(void); /* core0 only */
+void sm62_dc_trace_scan(void); /* core0, immediately before local GPIO sampling */
 void sm62_dc_trace_key(void); /* core0 only */
 void sm62_dc_trace_packet(const uint8_t *data, uint8_t length); /* core0 */
 void sm62_dc_trace_abort(void); /* core1 only */
