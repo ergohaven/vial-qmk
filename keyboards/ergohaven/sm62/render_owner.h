@@ -27,6 +27,7 @@ typedef struct {
 _Static_assert(sizeof(sm62_render_snapshot_t) <= SM62_SNAPSHOT_BYTES, "snapshot exceeds bounded exchange");
 
 void sm62_render_capture(void); /* core0 only, nonblocking on full exchange */
+void sm62_render_keymap_changed(void); /* core0 content mutation, including Vial */
 void sm62_render_ready(void); /* core0 after native post-init */
 void sm62_render_input(uint8_t row, uint8_t col, bool pressed); /* core0 only */
 bool sm62_render_is_owner(void);

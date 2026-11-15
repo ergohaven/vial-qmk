@@ -53,6 +53,42 @@ static uint64_t dc_owner_presses, dc_owner_releases;
 static bool dc_owner_last;
 static uint8_t dc_owner_row, dc_owner_col, dc_owner_commands;
 
+/* Cache in the producer's unleased slot. No third all-layer allocation and
+ * no whole-map copy on ordinary input turns. Equality handles counter wrap;
+ * explicit validity distinguishes an uninitialized slot from generation 0. */
+static uint32_t dc_keymap_generation, dc_slot_generation[2], dc_preparing_generation;
+static bool dc_slot_valid[2];
+static uint16_t dc_preparing_cell;
+void sm62_render_keymap_changed(void) {
+    ++dc_keymap_generation;
+    dc_slot_valid[0] = dc_slot_valid[1] = false;
+    dc_preparing_cell = 0;
+}
+static bool dc_prepare_keymap(sm62_render_snapshot_t *s) {
+    uint8_t slot = dc_exchange.written & 1U;
+    uint32_t generation = dc_keymap_generation;
+    if (dc_slot_valid[slot] && dc_slot_generation[slot] == generation) return true;
+    if (dc_preparing_generation != generation) {
+        dc_preparing_generation = generation;
+        dc_preparing_cell = 0;
+    }
+    for (uint8_t budget = 0; budget < 8 && dc_preparing_cell < 16U*10U*7U; ++budget) {
+        uint16_t cell = dc_preparing_cell++;
+        uint8_t l = cell / 70U, r = (cell % 70U) / 7U, c = cell % 7U;
+        if (r == 0 && c == 0) {
+            strncpy(s->names[l], sm62_effective_layer_name(l), sizeof(s->names[l])-1U);
+            s->names[l][sizeof(s->names[l])-1U] = '\0';
+        }
+        s->native_codes[l][r][c] = hid_sm62_default_keycode(l,r,c);
+        s->effective_codes[l][r][c] = sm62_effective_keycode(l,r,c);
+    }
+    if (dc_preparing_cell < 16U*10U*7U) return false;
+    dc_slot_generation[slot] = generation;
+    dc_slot_valid[slot] = true;
+    dc_preparing_cell = 0;
+    return true;
+}
+
 bool sm62_render_is_owner(void) { return OWNER(); }
 bool sm62_render_busy(void) { return LOAD(&dc_busy) != 0; }
 bool sm62_render_enabled(void) { return LOAD(&dc_enabled) != 0; }
@@ -101,7 +137,7 @@ void sm62_render_capture(void) {
     }
     sm62_render_snapshot_t *s=sm62_exchange_reserve(&dc_exchange);
     if (!s) return;
-    memset(s,0,sizeof(*s));
+    if (!dc_prepare_keymap(s)) return;
     s->captured_at=timer_read32();
     /* Serial callbacks on core0 cannot preempt this short value copy. Never
      * hold this lock while fetching keymaps/fonts, rendering or parking. */
@@ -122,14 +158,6 @@ void sm62_render_capture(void) {
     s->boot_elapsed=sm62_display_boot_elapsed(); s->mode_pending=sm62_local_mode_transition_pending();
     s->brightness=get_split_lcd_brightness(); s->timeout_ms=get_split_lcd_timeout_ms();
     for (uint8_t r=0;r<10;r++) s->matrix[r]=(uint8_t)matrix_get_row(r);
-    for (uint8_t l=0;l<16;l++) {
-        const char *name=sm62_effective_layer_name(l);
-        strncpy(s->names[l],name,sizeof(s->names[l])-1U);
-        for (uint8_t r=0;r<10;r++) for (uint8_t c=0;c<7;c++) {
-            s->native_codes[l][r][c]=hid_sm62_default_keycode(l,r,c);
-            s->effective_codes[l][r][c]=sm62_effective_keycode(l,r,c);
-        }
-    }
     for (uint8_t c=0;c<62;c++) {
         if (!hid_app_layout_get_visual(s->layer,c,&s->visuals[c],&s->states[c])) s->visuals[c]=UINT8_MAX;
     }
@@ -140,6 +168,10 @@ void sm62_render_capture(void) {
     if (dc_background_override) memcpy(s->background,dc_background,3);
     s->command_bits=dc_commands; s->button_style=dc_button;
     s->presses=dc_presses; s->releases=dc_releases; s->last_press=dc_last_press; s->last_row=dc_last_row; s->last_col=dc_last_col;
+    /* Readers such as host-lease checks may expire a layout during capture.
+     * Never publish tables prepared before that content change. */
+    if (!dc_slot_valid[dc_exchange.written & 1U] ||
+        dc_slot_generation[dc_exchange.written & 1U] != dc_keymap_generation) return;
     sm62_exchange_publish(&dc_exchange);
     dc_presses=dc_releases=0; dc_last_press=false; dc_commands=0;
 }
