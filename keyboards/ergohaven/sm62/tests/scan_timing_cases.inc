@@ -25,12 +25,12 @@ int main(int argc,char **argv) {
         now++;
     }
     printf("RESULT tap=%u hold=%u double=%u raw_release=%u cooked_release=%u hold_observed=%u tap_observed=%u max_scan_gap=%u flushes=%u\n",adds[KC_5],adds[KC_T],adds[KC_R],raw_release_at,cooked_release_at,hold_at,tap_at,max_scan_gap,flushes);
-    /* Shipping SINGLE has no post-flush input-service call in qp_lvgl_flush:
-     * modeled SPI work resumes scanning on the next loop tick. At cost 180,
-     * release is delivered at t=301 before TD expiry; cost 181 delivers it at
-     * t=302, after the t=301 hold decision. These are synthetic-cost controls,
+    /* The flush callback now scans before the next loop tick. At SPI cost 181,
+     * release is delivered at t=301 before TD expiry; cost 182 delivers it at
+     * t=302, after the t=301 hold decision. Split work still resumes on the
+     * next tick, with its original boundary. These are synthetic-cost controls,
      * not MCU timing measurements or a shipping TD-enabled configuration. */
-    bool expected_hold=(initial_split_cost>=181 || (!off && block_cost>=181));
+    bool expected_hold=(initial_split_cost>=181 || (!off && block_cost>=182));
     if(getenv("EXPECT_TAP"))assert(adds[KC_5]==1 && adds[KC_T]==0);
     assert(adds[KC_T]==expected_hold && adds[KC_5]==!expected_hold && adds[KC_R]==0);
     assert(dels[KC_T]==adds[KC_T] && dels[KC_5]==adds[KC_5]);

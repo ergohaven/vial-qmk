@@ -33,12 +33,17 @@ void *           color_buffer     = NULL;
 /* Boards may release frame leases only once the final LVGL strip is sent. */
 __attribute__((weak)) void display_frame_completed(void) {}
 
+/* Optional input service after each synchronous strip transfer. Overrides must
+ * not reenter the painter; boards without an override keep their usual loop. */
+__attribute__((weak)) void qp_lvgl_flush_input_service(void) {}
+
 void qp_lvgl_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p) {
     if (selected_display) {
         uint32_t number_pixels = (area->x2 - area->x1 + 1) * (area->y2 - area->y1 + 1);
         qp_viewport(selected_display, area->x1, area->y1, area->x2, area->y2);
         qp_pixdata(selected_display, (void *)color_p, number_pixels);
         qp_flush(selected_display);
+        qp_lvgl_flush_input_service();
         if (lv_disp_flush_is_last(disp)) {
             display_frame_completed();
         }
