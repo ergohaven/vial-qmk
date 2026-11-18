@@ -10,8 +10,8 @@
 /* OLD line only: synchronous historical QP/LVGL on core0. Core1 is not started.
  * Ten 240x28 RGB565 strips (13440-byte LCD draw buffer), plus the exact
  * 240x224 RGB565 Orbit scene (107520 bytes). No decoder/indexed substitute.
- * Native/USB/split keep their ordinary main-loop scheduling; no flush-time
- * recursive keyboard/HID service is introduced. Physical gaps remain unmeasured. */
+ * Keyboard scans run between flushed strips on core0; protocol/housekeeping
+ * retain their ordinary main-loop scheduling. Physical gaps remain unmeasured. */
 #define QP_LVGL_BUFFER_ROWS 28
 /* Core housekeeping_task owns the sole user dispatch, after the kb hook. */
 #define SM62_SINGLE_USER_HOUSEKEEPING

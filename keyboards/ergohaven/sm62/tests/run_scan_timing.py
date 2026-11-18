@@ -140,7 +140,7 @@ if r.returncode:print(r.stdout+r.stderr);raise SystemExit(r.returncode)
 results=[]
 # Separate identical physical edges, native actions and term; only modeled work changes.
 for off in [1,0]:
- for cost in [0,16,50,150,180,181,189,190,191,200,220]:
+ for cost in [0,16,50,150,180,181,182,189,190,191,200,220]:
   r=subprocess.run([str(a.output/'scan_timing'),str(off),str(cost),'0','150'],capture_output=True,text=True)
   log=r.stdout+r.stderr;(a.output/f'off{off}-spi{cost}.log').write_text(log)
   print(log,end='');results.append({'off':off,'spi_cost':cost,'exit':r.returncode,'log':log})
@@ -150,7 +150,7 @@ for off in [1,0]:
  log=r.stdout+r.stderr;(a.output/f'off{off}-split200.log').write_text(log);print(log,end='');results.append({'off':off,'split_cost':200,'exit':r.returncode,'log':log})
 (a.output/'results.json').write_text(json.dumps(results,indent=2))
 (a.output/'generated.sha256').write_text(hashlib.sha256(c.read_bytes()).hexdigest()+'  scan_timing.c\n')
-assert len(results)==24 and all(r['exit']==0 for r in results)
+assert len(results)==26 and all(r['exit']==0 for r in results)
 # A separate behavioral assertion must actually go RED, not merely print HOLD.
 # This is RED of the injected scheduling mechanism, NOT measured physical cause.
 import os
@@ -163,4 +163,4 @@ for off in [1,0]:
  red.append({'off':off,'exit':r.returncode,'log':r.stdout+r.stderr})
 (a.output/'red-control.json').write_text(json.dumps(red,indent=2))
 assert red[0]['exit']==0 and red[1]['exit']==-6
-print('CHARACTERIZATION 24/24 executed; EXPECT_TAP: OFF exit 0, ON SIGABRT (-6), uninterruptible modeled cost 200ms. No physical GREEN.')
+print('CHARACTERIZATION 26/26 executed; EXPECT_TAP: OFF exit 0, ON SIGABRT (-6), uninterruptible modeled cost 200ms. No physical GREEN.')

@@ -59,6 +59,8 @@ def commands(output, lvgl):
         ['keyboards/ergohaven/sm62/tests/run_pipeline.py', '--output', str(output / 'sm62-pipeline')],
         ['keyboards/ergohaven/sm62/tests/run_repeat_display.py', '--output', str(output / 'sm62-repeat')],
         ['keyboards/ergohaven/sm62/tests/run_scan_timing.py', '--output', str(output / 'sm62-scan')],
+        ['keyboards/ergohaven/sm62/tests/run_render_input.py', '--output', str(output / 'sm62-render-input')],
+        ['keyboards/ergohaven/sm62/tests/run_display_guards.py', '--output', str(output / 'sm62-display-guards')],
         ['keyboards/ergohaven/sm62/tests/run_peer_capture.py', '--out', str(output / 'sm62-capture')],
     ]]
 
