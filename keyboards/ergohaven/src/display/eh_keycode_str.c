@@ -31,6 +31,14 @@ bool eh_keycode_str_uses_mac_modifiers(void) {
 #endif
 }
 
+static const char *alt_modifier_label(void) {
+#ifdef KEYBOARD_ergohaven_macropad
+    return EH_SYMBOL_ALT;
+#else
+    return eh_keycode_str_uses_mac_modifiers() ? "OPT" : EH_SYMBOL_ALT;
+#endif
+}
+
 const char *basic_keycode_to_str(uint16_t keycode) {
     static char buf[16];
     switch (keycode) {
@@ -297,7 +305,7 @@ const char *basic_keycode_to_str(uint16_t keycode) {
             return EH_SYMBOL_SFT;
         case KC_LEFT_ALT:
         case KC_RIGHT_ALT:
-            return eh_keycode_str_uses_mac_modifiers() ? "OPT" : EH_SYMBOL_ALT;
+            return alt_modifier_label();
         case KC_LEFT_GUI:
         case KC_RIGHT_GUI:
             return eh_keycode_str_uses_mac_modifiers() ? "CMD" : EH_SYMBOL_GUI;
@@ -738,7 +746,7 @@ const char *mods_to_str(uint8_t mods) {
     if (gui) strcat(mod_str, eh_keycode_str_uses_mac_modifiers() ? "CMD" : EH_SYMBOL_GUI);
     if (ctrl) strcat(mod_str, EH_SYMBOL_CTL);
     if (shift) strcat(mod_str, EH_SYMBOL_SFT);
-    if (alt) strcat(mod_str, eh_keycode_str_uses_mac_modifiers() ? "OPT" : EH_SYMBOL_ALT);
+    if (alt) strcat(mod_str, alt_modifier_label());
     return mod_str;
 }
 
