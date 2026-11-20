@@ -7,7 +7,7 @@ on:
 jobs:
 
   build-ergohaven:
-    uses: ./.github/workflows/build-ergohaven.yml
+    uses: ./.github/workflows/release-validation.yml
 
   pre-release:
     name: Pre-Release

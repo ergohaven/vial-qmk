@@ -195,7 +195,9 @@ allocator locks and strip/flash service are substituted and listed in JSON.
 Both `--side left` and `--side right` workloads assert that real screen keycode
 queries stay within their local rows; keycode values themselves are fixtures.
 This checks resources and build wiring, not RP2040 boot, scheduling, DMA or
-electrical behavior. The isolated CI artifact is separate from release UF2s.
+electrical behavior. In GitHub Actions, run **CI** manually with **Build SM62
+isolated development firmware** enabled to download the
+`sm62-isolated-development` artifact. Release builds retain the default renderer.
 
 See [the qualification ledger](RENDER-INPUT-QUALIFICATION.md) for the remaining
 hardware gate. Do not enable the default from native or emulated results alone.

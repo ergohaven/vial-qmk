@@ -1,9 +1,7 @@
 name: Upstream compatibility
 
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: '17 3 * * 1'
+  workflow_call:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
