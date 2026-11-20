@@ -51,6 +51,10 @@ uint16_t dynamic_keymap_get_keycode(uint8_t layer, uint8_t row, uint8_t column) 
 
 void dynamic_keymap_set_keycode(uint8_t layer, uint8_t row, uint8_t column, uint16_t keycode) {
     nvm_dynamic_keymap_update_keycode(layer, row, column, keycode);
+#if defined(SM62_DUALCORE_RENDER)
+    void sm62_render_keymap_changed(void);
+    sm62_render_keymap_changed();
+#endif
 }
 
 #ifdef ENCODER_MAP_ENABLE
@@ -235,6 +239,10 @@ void dynamic_keymap_get_buffer(uint16_t offset, uint16_t size, uint8_t *data) {
 
 void dynamic_keymap_set_buffer(uint16_t offset, uint16_t size, uint8_t *data) {
     nvm_dynamic_keymap_update_buffer(offset, size, data);
+#if defined(SM62_DUALCORE_RENDER)
+    void sm62_render_keymap_changed(void);
+    sm62_render_keymap_changed();
+#endif
 }
 
 uint16_t keycode_at_keymap_location(uint8_t layer_num, uint8_t row, uint8_t column) {

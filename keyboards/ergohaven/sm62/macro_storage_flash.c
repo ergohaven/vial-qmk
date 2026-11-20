@@ -4,8 +4,12 @@
 #include "wear_leveling_rp2040_flash_config.h"
 #include "hardware/sync.h"
 #include "flash_guard.h"
-#if !defined(SM62_OLD_RENDERER) || defined(SM62_DUALCORE_RENDER)
-# error This macro backend is qualified for the OLD single-core line only
+#if defined(SM62_DUALCORE_RENDER)
+#    if !defined(SM62_ISOLATED_DEVELOPMENT)
+#        error Isolated rendering requires the explicit unqualified development build
+#    endif
+#elif !defined(SM62_OLD_RENDERER)
+#    error This macro backend requires a supported renderer configuration
 #endif
 STATIC_ASSERT(SM62_MACRO_FLASH_BASE == SM62_LAYOUT_RESERVE_END, "Macro banks follow resident100");
 STATIC_ASSERT(SM62_MACRO_FLASH_BASE + 2*SM62_MACRO_BANK_SIZE <= SM62_LEGACY_CACHE_BASE, "Macro banks precede every legacy store");

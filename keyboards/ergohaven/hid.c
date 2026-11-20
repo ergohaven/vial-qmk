@@ -1,3 +1,6 @@
+#if defined(SM62_DUALCORE_RENDER)
+#    include "sm62/render_owner.h"
+#endif
 #include "hid.h"
 #include "sm62_trace.h"
 #include <string.h>
@@ -237,6 +240,9 @@ static bool app_layout_session_live(void) {
     app_layout_active = false;
 #if defined(KEYBOARD_ergohaven_sm62)
     app_layout_visual_generation++;
+#if defined(SM62_DUALCORE_RENDER)
+    sm62_render_keymap_changed();
+#endif
 #endif
     app_layout_clear_events();
     return false;
@@ -310,6 +316,9 @@ bool hid_app_layout_process_packet(uint8_t *data, uint8_t length) {
             app_layout_staging.valid = false;
             app_layout_clear_events();
             app_layout_visual_generation++;
+#if defined(SM62_DUALCORE_RENDER)
+            sm62_render_keymap_changed();
+#endif
             return true;
 
         case EH_APP_LAYOUT_BEGIN:
@@ -486,6 +495,9 @@ bool hid_app_layout_process_packet(uint8_t *data, uint8_t length) {
             app_layout_clear_events();
             memset(app_layout_execution_states, 0, sizeof(app_layout_execution_states));
             app_layout_visual_generation++;
+#if defined(SM62_DUALCORE_RENDER)
+            sm62_render_keymap_changed();
+#endif
             // v2 is a stable semantic-ID digest (not map content). Retain it
             // across deactivate, expiry and transport replacement. Unknown or
             // legacy snapshots do not erase the last known semantic identity.
@@ -605,6 +617,9 @@ static bool app_layout_dispatch_control(uint8_t control, bool pressed, bool enco
         if (pressed) {
             app_layout_stack_selected[layer] = (app_layout_stack_selected[layer] + 1) % app_layout_stack_counts[layer];
             app_layout_visual_generation++;
+#if defined(SM62_DUALCORE_RENDER)
+            sm62_render_keymap_changed();
+#endif
         }
         return true;
     }

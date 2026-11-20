@@ -271,6 +271,10 @@ void kb_settings_layer_labels_reset(void) {
         eeconfig_update_kb_datablock(default_layer_label(i), KB_SETTINGS_LAYER_LABELS_OFFSET + i * LAYER_LABEL_SIZE, LAYER_LABEL_SIZE);
     }
     layer_name_updated = true;
+#if defined(SM62_DUALCORE_RENDER)
+    void sm62_render_keymap_changed(void);
+    sm62_render_keymap_changed();
+#endif
 }
 
 void kb_settings_layer_labels_init(void) {
@@ -432,6 +436,10 @@ static int layer_name_set(const qmk_settings_proto_t *proto, const void *setting
     dprintf("layer_name_set %d %s\n", layer, layer_names[layer]);
     eeconfig_update_kb_datablock(layer_names[layer], KB_SETTINGS_LAYER_LABELS_OFFSET + LAYER_LABEL_SIZE * layer, LAYER_LABEL_SIZE);
     layer_name_updated = true;
+#if defined(SM62_DUALCORE_RENDER)
+    void sm62_render_keymap_changed(void);
+    sm62_render_keymap_changed();
+#endif
     return 0;
 }
 

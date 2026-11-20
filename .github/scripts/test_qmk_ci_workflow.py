@@ -162,6 +162,16 @@ class QMKCIContract(unittest.TestCase):
                                     capture_output=True, text=True)
             self.assertEqual(result.returncode == 0, value == 'success')
 
+    def test_sm62_isolated_artifact_is_manual_and_opt_in(self):
+        ci = (ROOT / '.github/workflows/ci.yml').read_text()
+        header, jobs = ci.split('\njobs:', 1)
+        self.assertRegex(header, r'(?m)^  workflow_dispatch:\n    inputs:\n      sm62_isolated:\n'
+                         r'        description: [^\n]+\n        type: boolean\n        default: false$')
+        job = jobs.split('\n  isolated:', 1)[1]
+        self.assertIn("if: ${{ github.event_name == 'workflow_dispatch' && inputs.sm62_isolated }}", job)
+        self.assertIn('SM62_DUALCORE_RENDER=yes SM62_SCAN_TRACE=yes', job)
+        self.assertIn('name: sm62-isolated-development', job)
+
     def test_upstream_mass_compile_is_release_only_with_unchanged_coverage(self):
         path = '.github/workflows/upstream-compatibility.yml'
         text = (ROOT / path).read_text()

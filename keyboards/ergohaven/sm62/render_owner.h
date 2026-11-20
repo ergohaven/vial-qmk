@@ -7,11 +7,12 @@
 #include "render_exchange.h"
 /* Complete value-owned data, no core0 transient pointers. Native action
  * identity stays per physical MCU; transparent fallback and all 16 layers are
- * captured by the same core0 owner which dispatches those actions. */
+ * captured by the same core0 owner which dispatches those actions. Tables
+ * retain every layer for this physical half; no renderer reads peer positions. */
 typedef struct {
     hid_data_t hid;
-    uint16_t native_codes[16][10][7];
-    uint16_t effective_codes[16][10][7];
+    uint16_t native_codes[16][5][7];
+    uint16_t effective_codes[16][5][7];
     char names[16][23];
     uint8_t visuals[62], states[62], matrix[10];
     sm62_side_settings_t sides[2];
@@ -27,6 +28,7 @@ typedef struct {
 _Static_assert(sizeof(sm62_render_snapshot_t) <= SM62_SNAPSHOT_BYTES, "snapshot exceeds bounded exchange");
 
 void sm62_render_capture(void); /* core0 only, nonblocking on full exchange */
+void sm62_render_keymap_changed(void); /* core0 content mutation, including Vial */
 void sm62_render_ready(void); /* core0 after native post-init */
 void sm62_render_input(uint8_t row, uint8_t col, bool pressed); /* core0 only */
 bool sm62_render_is_owner(void);
@@ -39,6 +41,8 @@ void sm62_render_pwm(uint8_t level); /* owner publication, no HAL on core1 */
 void sm62_render_frame(uint8_t screen); /* owner completion */
 uint32_t sm62_render_frames(void);
 void sm62_render_worker_step(void);
+void sm62_render_strip_completed(bool success); /* owner, after SPI release */
+bool sm62_render_transport_ok(void); /* owner only */
 void sm62_keymap_owner_feedback(uint64_t presses, uint64_t releases, bool last, uint8_t row, uint8_t col);
 
 hid_data_t *sm62_view_hid(void);

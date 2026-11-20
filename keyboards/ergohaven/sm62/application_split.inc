@@ -139,6 +139,16 @@ static void sm62_app_publish(void) {
     // serial worker thread: publishing there races LVGL/read-side accessors.
     // Matrix actions are dispatched by the USB master for BOTH physical halves.
     // The peer's copy is read-only display state, never an independent consumer.
+#if defined(SM62_DUALCORE_RENDER)
+    if (!sm62_app_rx_published || app_layout_active != (bool)sm62_app_rx.active ||
+        memcmp(app_layout_keycodes, sm62_app_rx.keycodes, sizeof(app_layout_keycodes)) ||
+        memcmp(app_layout_name, sm62_app_rx.name, sizeof(app_layout_name)) ||
+        memcmp(app_layout_layer_names, sm62_app_rx.layer_names, sizeof(app_layout_layer_names)) ||
+        memcmp(sm62_app_defaults, sm62_app_rx.defaults, sizeof(sm62_app_defaults)) ||
+        memcmp(sm62_app_default_keycodes, sm62_app_rx.default_keycodes, sizeof(sm62_app_default_keycodes))) {
+        sm62_render_keymap_changed();
+    }
+#endif
     app_layout_release_held();
     memcpy(app_layout_keycodes, sm62_app_rx.keycodes, sizeof(app_layout_keycodes));
     memcpy(app_layout_visuals, sm62_app_rx.visuals, sizeof(app_layout_visuals));

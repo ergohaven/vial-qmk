@@ -321,6 +321,10 @@ __attribute__((weak)) bool transport_master_if_connected(matrix_row_t master_mat
 #endif
 
 uint8_t matrix_scan(void) {
+#if defined(SM62_DUALCORE_RENDER) && defined(SM62_SCAN_TRACE)
+    void sm62_dc_trace_scan(void);
+    sm62_dc_trace_scan();
+#endif
     matrix_row_t curr_matrix[MATRIX_ROWS] = {0};
 
 #if defined(DIRECT_PINS) || (DIODE_DIRECTION == COL2ROW)

@@ -34,6 +34,7 @@ static sm62_render_exchange_t dc_exchange;
 static sm62_render_snapshot_t *dc_view; /* core1 only, retains exchange lease */
 static hid_data_t dc_hid; /* owner-private, including consumed change flags */
 static uint32_t dc_ready, dc_busy, dc_enabled, dc_screen, dc_frames;
+static bool dc_transport_fault; /* owner only, terminal until reboot */
 static uint32_t dc_pwm, dc_pwm_valid, dc_pwm_token;
 /* Core0 publishes power independently of the bounded snapshot exchange.
  * Bit 0 is suspended; the upper bits retain even a suspend/resume pulse.
@@ -52,6 +53,43 @@ static bool dc_accent_override, dc_background_override;
 static uint64_t dc_owner_presses, dc_owner_releases;
 static bool dc_owner_last;
 static uint8_t dc_owner_row, dc_owner_col, dc_owner_commands;
+
+/* Cache in the producer's unleased slot. No third all-layer allocation and
+ * no whole-map copy on ordinary input turns. Equality handles counter wrap;
+ * explicit validity distinguishes an uninitialized slot from generation 0. */
+static uint32_t dc_keymap_generation, dc_slot_generation[2];
+static bool dc_slot_valid[2], dc_slot_left[2], dc_preparing_left;
+static uint16_t dc_preparing_cell;
+void sm62_render_keymap_changed(void) {
+    ++dc_keymap_generation;
+    dc_slot_valid[0] = dc_slot_valid[1] = false;
+    dc_preparing_cell = 0;
+}
+static bool dc_prepare_keymap(sm62_render_snapshot_t *s) {
+    uint8_t slot = dc_exchange.written & 1U;
+    uint32_t generation = dc_keymap_generation;
+    bool left = is_keyboard_left();
+    if (dc_slot_valid[slot] && dc_slot_generation[slot] == generation && dc_slot_left[slot] == left) return true;
+    if (dc_preparing_cell && dc_preparing_left != left) dc_preparing_cell = 0;
+    dc_preparing_left = left;
+    for (uint8_t budget = 0; budget < 8 && dc_preparing_cell < 16U*5U*7U; ++budget) {
+        uint16_t cell = dc_preparing_cell++;
+        uint8_t l = cell / 35U, r = (cell % 35U) / 7U, c = cell % 7U;
+        uint8_t global_row = r + (left ? 0U : 5U);
+        if (r == 0 && c == 0) {
+            strncpy(s->names[l], sm62_effective_layer_name(l), sizeof(s->names[l])-1U);
+            s->names[l][sizeof(s->names[l])-1U] = '\0';
+        }
+        s->native_codes[l][r][c] = hid_sm62_default_keycode(l,global_row,c);
+        s->effective_codes[l][r][c] = sm62_effective_keycode(l,global_row,c);
+    }
+    if (dc_preparing_cell < 16U*5U*7U) return false;
+    dc_slot_generation[slot] = generation;
+    dc_slot_left[slot] = left;
+    dc_slot_valid[slot] = true;
+    dc_preparing_cell = 0;
+    return true;
+}
 
 bool sm62_render_is_owner(void) { return OWNER(); }
 bool sm62_render_busy(void) { return LOAD(&dc_busy) != 0; }
@@ -101,7 +139,7 @@ void sm62_render_capture(void) {
     }
     sm62_render_snapshot_t *s=sm62_exchange_reserve(&dc_exchange);
     if (!s) return;
-    memset(s,0,sizeof(*s));
+    if (!dc_prepare_keymap(s)) return;
     s->captured_at=timer_read32();
     /* Serial callbacks on core0 cannot preempt this short value copy. Never
      * hold this lock while fetching keymaps/fonts, rendering or parking. */
@@ -122,14 +160,6 @@ void sm62_render_capture(void) {
     s->boot_elapsed=sm62_display_boot_elapsed(); s->mode_pending=sm62_local_mode_transition_pending();
     s->brightness=get_split_lcd_brightness(); s->timeout_ms=get_split_lcd_timeout_ms();
     for (uint8_t r=0;r<10;r++) s->matrix[r]=(uint8_t)matrix_get_row(r);
-    for (uint8_t l=0;l<16;l++) {
-        const char *name=sm62_effective_layer_name(l);
-        strncpy(s->names[l],name,sizeof(s->names[l])-1U);
-        for (uint8_t r=0;r<10;r++) for (uint8_t c=0;c<7;c++) {
-            s->native_codes[l][r][c]=hid_sm62_default_keycode(l,r,c);
-            s->effective_codes[l][r][c]=sm62_effective_keycode(l,r,c);
-        }
-    }
     for (uint8_t c=0;c<62;c++) {
         if (!hid_app_layout_get_visual(s->layer,c,&s->visuals[c],&s->states[c])) s->visuals[c]=UINT8_MAX;
     }
@@ -140,6 +170,10 @@ void sm62_render_capture(void) {
     if (dc_background_override) memcpy(s->background,dc_background,3);
     s->command_bits=dc_commands; s->button_style=dc_button;
     s->presses=dc_presses; s->releases=dc_releases; s->last_press=dc_last_press; s->last_row=dc_last_row; s->last_col=dc_last_col;
+    /* Readers such as host-lease checks may expire a layout during capture.
+     * Never publish tables prepared before that content change. */
+    if (!dc_slot_valid[dc_exchange.written & 1U] ||
+        dc_slot_generation[dc_exchange.written & 1U] != dc_keymap_generation) return;
     sm62_exchange_publish(&dc_exchange);
     dc_presses=dc_releases=0; dc_last_press=false; dc_commands=0;
 }
@@ -159,11 +193,15 @@ static void dc_adopt_hid(const hid_data_t *h) {
 
 extern bool sm62_spi_quiescent(void);
 extern void qp_internal_task(void);
-extern bool qp_lvgl_refr_pending(void);
 extern uint8_t sm62_diag_screen(void);
+bool sm62_render_transport_ok(void) { return !dc_transport_fault; }
+void sm62_render_strip_completed(bool success) {
+    if (!OWNER()) return;
+    if (!success) { dc_transport_fault = true; STORE(&dc_enabled,0U); }
+    sm62_flash_core1_poll(sm62_spi_quiescent());
+}
 void sm62_render_worker_step(void) {
-    /* Every QP return has synchronously stopped SPI and released DMA/mutexes;
-     * verify the actual backend state, not just a guessed frame-complete bit. */
+    /* Reap any late DMA completion before deciding whether flash can park. */
     sm62_flash_core1_poll(sm62_spi_quiescent());
     sm62_dc_trace_poll();
     uint32_t power=LOAD(&dc_power_request);
@@ -171,46 +209,46 @@ void sm62_render_worker_step(void) {
      * once. Subsequent step adopts resume and reapplies normal saved policy. */
     if ((power&~1U)!=(dc_owner_power&~1U)) dc_owner_power=power|1U;
     else dc_owner_power=power;
+    if (dc_transport_fault) {
+        /* A frozen panel stays dark, including after suspend/resume. Only
+         * core0 touches PWM HAL; replies use the observed power epoch. */
+        sm62_render_pwm(0);
+        return;
+    }
     if (dc_owner_power&1U) {
         if (is_display_enabled()) display_turn_off();
-        /* Drain an existing cooperative frame/failed-frame lease normally;
-         * never mutate the view or start a fresh frame while suspended. */
-        if (qp_lvgl_refr_pending()) qp_internal_task();
-        if (!qp_lvgl_refr_pending()) STORE(&dc_busy,0U);
+        STORE(&dc_busy,0U);
         return;
     }
     if (!LOAD(&dc_ready)) return;
-    if (!dc_view || !qp_lvgl_refr_pending()) {
-        sm62_render_snapshot_t *next=sm62_exchange_adopt(&dc_exchange);
-        if (next) {
-            dc_view=next; dc_adopt_hid(&next->hid);
-            dc_owner_presses|=next->presses; dc_owner_releases|=next->releases;
-            dc_owner_commands|=next->command_bits;
-            if (next->last_press) { dc_owner_last=true; dc_owner_row=next->last_row; dc_owner_col=next->last_col; }
-        }
+    sm62_render_snapshot_t *next=sm62_exchange_adopt(&dc_exchange);
+    if (next) {
+        dc_view=next; dc_adopt_hid(&next->hid);
+        dc_owner_presses|=next->presses; dc_owner_releases|=next->releases;
+        dc_owner_commands|=next->command_bits;
+        if (next->last_press) { dc_owner_last=true; dc_owner_row=next->last_row; dc_owner_col=next->last_col; }
     }
     if (!dc_view) return;
+    STORE(&dc_busy,1U);
     if (!is_display_enabled()) {
-        if (!display_init_kb()) return;
+        if (!display_init_kb()) { STORE(&dc_busy,0U); return; }
         STORE(&dc_enabled,1U);
     }
-    if (!qp_lvgl_refr_pending()) {
-        if (dc_owner_commands&1U) display_apply_accent_color(dc_view->accent[0],dc_view->accent[1],dc_view->accent[2]);
-        if (dc_owner_commands&2U) display_apply_background_color(dc_view->background[0],dc_view->background[1],dc_view->background[2]);
-        if (dc_owner_commands&4U) display_apply_button_style(dc_view->button_style);
-        if (dc_owner_commands&8U) display_apply_clock_settings();
-        if (dc_owner_commands&16U) display_apply_brightness();
-        if (dc_owner_commands&32U) display_refresh();
-        dc_owner_commands=0;
-        sm62_keymap_owner_feedback(dc_owner_presses,dc_owner_releases,dc_owner_last,dc_owner_row,dc_owner_col);
-        dc_owner_presses=dc_owner_releases=0; dc_owner_last=false;
-        display_housekeeping_task();
-    }
-    STORE(&dc_busy,1U);
+    if (dc_owner_commands&1U) display_apply_accent_color(dc_view->accent[0],dc_view->accent[1],dc_view->accent[2]);
+    if (dc_owner_commands&2U) display_apply_background_color(dc_view->background[0],dc_view->background[1],dc_view->background[2]);
+    if (dc_owner_commands&4U) display_apply_button_style(dc_view->button_style);
+    if (dc_owner_commands&8U) display_apply_clock_settings();
+    if (dc_owner_commands&16U) display_apply_brightness();
+    if (dc_owner_commands&32U) display_refresh();
+    dc_owner_commands=0;
+    sm62_keymap_owner_feedback(dc_owner_presses,dc_owner_releases,dc_owner_last,dc_owner_row,dc_owner_col);
+    dc_owner_presses=dc_owner_releases=0; dc_owner_last=false;
+    display_housekeeping_task();
     qp_internal_task();
     STORE(&dc_screen,sm62_diag_screen());
-    if (!qp_lvgl_refr_pending()) STORE(&dc_busy,0U);
+    STORE(&dc_busy,0U);
 }
+
 void sm62_render_frame(uint8_t screen) { STORE(&dc_frames,LOAD(&dc_frames)+1U); STORE(&dc_screen,screen); }
 uint32_t sm62_render_frames(void) { return LOAD(&dc_frames); }
 
@@ -225,8 +263,8 @@ bool sm62_view_volume_live(void) { return dc_view->volume_live; }
 uint8_t sm62_view_layer(void) { return dc_view->layer; }
 uint8_t sm62_view_language(void) { return dc_view->language; }
 bool sm62_view_matrix(uint8_t r,uint8_t c) { return r<10 && c<7 && (dc_view->matrix[r]&(1U<<c)); }
-uint16_t sm62_view_native_code(uint8_t l,uint8_t r,uint8_t c) { return l<16 && r<10 && c<7 ? dc_view->native_codes[l][r][c] : 0; }
-uint16_t sm62_view_effective_code(uint8_t l,uint8_t r,uint8_t c) { return l<16 && r<10 && c<7 ? dc_view->effective_codes[l][r][c] : 0; }
+uint16_t sm62_view_native_code(uint8_t l,uint8_t r,uint8_t c) { return l<16 && r<10 && c<7 && ((r<5)==dc_view->left) ? dc_view->native_codes[l][r%5U][c] : 0; }
+uint16_t sm62_view_effective_code(uint8_t l,uint8_t r,uint8_t c) { return l<16 && r<10 && c<7 && ((r<5)==dc_view->left) ? dc_view->effective_codes[l][r%5U][c] : 0; }
 const char *sm62_view_name(uint8_t l) { return l<16 ? dc_view->names[l] : ""; }
 bool sm62_view_visual(uint8_t l,uint8_t c,uint8_t *v,uint8_t *s) {
     if (l!=dc_view->layer || c>=62 || dc_view->visuals[c]==UINT8_MAX) return false;
@@ -262,7 +300,7 @@ static THD_FUNCTION(dc_render_thread, arg) {
     (void)arg;
     while (true) {
         sm62_render_worker_step();
-        if (!qp_lvgl_refr_pending()) chThdSleepMilliseconds(1);
+        chThdSleepMilliseconds(1);
     }
 }
 void c1_main(void) {
