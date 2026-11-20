@@ -73,6 +73,27 @@ class QMKCIContract(unittest.TestCase):
                          .split(b'\n  upstream-compatibility:', 1)[0],
                          original.split(b'\n  verify-release-scope:', 1)[1])
 
+    def test_native_uses_the_known_working_qmk_arm_toolchain(self):
+        text = MANUAL.read_text()
+        match = re.search(r'      - name: Install supported ARM toolchain\n(.*?)      - name: Prepare output name',
+                          text, re.S)
+        if match is None:
+            self.fail('The native build must install the working QMK ARM toolchain')
+        step = match[1]
+        self.assertIn('qmk/qmk_toolchains/releases/download/v15.2.0-1/', step)
+        self.assertIn('qmk_toolchains-gcc15.2.0-host_linuxX64.tar.zst', step)
+        self.assertIn('6b136919e3526f3f373e91f7d011a006e968a3169262d33cf6efa3e6c605c3ca', step)
+        self.assertIn('sha256sum --check --strict', step)
+        self.assertIn('test "$("$toolchain/bin/arm-none-eabi-gcc" -dumpfullversion)" = 15.2.0', step)
+        self.assertIn('"$toolchain/bin" >> "$GITHUB_PATH"', step)
+        self.assertLess(step.index('sha256sum --check --strict'), step.index('tar --zstd'))
+        self.assertLess(step.index('-dumpfullversion'), step.index('>> "$GITHUB_PATH"'))
+        self.assertNotIn('gcc-arm-none-eabi', text)
+        self.assertNotIn('binutils-arm-none-eabi', text)
+        self.assertNotIn('libnewlib-arm-none-eabi', text)
+        self.assertNotIn('FLASH_LEN', text)
+        self.assertNotIn('LTO_ENABLE', text)
+
     def test_manual_build_has_no_container_native_campaign_or_release_proof(self):
         text = MANUAL.read_text()
         for machinery in ('container:', 'docker ', 'nix ', 'run_ci.py', 'ci_policy.py',

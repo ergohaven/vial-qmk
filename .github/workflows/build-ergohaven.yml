@@ -42,12 +42,26 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            build-essential binutils-arm-none-eabi gcc-arm-none-eabi \
-            libnewlib-arm-none-eabi python3-venv python3-dev \
+            build-essential zstd python3-venv python3-dev \
             libudev-dev libusb-1.0-0-dev libffi-dev pkg-config
           python3 -m venv "$RUNNER_TEMP/qmk-venv"
           "$RUNNER_TEMP/qmk-venv/bin/python" -m pip install qmk -r requirements.txt
           echo "$RUNNER_TEMP/qmk-venv/bin" >> "$GITHUB_PATH"
+      - name: Install supported ARM toolchain
+        timeout-minutes: 10
+        run: |
+          archive="$RUNNER_TEMP/qmk-toolchains.tar.zst"
+          toolchain="$RUNNER_TEMP/qmk-toolchains"
+          curl --fail --location --retry 3 --connect-timeout 30 --max-time 300 \
+            https://github.com/qmk/qmk_toolchains/releases/download/v15.2.0-1/qmk_toolchains-gcc15.2.0-host_linuxX64.tar.zst \
+            --output "$archive"
+          printf '%s  %s\n' 6b136919e3526f3f373e91f7d011a006e968a3169262d33cf6efa3e6c605c3ca "$archive" \
+            | sha256sum --check --strict
+          mkdir -p "$toolchain"
+          tar --zstd --extract --file "$archive" --directory "$toolchain" --strip-components=1 --no-same-owner
+          test "$("$toolchain/bin/arm-none-eabi-gcc" -dumpfullversion)" = 15.2.0
+          "$toolchain/bin/arm-none-eabi-gcc" --version
+          printf '%s\n' "$toolchain/bin" >> "$GITHUB_PATH"
       - name: Prepare output name
         env:
           KEYBOARD: ${{ matrix.kb }}

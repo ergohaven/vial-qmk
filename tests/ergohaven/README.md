@@ -76,6 +76,12 @@ existing 32 official targets natively on Ubuntu, uploads UF2 files and merges
 successful output into `ergohaven_fw`. It does not run Docker, the native
 regression campaign or policy/proof reuse. Its target matrix comes from the
 existing release-scope validator; there is no second manually maintained list.
+The native build uses the checksummed QMK GCC 15.2.0 toolchain that compiled the
+same firmware inputs in the successful container build, rather than Ubuntu's
+older ARM compiler. Keep the release URL, SHA-256 and compiler-version check
+aligned when deliberately updating it; qualify the new toolchain with one
+ordinary firmware matrix before accepting the update. Firmware features and
+flash/storage reservations are not changed to accommodate a compiler downgrade.
 
 Production pushes and PRs run the inexpensive UID and workflow contracts in
 `ci.yml`. Release and pre-release callers use `release-validation.yml`, which
