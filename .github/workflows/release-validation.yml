@@ -1,0 +1,242 @@
+name: Release validation
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qmk-release-validation-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plan:
+    name: Validate release contracts
+    runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.full.outputs.run }}
+      native: ${{ steps.full.outputs.run }}
+      build_reason: ${{ steps.full.outputs.reason }}
+      native_reason: ${{ steps.full.outputs.reason }}
+      build_source_run: ''
+      native_source_run: ''
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Test shared CI policy and workflow contracts
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: python3 -m unittest discover -s .github/scripts -p 'test_*.py' -v
+      - name: Require both complete release profiles
+        id: full
+        run: |
+          echo 'run=true' >> "$GITHUB_OUTPUT"
+          echo 'reason=full release validation' >> "$GITHUB_OUTPUT"
+
+  verify-release-scope:
+    name: Verify Ergohaven release scope
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify release matrix and intentional exclusions
+        run: python3 util/ci_ergohaven_release_scope.py
+
+  build-ergohaven:
+    name: Build Ergohaven keymaps
+    needs: [plan, verify-release-scope]
+    if: ${{ needs.plan.outputs.build == 'true' }}
+    runs-on: ubuntu-latest
+    container: ghcr.io/qmk/qmk_cli:latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { kb: ergohaven/k03/rev1, km: v1_v2}
+          - { kb: ergohaven/k03/rev3, km: v3_v4}
+          - { kb: ergohaven/imperial44/rev1, km: v1_v2}
+          - { kb: ergohaven/imperial44/rev3, km: v3_v4}
+          - { kb: ergohaven/velvet/rev1, km: v1}
+          - { kb: ergohaven/velvet/rev2, km: v2}
+          - { kb: ergohaven/velvet/rev3, km: v3}
+          - { kb: ergohaven/hpd/rev1, km: v1}
+          - { kb: ergohaven/hpd/rev2, km: v2}
+          - { kb: ergohaven/hpd/rev2, km: v2_enc_ball}
+          - { kb: ergohaven/hpd/rev2, km: v2_enc_touch}
+          - { kb: ergohaven/hpd/rev2, km: v2_ball_enc}
+          - { kb: ergohaven/hpd/rev2, km: v2_touch_enc}
+          - { kb: ergohaven/hpd/rev2, km: v2_enc_enc}
+          - { kb: ergohaven/hpd/rev2, km: v2_enc_joy}
+
+          - { kb: ergohaven/phenom/rev1, km: v1}
+          - { kb: ergohaven/phenom_mini/rev1, km: v1}
+          - { kb: ergohaven/phenom_micro/rev1, km: v1}
+          - { kb: ergohaven/k02, km: v1}
+          - { kb: ergohaven/remnant, km: v1}
+          - { kb: ergohaven/planeta/rev1, km: v1}
+          - { kb: ergohaven/planeta/rev2, km: v2}
+          - { kb: ergohaven/macropad/rev1, km: v1}
+          - { kb: ergohaven/macropad/rev2, km: v2}
+
+          - { kb: ergohaven/macropad/rev3, km: v3}
+          - { kb: ergohaven/trackball, km: v1}
+          - { kb: ergohaven/trackball, km: v2}
+          - { kb: ergohaven/k03pro/rev1/43mm, km: v1}
+          - { kb: ergohaven/k03pro/rev1/65mm, km: v1}
+          - { kb: ergohaven/k03pro/rev2, km: v2_v3}
+          - { kb: ergohaven/sm30, km: v1}
+          - { kb: ergohaven/sm62, km: v1}
+    steps:
+      - name: (actions) Checkout Vial repo
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          submodules: recursive
+      - name: Prepare variables
+        shell: bash
+        env:
+          kb: ${{ matrix.kb }}
+          km: ${{ matrix.km }}
+        run: |
+          set -x
+          OUTPUT="${kb//\//_}_${km}"
+          echo "OUTPUT=${OUTPUT}" >> $GITHUB_ENV
+      - name: Build
+        id: build
+        run: |
+          git config --global --add safe.directory $(pwd)
+          qmk compile -kb ${{ matrix.kb }} -km ${{ matrix.km }}
+      - uses: actions/upload-artifact@v4
+        name: Upload
+        id: upload
+        with:
+          path: "*.uf2"
+          name: ${{ env.OUTPUT }}
+
+  native:
+    name: Ergohaven native regressions
+    needs: plan
+    if: ${{ needs.plan.outputs.native == 'true' }}
+    runs-on: ubuntu-latest
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Initialize only pinned LVGL
+        run: |
+          git submodule update --init --depth 1 -- lib/lvgl
+          test "$(git -C lib/lvgl rev-parse HEAD)" = e19410f8f8a256609da72cff549598e0df6fa4cf
+      - name: Test native CI runner
+        env:
+          TMPDIR: ${{ runner.temp }}
+        run: python3 -m unittest discover -s tests/ergohaven -p test_run_ci.py -v
+      - name: Run complete native CI wave
+        env:
+          TMPDIR: ${{ runner.temp }}
+        run: python3 tests/ergohaven/run_ci.py "$RUNNER_TEMP/ergohaven-native" --lvgl "$GITHUB_WORKSPACE/lib/lvgl"
+
+  merge:
+    runs-on: ubuntu-latest
+    needs: [plan, build-ergohaven]
+    if: ${{ needs.plan.outputs.build == 'true' && needs.build-ergohaven.result == 'success' }}
+    name: Merge Output Artifacts
+    steps:
+      - name: Merge Artifacts
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: ergohaven_fw
+          pattern: ergohaven_*
+          delete-merged: true
+
+  required:
+    name: Ergohaven required checks
+    if: ${{ always() }}
+    needs: [plan, verify-release-scope, build-ergohaven, native, merge]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify required job results
+        env:
+          PLAN_RESULT: ${{ needs.plan.result }}
+          SCOPE_RESULT: ${{ needs.verify-release-scope.result }}
+          BUILD_RUN: ${{ needs.plan.outputs.build }}
+          NATIVE_RUN: ${{ needs.plan.outputs.native }}
+          BUILD_RESULT: ${{ needs.build-ergohaven.result }}
+          NATIVE_RESULT: ${{ needs.native.result }}
+          MERGE_RESULT: ${{ needs.merge.result }}
+          BUILD_REASON: ${{ needs.plan.outputs.build_reason }}
+          NATIVE_REASON: ${{ needs.plan.outputs.native_reason }}
+          BUILD_SOURCE: ${{ needs.plan.outputs.build_source_run }}
+          NATIVE_SOURCE: ${{ needs.plan.outputs.native_source_run }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$PLAN_RESULT" != success || "$SCOPE_RESULT" != success ]]; then
+            echo "::error::Planner/release scope failed: plan=$PLAN_RESULT scope=$SCOPE_RESULT"
+            exit 1
+          fi
+          case "$BUILD_RUN" in
+            true) EXPECTED_BUILD=success ;;
+            false) EXPECTED_BUILD=skipped ;;
+            *) echo '::error::Missing/invalid firmware plan'; exit 1 ;;
+          esac
+          case "$NATIVE_RUN" in
+            true) EXPECTED_NATIVE=success ;;
+            false) EXPECTED_NATIVE=skipped ;;
+            *) echo '::error::Missing/invalid native plan'; exit 1 ;;
+          esac
+          if [[ "$BUILD_RESULT" != "$EXPECTED_BUILD" || "$MERGE_RESULT" != "$EXPECTED_BUILD" || "$NATIVE_RESULT" != "$EXPECTED_NATIVE" ]]; then
+            echo "::error::Unexpected results: build=$BUILD_RESULT merge=$MERGE_RESULT native=$NATIVE_RESULT"
+            exit 1
+          fi
+          {
+            echo '## Ergohaven validation'
+            echo "Firmware: run=$BUILD_RUN; result=$BUILD_RESULT; reason=$BUILD_REASON; proof source=$BUILD_SOURCE"
+            echo "Native: run=$NATIVE_RUN; result=$NATIVE_RESULT; reason=$NATIVE_REASON; proof source=$NATIVE_SOURCE"
+            echo 'Skipped profiles did not execute fresh coverage in this run.'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/checkout@v4
+        if: ${{ needs.plan.outputs.build == 'true' || needs.plan.outputs.native == 'true' }}
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Record firmware validation proof
+        if: ${{ needs.plan.outputs.build == 'true' && needs.build-ergohaven.result == 'success' }}
+        run: python3 .github/scripts/ci_policy.py record --profile firmware --output "$RUNNER_TEMP/ci-proof/firmware.json"
+      - name: Upload firmware validation proof
+        if: ${{ needs.plan.outputs.build == 'true' && needs.build-ergohaven.result == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-proof-firmware-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/ci-proof/firmware.json
+          if-no-files-found: error
+      - name: Record native validation proof
+        if: ${{ needs.plan.outputs.native == 'true' && needs.native.result == 'success' }}
+        run: python3 .github/scripts/ci_policy.py record --profile native --output "$RUNNER_TEMP/ci-proof/native.json"
+      - name: Upload native validation proof
+        if: ${{ needs.plan.outputs.native == 'true' && needs.native.result == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-proof-native-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/ci-proof/native.json
+          if-no-files-found: error
+
+  upstream-compatibility:
+    uses: ./.github/workflows/upstream-compatibility.yml
+
+  complete-release:
+    name: Complete release qualification
+    if: ${{ always() }}
+    needs: [required, upstream-compatibility]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every release owner
+        env:
+          RELEASE_RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python3 -c 'import json, os, sys; results = json.loads(os.environ["RELEASE_RESULTS"]); sys.exit(0 if set(results) == {"required", "upstream-compatibility"} and all(job["result"] == "success" for job in results.values()) else "Full release qualification did not complete successfully")'

@@ -21,6 +21,23 @@ jobs:
       uses: actions/checkout@v4
       with:
         persist-credentials: false
+        fetch-depth: 0
 
     - name: Verify Vial UID is unique per-keyboard
       run: python3 util/ci_vial_verify_uid.py
+
+    - name: Check workflow and policy contracts
+      env:
+        PYTHONDONTWRITEBYTECODE: '1'
+      run: python3 -m unittest discover -s .github/scripts -p 'test_*.py' -v
+
+  required:
+    name: Ergohaven required checks
+    if: ${{ always() }}
+    needs: check-uid
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require lightweight contracts
+        env:
+          CHECKS_RESULT: ${{ needs.check-uid.result }}
+        run: test "$CHECKS_RESULT" = success
