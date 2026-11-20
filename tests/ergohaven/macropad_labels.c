@@ -93,6 +93,12 @@ int main(void){
     }
     assert(memcmp(expected_backspace,expected_delete,154));
     puts("BACKSPACE/DELETE PASS: unchanged Backspace, exact approved mirrored Delete; same native canvas and production setter");
+    test_os = OS_MACOS;
+    check_label(KC_LALT, false);
+    assert(!strcmp(lv_label_get_text(key_labels[0]), EH_SYMBOL_ALT));
+    check_label(KC_RALT, false);
+    assert(!strcmp(lv_label_get_text(key_labels[0]), EH_SYMBOL_ALT));
+    test_os = OS_LINUX;
 #ifndef EH_APP_LAYOUT_ENABLE
     // Default rev3 keymaps retain the shared formatter's modifier/newline/key.
     const uint16_t multiline[]={LCTL(KC_M),RCTL(KC_M),LCTL(KC_Z),LGUI(KC_M)};
@@ -108,6 +114,9 @@ int main(void){
     }
     check_label(KC_1,false);
     assert(lv_obj_get_style_text_font(key_labels[0],0)==&eh_font_montserrat_28);
+    test_os = OS_MACOS;
+    check_label(LALT(KC_F10), false);
+    assert(!strcmp(lv_label_get_text(key_labels[0]), EH_SYMBOL_ALT "\nF10"));
     puts("DEFAULT LABEL PASS: multiline modifier and base key visible without application-layout feature");
 #else
     // Ctrl+Z has a special arrow caption, unlike the basic KC_UNDO glyph.
@@ -119,9 +128,18 @@ int main(void){
     const uint16_t combos[]={RCTL(KC_M),LSFT(KC_M),RSFT(KC_M),LALT(KC_M),RALT(KC_M),LGUI(KC_M),RGUI(KC_M),LCTL(LSFT(KC_M)),MEH(KC_M),HYPR(KC_M),LCTL(KC_PAGE_DOWN),LCTL(KC_AUDIO_VOL_UP),MEH(KC_ALTERNATE_ERASE)};
     for(unsigned i=0;i<sizeof(combos)/sizeof(*combos);i++)check_label(combos[i],true);
     test_os=OS_MACOS;check_label(LGUI(KC_M),true);assert(!strcmp(lv_label_get_text(key_labels[0]),"CMD M"));
-    check_label(LALT(KC_M),true);assert(!strcmp(lv_label_get_text(key_labels[0]),"OPT M"));
+    check_label(LALT(KC_F1), true);
+    assert(!strcmp(lv_label_get_text(key_labels[0]), EH_SYMBOL_ALT " F1"));
+    check_label(RALT(KC_F10), true);
+    assert(!strcmp(lv_label_get_text(key_labels[0]), EH_SYMBOL_ALT " F10"));
+    check_label(LSFT(LALT(KC_F10)), true);
+    assert(!strcmp(lv_label_get_text(key_labels[0]), EH_SYMBOL_SFT EH_SYMBOL_ALT " F10"));
+    check_label(RSFT(RALT(KC_F10)), true);
+    assert(!strcmp(lv_label_get_text(key_labels[0]), EH_SYMBOL_SFT EH_SYMBOL_ALT " F10"));
     check_label(LGUI(LALT(LSFT(KC_M))),true);
     test_os=OS_LINUX;
+    check_label(LALT(KC_F10), true);
+    assert(!strcmp(lv_label_get_text(key_labels[0]), EH_SYMBOL_ALT " F10"));
     char left[64],right[64];get_keycode_str(left,LSFT(KC_M));get_keycode_str(right,RSFT(KC_M));assert(!strcmp(left,right));
     get_keycode_str(left,LCTL(KC_M));get_keycode_str(right,RCTL(KC_M));assert(!strcmp(left,right));
     get_keycode_str(left,KC_M);assert(!strcmp(left,"M"));check_label(KC_M,false);

@@ -79,7 +79,8 @@ else:
         font.write_text(source(f'keyboards/ergohaven/src/display/fonts/eh_font_montserrat_{size}.c'))
         extra.append(str(font))
     # QMK's unsigned >= 0 range macro triggers GCC's type-limits warning.
-    extra += ['-DLV_CONF_SKIP', '-DOS_DETECTION_ENABLE', '-DLV_USE_LOG=1', '-DLV_USE_ASSERT_MALLOC=1', '-Wno-type-limits', '-lm']
+    extra += ['-DLV_CONF_SKIP', '-DOS_DETECTION_ENABLE', '-DKEYBOARD_ergohaven_macropad',
+              '-DLV_USE_LOG=1', '-DLV_USE_ASSERT_MALLOC=1', '-Wno-type-limits', '-lm']
     if not a.no_app_layout:
         extra.append('-DEH_APP_LAYOUT_ENABLE')
     else:
