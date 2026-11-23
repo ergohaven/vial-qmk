@@ -29,18 +29,19 @@ class NativeCI(unittest.TestCase):
             ['tests/ergohaven/test_phenom_settings_sync.py'],
             ['tests/ergohaven/test_split_state_sync.py'],
             ['tests/ergohaven/test_rgblight_sync.py'],
+            ['tests/ergohaven/test_pointing_sticky_keys.py'],
             ['tests/ergohaven/test_macropad_product_name.py'],
             ['tests/ergohaven/run_macropad_bugs.py', '/external/output/encoder', '--only', '002'],
             ['tests/ergohaven/run_macropad_bugs.py', '/external/output/labels-default', '--only', '004', '--no-app-layout', '--lvgl', '/external/lvgl'],
             ['tests/ergohaven/run_macropad_bugs.py', '/external/output/labels-app', '--only', '004', '--lvgl', '/external/lvgl'],
             ['tests/ergohaven/run_macropad_wake.py', '/external/output/wake', '--lvgl', '/external/lvgl'],
         ]
-        self.assertEqual(commands[:11], [[sys.executable, *args] for args in expected])
+        self.assertEqual(commands[:12], [[sys.executable, *args] for args in expected])
 
     def test_production_sm62_qualification_is_in_official_wave(self):
         runner = load_runner()
         commands = runner.commands(Path('/external/output'), Path('/external/lvgl'))
-        scripts = [command[1] for command in commands[11:]]
+        scripts = [command[1] for command in commands[12:]]
         expected = [
             'run_sm62_layout.py', 'run_sm62_split.py', 'run_sm62_cached_split.py',
             'run_sm62_delta_split.py', 'run_sm62_rle_split.py', 'run_sm62_defaults.py',
@@ -73,7 +74,7 @@ class NativeCI(unittest.TestCase):
         restart = commands[peer + 1]
         self.assertEqual(restart[2:], ['/external/output/resident-peer/resident100_peer',
                                      '/external/output/resident100/fixtures', '/external/output/resident-restart'])
-        for command in commands[11:]:
+        for command in commands[12:]:
             self.assertNotIn('--legacy-abort-only', command, 'retain the complete fault campaigns')
         macro = next(cmd for cmd in commands if cmd[1].endswith('sm62_macro_storage/test_macro_storage.py'))
         self.assertEqual(macro[2:], ['--source-root', str(runner.ROOT), '--output-dir', '/external/output/macro-storage'])
