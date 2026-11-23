@@ -1,6 +1,7 @@
 {
     "name": "Left modules",
     "fields": [
+        { "type": "select", "title": "Module", "qsid": 372, "variants": ["Encoder", "Trackball", "Touchpad"] },
         { "type": "select", "title": "Mode", "qsid": 134, "variants": ["Normal", "Sniper", "Scroll", "Text"] },
         { "type": "select", "title": "Ball axis", "qsid": 130, "variants": ["0°", "90°", "180°", "270°"] },
         { "type": "select", "title": "Touch axis", "qsid": 132, "variants": ["0°", "90°", "180°", "270°"] },
@@ -22,6 +23,7 @@
 {
     "name": "Right modules",
     "fields": [
+        { "type": "select", "title": "Module", "qsid": 373, "variants": ["Encoder", "Trackball", "Touchpad"] },
         { "type": "select", "title": "Mode", "qsid": 135, "variants": ["Normal", "Sniper", "Scroll", "Text"] },
         { "type": "select", "title": "Ball axis", "qsid": 131, "variants": ["0°", "90°", "180°", "270°"] },
         { "type": "select", "title": "Touch axis", "qsid": 133, "variants": ["0°", "90°", "180°", "270°"] },
@@ -44,7 +46,7 @@
     "name": "Auto layer",
     "fields": [
         { "type": "select", "title": "Auto layer", "qsid": 143, "variants": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"] },
-        { "type": "select", "title": "Auto layer timeout", "qsid": 324, "variants": ["250 ms", "500 ms", "750 ms", "1000 ms", "1250 ms", "1500 ms"] },
+        { "type": "select", "title": "Auto layer timeout", "qsid": 324, "variants": ["50 ms", "100 ms", "150 ms", "200 ms", "250 ms", "300 ms", "350 ms", "400 ms", "450 ms", "500 ms", "750 ms", "1000 ms", "1250 ms", "1500 ms"] },
         { "type": "boolean", "title": "Auto layer in Normal", "qsid": 142, "bit": 0 },
         { "type": "boolean", "title": "Auto layer in Sniper", "qsid": 144, "bit": 0 },
         { "type": "boolean", "title": "Auto layer in Scroll", "qsid": 145, "bit": 0 },

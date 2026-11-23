@@ -17,6 +17,24 @@ def scope_module():
     return scope
 
 
+def publisher_before_packaging(text, path):
+    name = Path(path).name
+    steps = {'release.yml': '      - name: Prepare release assets\n        env:\n          RELEASE_VERSION: ${{ github.ref_name }}\n          SOURCE_COMMIT: ${{ github.sha }}\n        run: |\n          python3 util/prepare_ergohaven_release.py \\\n            --input ergohaven_fw/ergohaven_fw \\\n            --output release_assets \\\n            --version "$RELEASE_VERSION" \\\n            --source-commit "$SOURCE_COMMIT" \\\n            --manifest "$RUNNER_TEMP/qmk-release-assets.json"\n\n', 'pre-release.yml': '      - name: Prepare release assets\n        env:\n          RELEASE_VERSION: latest\n          SOURCE_COMMIT: ${{ github.sha }}\n        run: |\n          python3 util/prepare_ergohaven_release.py \\\n            --input ergohaven_fw/ergohaven_fw \\\n            --output release_assets \\\n            --version "$RELEASE_VERSION" \\\n            --source-commit "$SOURCE_COMMIT" \\\n            --manifest "$RUNNER_TEMP/qmk-release-assets.json"\n\n'}
+    if name not in steps or text.count(steps[name]) != 1:
+        raise AssertionError('Expected exactly one reviewed packaging step')
+    replacement = "      - name: Configure\n        run: |\n          sudo apt-get install rename\n\n      - name: Rename\n        run: |\n          cd ergohaven_fw/ergohaven_fw\n          rename 's/(rev\\d_)//; s/ergohaven_/'${GITHUB_REF_NAME}'_'/ *.uf2\n\n" if name == 'release.yml' else ''
+    text = text.replace(steps[name], replacement, 1)
+    if name == 'pre-release.yml':
+        checkout = '      - name: Checkout\n        uses: actions/checkout@v4\n        with:\n          persist-credentials: false\n\n'
+        if text.count(checkout) != 1:
+            raise AssertionError('Expected exactly one credential-free packager checkout')
+        text = text.replace(checkout, '', 1)
+    files = '            release_assets/*.uf2\n            release_assets/*.zip'
+    if text.count(files) != 1:
+        raise AssertionError('Expected only the reviewed UF2/ZIP release globs')
+    return text.replace(files, '            ergohaven_fw/**/*.uf2', 1)
+
+
 class ReleaseScope(unittest.TestCase):
     def test_sm62_is_required_in_complete_official_matrix(self):
         scope = scope_module()
@@ -25,14 +43,31 @@ class ReleaseScope(unittest.TestCase):
                    for line in text.splitlines() if (match := scope.MATRIX_ENTRY.match(line))]
         self.assertIn(('ergohaven/sm62', 'v1'), scope.REQUIRED_RELEASE_TARGETS)
         self.assertEqual(set(targets), scope.REQUIRED_RELEASE_TARGETS)
-        self.assertEqual(len(targets), 32)
-        self.assertEqual(len(set(targets)), 32)
+        self.assertEqual(len(targets), 21)
+        self.assertEqual(len(set(targets)), 21)
         names = [kb.replace('/', '_') + '_' + km + '.uf2' for kb, km in targets]
-        self.assertEqual(len(set(names)), 32)
+        self.assertEqual(len(set(names)), 21)
         for target in [('ergohaven/hpd/rev2', 'v2_lcd_ball'), ('ergohaven/macropad/rev2', 'v2_ccw')]:
             self.assertNotIn(target, targets)
             self.assertIn(scope.find_vial_definition(*target), scope.EXCLUDED_KEYMAPS)
-        self.assertEqual(len(scope.EXCLUDED_KEYMAPS), 8)
+        self.assertEqual(len(scope.EXCLUDED_KEYMAPS), 18)
+        retired = {
+            ("ergohaven/k03pro/rev1/43mm", "v1"),
+            ("ergohaven/k03pro/rev1/65mm", "v1"),
+            ("ergohaven/hpd/rev1", "v1"),
+            ("ergohaven/imperial44/rev1", "v1_v2"),
+            ("ergohaven/k02", "v1"),
+            ("ergohaven/k03/rev1", "v1_v2"),
+            ("ergohaven/macropad/rev1", "v1"),
+            ("ergohaven/planeta/rev1", "v1"),
+            ("ergohaven/planeta/rev2", "v2"),
+            ("ergohaven/remnant", "v1"),
+            ("ergohaven/velvet/rev1", "v1"),
+        }
+        self.assertEqual(scope.RETIRED_RELEASE_TARGETS, retired)
+        self.assertTrue(retired.isdisjoint(targets))
+        for target in retired:
+            self.assertIn(scope.find_vial_definition(*target), scope.EXCLUDED_KEYMAPS)
         result = subprocess.run([sys.executable, 'util/ci_ergohaven_release_scope.py'],
                                 cwd=ROOT, text=True, capture_output=True)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -100,8 +135,9 @@ class ReleasePublication(unittest.TestCase):
         original_publisher = subprocess.check_output(
             ['git', 'show', baseline + ':.github/workflows/release.yml'], cwd=ROOT)
         self.assertEqual(publisher.count(b'uses: ./.github/workflows/release-validation.yml'), 1)
-        restored = publisher.replace(b'uses: ./.github/workflows/release-validation.yml',
-                                     b'uses: ./.github/workflows/build-ergohaven.yml')
+        restored = publisher_before_packaging(publisher.decode(), 'release.yml').encode().replace(
+            b'uses: ./.github/workflows/release-validation.yml',
+            b'uses: ./.github/workflows/build-ergohaven.yml')
         self.assertEqual(restored, original_publisher)
         self.assertIn(b'draft: true', publisher)
 

@@ -15,7 +15,7 @@ enum layer_names {
 #define SF_Z  LSFT_T(KC_Z)
 #define SF_SS RSFT_T(KC_SLSH)
 #define AL_X  LALT_T(KC_X)
-#define AL_DT RALT_T(KC_DOT)
+#define AL_DT LALT_T(KC_DOT)
 #define LO_TB LT(LOWER, KC_TAB)
 
 
@@ -37,7 +37,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [_RAISE] = LAYOUT_all(
     KC_1,    KC_2,    KC_3,    KC_4,    KC_5,                           KC_6,    KC_7,    KC_8,    KC_9,    KC_0,
     KC_MINS, KC_EQL,  KC_LBRC, KC_RBRC, KC_BSLS,                        XXXXXXX, XXXXXXX, KC_GRV,  KC_TILD, KC_COLN,
-    KC_LSFT, KC_ESC,  KC_RGUI, KC_LALT, KC_DQUO,                        KC_TAB,  XXXXXXX, KC_RCTL, KC_RALT, KC_DEL,
+    KC_LSFT, KC_ESC,  KC_RGUI, KC_LALT, KC_DQUO,                        KC_TAB,  XXXXXXX, KC_RCTL, KC_LALT, KC_DEL,
                       _______, _______, _______, _______,       _______, _______, _______, _______
   ),
   

@@ -1,5 +1,7 @@
 #pragma once
 
+#define EH_PHENOM_LAYER_NAMES
+
 #define EH_SHORT_PRODUCT_NAME "Phenom"
 
 #define BOOTMAGIC_LITE_ROW          0

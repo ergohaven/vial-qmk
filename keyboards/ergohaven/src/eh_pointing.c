@@ -20,17 +20,25 @@ static kb_settings_split_pointing_t kb_settings_phenom_devices;
 pointing_mode_t                pointing_mode = POINTING_MODE_NORMAL;
 
 #define PHENOM_AUTO_MOUSE_SUPPORTED_MODES_MASK ((1u << POINTING_MODE_NORMAL) | (1u << POINTING_MODE_SNIPER) | (1u << POINTING_MODE_SCROLL) | (1u << POINTING_MODE_TEXT))
-#define PHENOM_AUTO_MOUSE_TIMEOUT_IDX_COUNT 6
-#define PHENOM_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX 2
+#ifdef EH_KEYBOARD_SPLIT_POINTING_V2
+#    define PHENOM_AUTO_MOUSE_TIMEOUT_IDX_COUNT 14
+#    define PHENOM_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX 10
+static const uint16_t phenom_auto_mouse_timeout_ms[] = {50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 750, 1000, 1250, 1500};
+#else
+#    define PHENOM_AUTO_MOUSE_TIMEOUT_IDX_COUNT 6
+#    define PHENOM_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX 2
+#endif
 #define PHENOM_ENCODER_INTERVAL_IDX_COUNT 10
 #define PHENOM_ENCODER_INTERVAL_DEFAULT_IDX 4
 #define PHENOM_TOUCH_GESTURES_DEFAULT true
 #define MODULE_ENCODER_INTERVAL_IDX_COUNT 10
 #define MODULE_ENCODER_INTERVAL_DEFAULT_IDX 4
 #ifdef EH_SPLIT_POINTING_INVERT_AXES
-#    define PHENOM_SPLIT_POINTING_SETTINGS_VERSION 7
+#    define PHENOM_SPLIT_POINTING_PREVIOUS_VERSION 7
+#    define PHENOM_SPLIT_POINTING_SETTINGS_VERSION 8
 #else
-#    define PHENOM_SPLIT_POINTING_SETTINGS_VERSION 6
+#    define PHENOM_SPLIT_POINTING_PREVIOUS_VERSION 6
+#    define PHENOM_SPLIT_POINTING_SETTINGS_VERSION 7
 #endif
 
 static const uint8_t phenom_encoder_interval_ms_table[PHENOM_ENCODER_INTERVAL_IDX_COUNT] = {0, 5, 10, 15, 20, 30, 40, 60, 80, 100};
@@ -59,7 +67,7 @@ static void apply_auto_mouse_settings(void) {
     set_auto_mouse_enable(enable);
     set_auto_mouse_layer(get_split_pointing_auto_mouse_layer());
 #    ifdef EH_KEYBOARD_SPLIT_POINTING_V2
-    set_auto_mouse_timeout((uint16_t)((get_split_pointing_auto_mouse_timeout_idx() + 1) * 250));
+    set_auto_mouse_timeout(phenom_auto_mouse_timeout_ms[get_split_pointing_auto_mouse_timeout_idx()]);
 #    endif
 #    ifdef RGBLIGHT_ENABLE
     layer_state_set_rgb(layer_state | default_layer_state);
@@ -152,6 +160,18 @@ static kb_settings_split_pointing_t kb_settings_split_pointing_sanitize(kb_setti
         return get_split_pointing_settings_default();
     }
 #ifdef EH_KEYBOARD_SPLIT_POINTING_V2
+    // Keep the six legacy timeout values in milliseconds while expanding the UI index table.
+    if (config.version == PHENOM_SPLIT_POINTING_PREVIOUS_VERSION) {
+        uint16_t timeout_ms = config.auto_mouse_timeout_idx < 6 ? (config.auto_mouse_timeout_idx + 1) * 250 : 750;
+        config.auto_mouse_timeout_idx = PHENOM_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX;
+        for (uint8_t idx = 0; idx < PHENOM_AUTO_MOUSE_TIMEOUT_IDX_COUNT; ++idx) {
+            if (phenom_auto_mouse_timeout_ms[idx] == timeout_ms) {
+                config.auto_mouse_timeout_idx = idx;
+                break;
+            }
+        }
+        config.version = PHENOM_SPLIT_POINTING_SETTINGS_VERSION;
+    }
     bool legacy_config = config.version != PHENOM_SPLIT_POINTING_SETTINGS_VERSION;
     if (legacy_config) {
         uint8_t legacy_version = config.version;

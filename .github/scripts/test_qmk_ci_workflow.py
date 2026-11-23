@@ -69,9 +69,21 @@ class QMKCIContract(unittest.TestCase):
         original = subprocess.check_output([
             'git', 'show', '088af4594448e3cc11e67626fa0553ba2cc066e2:.github/workflows/build-ergohaven.yml'
         ], cwd=ROOT)
+        scope = __import__('runpy').run_path(str(ROOT / 'util/ci_ergohaven_release_scope.py'))
+        retired = scope['RETIRED_RELEASE_TARGETS']
+        original_workers = original.split(b'\n  verify-release-scope:', 1)[1]
+        retained = []
+        removed = set()
+        for line in original_workers.splitlines(keepends=True):
+            match = scope['MATRIX_ENTRY'].match(line.decode())
+            target = tuple(part.strip() for part in match.groups()) if match else None
+            if target in retired:
+                removed.add(target)
+            else:
+                retained.append(line)
+        self.assertEqual(removed, retired)
         self.assertEqual(WORKFLOW.read_bytes().split(b'\n  verify-release-scope:', 1)[1]
-                         .split(b'\n  upstream-compatibility:', 1)[0],
-                         original.split(b'\n  verify-release-scope:', 1)[1])
+                         .split(b'\n  upstream-compatibility:', 1)[0], b''.join(retained))
 
     def test_native_uses_the_known_working_qmk_arm_toolchain(self):
         text = MANUAL.read_text()
@@ -121,8 +133,8 @@ class QMKCIContract(unittest.TestCase):
             key, value = output.read_text().strip().split('=', 1)
             self.assertEqual(key, 'matrix')
             rows = json.loads(value)['include']
-        self.assertEqual(len(rows), 32)
-        self.assertEqual(len({(row['kb'], row['km']) for row in rows}), 32)
+        self.assertEqual(len(rows), 21)
+        self.assertEqual(len({(row['kb'], row['km']) for row in rows}), 21)
         scope_text = WORKFLOW.read_text()
         expected = [tuple(part.strip() for part in match.groups())
                     for line in scope_text.splitlines()
@@ -142,8 +154,11 @@ class QMKCIContract(unittest.TestCase):
                 'git', 'show', '088af4594448e3cc11e67626fa0553ba2cc066e2:' + path], cwd=ROOT)
             current = (ROOT / path).read_bytes()
             self.assertEqual(current.count(b'uses: ./.github/workflows/release-validation.yml'), 1)
-            self.assertEqual(current.replace(b'uses: ./.github/workflows/release-validation.yml',
-                                             b'uses: ./.github/workflows/build-ergohaven.yml'), original)
+            normalize = __import__('runpy').run_path(
+                str(ROOT / '.github/scripts/test_qmk_release.py'))['publisher_before_packaging']
+            restored = normalize(current.decode(), name).encode()
+            self.assertEqual(restored.replace(b'uses: ./.github/workflows/release-validation.yml',
+                                              b'uses: ./.github/workflows/build-ergohaven.yml'), original)
 
 
     def test_protected_branch_contexts_remain_fail_closed_and_lightweight(self):

@@ -20,10 +20,27 @@ jobs:
       pull-requests: 'read'
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
       - name: Download
         uses: actions/download-artifact@v4
         with:
           path: ergohaven_fw
+
+      - name: Prepare release assets
+        env:
+          RELEASE_VERSION: latest
+          SOURCE_COMMIT: ${{ github.sha }}
+        run: |
+          python3 util/prepare_ergohaven_release.py \
+            --input ergohaven_fw/ergohaven_fw \
+            --output release_assets \
+            --version "$RELEASE_VERSION" \
+            --source-commit "$SOURCE_COMMIT" \
+            --manifest "$RUNNER_TEMP/qmk-release-assets.json"
 
       - name: Create Release
         uses: marvinpinto/action-automatic-releases@latest
@@ -33,4 +50,5 @@ jobs:
           prerelease: true
           title: 'Latest Build'
           files: |
-            ergohaven_fw/**/*.uf2
+            release_assets/*.uf2
+            release_assets/*.zip

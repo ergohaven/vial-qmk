@@ -142,6 +142,10 @@ uint8_t get_split_pointing_auto_mouse_layer(void);
 void    set_split_pointing_auto_mouse_layer(uint8_t layer);
 uint8_t get_split_pointing_auto_mouse_timeout_idx(void);
 void    set_split_pointing_auto_mouse_timeout_idx(uint8_t idx);
+
+// Settings-editor category only; module hardware remains automatically detected.
+uint8_t get_split_pointing_side_settings_module(split_pointing_side_t side);
+void    set_split_pointing_side_settings_module(split_pointing_side_t side, uint8_t module);
 void    set_pointing_auto_mouse_override(bool enabled, bool active);
 
 void          set_orientation(orientation_t orientation);

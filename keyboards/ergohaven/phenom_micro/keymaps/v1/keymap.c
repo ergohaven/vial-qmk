@@ -31,7 +31,7 @@ static const phenom_micro_hrm_t phenom_micro_hrms[] = {
     {HRM_LALT_LPRN, KC_LPRN,  MOD_BIT(KC_LEFT_ALT)},
     {HRM_LCTL_RPRN, KC_RPRN,  MOD_BIT(KC_LEFT_CTRL)},
     {HRM_RCTL_LCBR, KC_LCBR,  MOD_BIT(KC_RIGHT_CTRL)},
-    {HRM_RALT_RCBR, KC_RCBR,  MOD_BIT(KC_RIGHT_ALT)},
+    {HRM_RALT_RCBR, KC_RCBR,  MOD_BIT(KC_LEFT_ALT)}, // Preserve the legacy keycode identity; hold uses Left Alt.
 };
 
 static phenom_micro_hrm_state_t phenom_micro_hrm_states[ARRAY_SIZE(phenom_micro_hrms)];
@@ -66,7 +66,7 @@ static void phenom_micro_hrm_hold_pending_except(uint16_t keycode) {
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_BASE] = LAYOUT(
 KC_Q,     KC_W,     KC_E,     KC_R,     KC_T,                                             KC_Y,     KC_U,     KC_I,     KC_O,     KC_P,
-LGUI_T(KC_A), LALT_T(KC_S), LSFT_T(KC_D), LCTL_T(KC_F), KC_G,                              KC_H,     RCTL_T(KC_J), RSFT_T(KC_K), RALT_T(KC_L), RGUI_T(KC_SCLN),
+LGUI_T(KC_A), LALT_T(KC_S), LSFT_T(KC_D), LCTL_T(KC_F), KC_G,                              KC_H,     RCTL_T(KC_J), RSFT_T(KC_K), LALT_T(KC_L), RGUI_T(KC_SCLN),
 KC_Z,     KC_X,     KC_C,     KC_V,     KC_B,                                             KC_N,     KC_M,     KC_COMM,  KC_DOT,   KC_QUOT,
           KC_GRV,   KC_ESC,   KC_BSPC,  LOWER,    KC_SPC,                                 KC_ENT,   RAISE,    KC_TAB,   KC_LBRC,  KC_RBRC,
                                                             KC_MUTE,            KC_MUTE
@@ -74,7 +74,7 @@ KC_Z,     KC_X,     KC_C,     KC_V,     KC_B,                                   
 
     [_LOWER] = LAYOUT(
 KC_1,     KC_2,     KC_3,     KC_4,     KC_5,                                             KC_6,     KC_7,     KC_8,     KC_9,     KC_0,
-LGUI_T(KC_HOME), LALT_T(KC_INS), LSFT_T(KC_DEL), LCTL_T(KC_END), KC_ENT,                   _______,  RCTL_T(KC_LEFT), RSFT_T(KC_DOWN), RALT_T(KC_UP), RGUI_T(KC_RIGHT),
+LGUI_T(KC_HOME), LALT_T(KC_INS), LSFT_T(KC_DEL), LCTL_T(KC_END), KC_ENT,                   _______,  RCTL_T(KC_LEFT), RSFT_T(KC_DOWN), LALT_T(KC_UP), RGUI_T(KC_RIGHT),
 _______,  _______,  _______,  _______,  KC_PSCR,                                          _______,  _______,  _______,  _______,  _______,
           KC_PGUP,  KC_PGDN,  _______,  _______,  _______,                                _______,  ADJUST,   _______,  KC_CAPS,  CW_TOGG,
                                                             _______,            _______
@@ -90,7 +90,7 @@ KC_HASH,  KC_ASTR,  KC_COLN,  KC_SLSH,  _______,                                
 
     [_ADJUST] = LAYOUT(
 KC_F1,    KC_F2,    KC_F3,    KC_F4,    KC_F5,                                            KC_F6,    KC_F7,    KC_F8,    KC_F9,    KC_F10,
-KC_LGUI,  LALT_T(KC_MPRV), LSFT_T(KC_MPLY), LCTL_T(KC_MNXT), _______,                     _______,  RCTL_T(KC_VOLD), RSFT_T(KC_MUTE), RALT_T(KC_VOLU), RGUI_T(KC_F11),
+KC_LGUI,  LALT_T(KC_MPRV), LSFT_T(KC_MPLY), LCTL_T(KC_MNXT), _______,                     _______,  RCTL_T(KC_VOLD), RSFT_T(KC_MUTE), LALT_T(KC_VOLU), RGUI_T(KC_F11),
 _______,  _______,  _______,  _______,  _______,                                          _______,  _______,  _______,  _______,  KC_F12,
           _______,  _______,  _______,  _______,  _______,                                _______,  _______,  _______,  _______,  _______,
                                                             _______,            _______

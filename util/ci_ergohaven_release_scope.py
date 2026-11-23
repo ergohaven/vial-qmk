@@ -16,6 +16,16 @@ MATRIX_ENTRY = re.compile(r"^\s*-\s*\{\s*kb:\s*([^,]+),\s*km:\s*([^}]+)\}\s*$")
 # Maintainer and retired keymaps stay in-tree for development/personal builds,
 # but are intentionally excluded from official Ergohaven release artifacts.
 EXCLUDED_KEYMAPS = {
+    ERGOHAVEN_ROOT / "k03pro/keymaps/v1/vial.json",
+    ERGOHAVEN_ROOT / "hpd/keymaps/v1/vial.json",
+    ERGOHAVEN_ROOT / "imperial44/keymaps/v1_v2/vial.json",
+    ERGOHAVEN_ROOT / "k02/keymaps/v1/vial.json",
+    ERGOHAVEN_ROOT / "k03/keymaps/v1_v2/vial.json",
+    ERGOHAVEN_ROOT / "macropad/keymaps/v1/vial.json",
+    ERGOHAVEN_ROOT / "planeta/keymaps/v1/vial.json",
+    ERGOHAVEN_ROOT / "planeta/keymaps/v2/vial.json",
+    ERGOHAVEN_ROOT / "remnant/keymaps/v1/vial.json",
+    ERGOHAVEN_ROOT / "velvet/keymaps/v1/vial.json",
     ERGOHAVEN_ROOT / "hpd/keymaps/v2_lcd_ball/vial.json",
     ERGOHAVEN_ROOT / "macropad/keymaps/v2_ccw/vial.json",
     ERGOHAVEN_ROOT / "hpd/keymaps/kissetfall/vial.json",
@@ -26,11 +36,25 @@ EXCLUDED_KEYMAPS = {
     ERGOHAVEN_ROOT / "remnant/keymaps/kissetfall/vial.json",
 }
 
+# Permanently retired product generations remain available for manual builds only.
+RETIRED_RELEASE_TARGETS = {
+    ("ergohaven/k03pro/rev1/43mm", "v1"),
+    ("ergohaven/k03pro/rev1/65mm", "v1"),
+    ("ergohaven/hpd/rev1", "v1"),
+    ("ergohaven/imperial44/rev1", "v1_v2"),
+    ("ergohaven/k02", "v1"),
+    ("ergohaven/k03/rev1", "v1_v2"),
+    ("ergohaven/macropad/rev1", "v1"),
+    ("ergohaven/planeta/rev1", "v1"),
+    ("ergohaven/planeta/rev2", "v2"),
+    ("ergohaven/remnant", "v1"),
+    ("ergohaven/velvet/rev1", "v1"),
+}
+
 # This is the complete official release matrix. Keeping it independent from
 # the workflow makes accidental target removal a CI failure rather than a
 # silently smaller release.
 REQUIRED_RELEASE_TARGETS = {
-    ("ergohaven/hpd/rev1", "v1"),
     ("ergohaven/hpd/rev2", "v2"),
     ("ergohaven/hpd/rev2", "v2_ball_enc"),
     ("ergohaven/hpd/rev2", "v2_enc_ball"),
@@ -39,29 +63,19 @@ REQUIRED_RELEASE_TARGETS = {
     ("ergohaven/hpd/rev2", "v2_enc_touch"),
 
     ("ergohaven/hpd/rev2", "v2_touch_enc"),
-    ("ergohaven/imperial44/rev1", "v1_v2"),
     ("ergohaven/imperial44/rev3", "v3_v4"),
-    ("ergohaven/k02", "v1"),
-    ("ergohaven/k03/rev1", "v1_v2"),
     ("ergohaven/k03/rev3", "v3_v4"),
-    ("ergohaven/k03pro/rev1/43mm", "v1"),
-    ("ergohaven/k03pro/rev1/65mm", "v1"),
     ("ergohaven/k03pro/rev2", "v2_v3"),
-    ("ergohaven/macropad/rev1", "v1"),
     ("ergohaven/macropad/rev2", "v2"),
 
     ("ergohaven/macropad/rev3", "v3"),
     ("ergohaven/phenom/rev1", "v1"),
     ("ergohaven/phenom_micro/rev1", "v1"),
     ("ergohaven/phenom_mini/rev1", "v1"),
-    ("ergohaven/planeta/rev1", "v1"),
-    ("ergohaven/planeta/rev2", "v2"),
-    ("ergohaven/remnant", "v1"),
     ("ergohaven/sm30", "v1"),
     ("ergohaven/sm62", "v1"),
     ("ergohaven/trackball", "v1"),
     ("ergohaven/trackball", "v2"),
-    ("ergohaven/velvet/rev1", "v1"),
     ("ergohaven/velvet/rev2", "v2"),
     ("ergohaven/velvet/rev3", "v3"),
 }
@@ -90,6 +104,11 @@ def main(*, matrix=False):
         return 1
 
     target_set = set(targets)
+    retired_targets = target_set & RETIRED_RELEASE_TARGETS
+    if retired_targets:
+        print("Retired targets must not be built or published:")
+        for keyboard, keymap in sorted(retired_targets):
+            print("  {}:{}".format(keyboard, keymap))
     if len(targets) != len(target_set):
         print("Duplicate Ergohaven release targets found in {}".format(WORKFLOW))
         return 1
@@ -135,7 +154,7 @@ def main(*, matrix=False):
         for path in sorted(stale_exclusions):
             print("  {}".format(path))
 
-    if missing_targets or unexpected_targets or unresolved or missing or stale_exclusions:
+    if retired_targets or missing_targets or unexpected_targets or unresolved or missing or stale_exclusions:
         return 1
 
     if matrix:

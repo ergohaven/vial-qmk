@@ -13,6 +13,9 @@
 #include <debug.h>
 #include <qmk_settings.h>
 #include "via.h"
+#ifdef EH_PHENOM_LAYER_NAMES
+#    include <strings.h>
+#endif
 #if defined(KEYBOARD_ergohaven_sm62)
 #    include "keyboards/ergohaven/sm62/sm62_settings.h"
 #endif
@@ -260,10 +263,17 @@ __attribute__((weak)) uint32_t get_split_lcd_timeout_ms(void) {
 }
 
 __attribute__((weak)) const char *default_layer_label(uint8_t layer) {
+#ifdef EH_PHENOM_LAYER_NAMES
+    static const char default_layer_labels[][LAYER_LABEL_SIZE] PROGMEM = {
+        "Base", "Num + Nav", "Symbols", "Adjust", "Mouse", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15",
+    };
+    return layer < ARRAY_SIZE(default_layer_labels) ? default_layer_labels[layer] : "";
+#else
     static const char *PROGMEM default_layer_labels[] = {
         "BASE", "LOWER", "RAISE", "ADJST", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN", "ELEVN", "TWLVE", "THRTN", "FRTN", "FIFTN",
     };
     return default_layer_labels[layer];
+#endif
 }
 
 void kb_settings_layer_labels_reset(void) {
@@ -281,6 +291,30 @@ void kb_settings_layer_labels_init(void) {
          * bleed into the next row/render snapshot. Sanitize RAM only. */
         layer_names[i][LAYER_LABEL_SIZE - 1] = '\0';
     }
+#ifdef EH_PHENOM_LAYER_NAMES
+    static const char *const legacy[] = {
+        "BASE", "LOWER", "RAISE", "ADJST", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN", "ELEVN", "TWLVE", "THRTN", "FRTN", "FIFTN",
+    };
+    bool factory_profile = DYNAMIC_KEYMAP_LAYER_COUNT <= ARRAY_SIZE(legacy);
+    for (uint8_t layer = 0; factory_profile && layer < DYNAMIC_KEYMAP_LAYER_COUNT; ++layer) {
+        char numeric[LAYER_LABEL_SIZE], generated[LAYER_LABEL_SIZE];
+        snprintf(numeric, sizeof(numeric), "%u", layer);
+        snprintf(generated, sizeof(generated), "Layer %u", layer);
+        const char *name = layer_names[layer];
+        factory_profile = !*name || !strcasecmp(name, legacy[layer]) || !strcmp(name, default_layer_label(layer))
+                          || !strcmp(name, numeric) || !strcasecmp(name, generated) || (layer == 0 && !strcasecmp(name, "Main"));
+    }
+    // Migrate only an entirely generated factory profile; retain every custom profile unchanged.
+    if (factory_profile) {
+        for (uint8_t layer = 0; layer < DYNAMIC_KEYMAP_LAYER_COUNT; ++layer) {
+            if (!strcmp(layer_names[layer], default_layer_label(layer))) continue;
+            memset(layer_names[layer], 0, LAYER_LABEL_SIZE);
+            strncpy(layer_names[layer], default_layer_label(layer), LAYER_LABEL_SIZE - 1);
+            eeconfig_update_kb_datablock(layer_names[layer], KB_SETTINGS_LAYER_LABELS_OFFSET + layer * LAYER_LABEL_SIZE, LAYER_LABEL_SIZE);
+            layer_name_updated = true;
+        }
+    }
+#endif
 }
 
 void kb_settings_reset(void) {
@@ -755,6 +789,28 @@ static int modules_bool_set(const qmk_settings_proto_t *proto, const void *setti
     return 0;
 }
 
+#ifdef EH_KEYBOARD_SPLIT_POINTING_V2
+// Shared by all three Phenom drivers. The category edits UI visibility, not hardware detection.
+// Public values are zero-based; EEPROM retains the existing 1..3 encoding in reserved bits.
+#    define PHENOM_LEFT_SETTINGS_MODULE_SHIFT 26
+#    define PHENOM_RIGHT_SETTINGS_MODULE_SHIFT 28
+
+uint8_t get_split_pointing_side_settings_module(split_pointing_side_t side) {
+    if (side >= SPLIT_POINTING_SIDE_COUNT) return 0;
+    uint8_t shift = side == SPLIT_POINTING_SIDE_LEFT ? PHENOM_LEFT_SETTINGS_MODULE_SHIFT : PHENOM_RIGHT_SETTINGS_MODULE_SHIFT;
+    uint8_t module = (via_get_layout_options() >> shift) & 0x3u;
+    return module ? module - 1 : 0;
+}
+
+void set_split_pointing_side_settings_module(split_pointing_side_t side, uint8_t module) {
+    if (side >= SPLIT_POINTING_SIDE_COUNT || module > 2) return;
+    uint8_t shift = side == SPLIT_POINTING_SIDE_LEFT ? PHENOM_LEFT_SETTINGS_MODULE_SHIFT : PHENOM_RIGHT_SETTINGS_MODULE_SHIFT;
+    uint32_t raw = via_get_layout_options();
+    uint32_t updated = (raw & ~(0x3u << shift)) | ((uint32_t)(module + 1) << shift);
+    if (updated != raw) via_set_layout_options(updated);
+}
+#endif
+
 static int modules_select_get(const qmk_settings_proto_t *proto, void *setting, size_t maxsz) {
     uint8_t v = 0;
 #if defined(EH_KEYBOARD_SPLIT_POINTING_V2)
@@ -771,6 +827,10 @@ static int modules_select_get(const qmk_settings_proto_t *proto, void *setting, 
             break;
         case 143:
             v = get_split_pointing_auto_mouse_layer();
+            break;
+        case 372:
+        case 373:
+            v = get_split_pointing_side_settings_module(proto->qsid == 372 ? SPLIT_POINTING_SIDE_LEFT : SPLIT_POINTING_SIDE_RIGHT);
             break;
         case 324:
             v = get_split_pointing_auto_mouse_timeout_idx();
@@ -841,6 +901,10 @@ static int modules_select_set(const qmk_settings_proto_t *proto, const void *set
             break;
         case 143:
             set_split_pointing_auto_mouse_layer(v);
+            break;
+        case 372:
+        case 373:
+            set_split_pointing_side_settings_module(proto->qsid == 372 ? SPLIT_POINTING_SIDE_LEFT : SPLIT_POINTING_SIDE_RIGHT, v);
             break;
         case 324:
             set_split_pointing_auto_mouse_timeout_idx(v);
@@ -1722,6 +1786,8 @@ qmk_settings_proto_t kb_protos[KB_SETTINGS_NPROTOS] PROGMEM = {
 #endif
 #endif
 #if defined(EH_KEYBOARD_SPLIT_POINTING_V2)
+    DECLARE_SETTING(372, modules_select_get, modules_select_set),
+    DECLARE_SETTING(373, modules_select_get, modules_select_set),
     DECLARE_SETTING(324, modules_select_get, modules_select_set),
     DECLARE_SETTING(325, modules_select_get, modules_select_set),
     DECLARE_SETTING(326, modules_select_get, modules_select_set),
