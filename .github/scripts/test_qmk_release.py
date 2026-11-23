@@ -99,7 +99,10 @@ class ReleasePublication(unittest.TestCase):
         publisher = (ROOT / '.github/workflows/release.yml').read_bytes()
         original_publisher = subprocess.check_output(
             ['git', 'show', baseline + ':.github/workflows/release.yml'], cwd=ROOT)
-        self.assertEqual(publisher, original_publisher)
+        self.assertEqual(publisher.count(b'uses: ./.github/workflows/release-validation.yml'), 1)
+        restored = publisher.replace(b'uses: ./.github/workflows/release-validation.yml',
+                                     b'uses: ./.github/workflows/build-ergohaven.yml')
+        self.assertEqual(restored, original_publisher)
         self.assertIn(b'draft: true', publisher)
 
 

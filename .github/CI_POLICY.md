@@ -1,5 +1,12 @@
 # Shared CI policy interface
 
+The ordinary Ergohaven artifact build does not call this planner. Manual
+`build-ergohaven.yml` runs native firmware compilation only; production push/PR
+contracts stay in `ci.yml`. Release/pre-release callers use
+`release-validation.yml` and unconditionally require both complete profiles.
+The helper interface below remains available, with its offline regression
+coverage and source/proof safety checks unchanged.
+
 Requires Python 3.9+ (stdlib), Git, and checkout with `fetch-depth: 0`.
 Run from the repository root. The helper never writes GitHub statuses or checks.
 
