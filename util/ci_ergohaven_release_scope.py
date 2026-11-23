@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Verify that every Ergohaven Vial keymap has an explicit release policy."""
 
+import argparse
+import json
 from pathlib import Path
 import re
 import sys
 
 
-WORKFLOW = Path(".github/workflows/build-ergohaven.yml")
+WORKFLOW = Path(".github/workflows/release-validation.yml")
 KEYBOARDS_ROOT = Path("keyboards")
 ERGOHAVEN_ROOT = KEYBOARDS_ROOT / "ergohaven"
 MATRIX_ENTRY = re.compile(r"^\s*-\s*\{\s*kb:\s*([^,]+),\s*km:\s*([^}]+)\}\s*$")
@@ -75,7 +77,7 @@ def find_vial_definition(keyboard, keymap):
     return None
 
 
-def main():
+def main(*, matrix=False):
     workflow_text = WORKFLOW.read_text(encoding="utf-8")
     targets = []
     for line in workflow_text.splitlines():
@@ -136,13 +138,18 @@ def main():
     if missing_targets or unexpected_targets or unresolved or missing or stale_exclusions:
         return 1
 
-    print(
-        "Verified {} release targets, {} Vial definitions and {} intentional exclusions.".format(
-            len(targets), len(definitions), len(EXCLUDED_KEYMAPS)
+    if matrix:
+        print(json.dumps({'include': [{'kb': kb, 'km': km} for kb, km in targets]}))
+    else:
+        print(
+            "Verified {} release targets, {} Vial definitions and {} intentional exclusions.".format(
+                len(targets), len(definitions), len(EXCLUDED_KEYMAPS)
+            )
         )
-    )
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--matrix", action="store_true", help="Emit the verified official build matrix as JSON")
+    sys.exit(main(matrix=parser.parse_args().matrix))
