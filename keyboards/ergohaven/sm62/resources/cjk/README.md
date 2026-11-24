@@ -1,14 +1,8 @@
-# SM62 CJK 24 px monochrome — experimental choice, not approved final
+# SM62 CJK font
 
-This combined COMMON prototype target builds and links normally. It includes
-the exact verified idle restart delta and cached FPS repair. Both halves must
-be updated (internal settings RPC is 30 bytes). No EEPROM reset is required.
-
-CJK is 24 px **1 bpp**, not the rejected 24 px 2 bpp antialiased resource.
-This preserves the CJK size but changes its antialiasing. Show the actual
-LVGL comparison preview and obtain the user's choice before final delivery.
-The original Latin Regular/Bold 24 data, metrics, kerning and bitmaps remain
-unchanged; private fallback descriptors apply only to player title/artist.
+The CJK resource uses 24 px, 1 bpp monochrome glyphs. Private fallback
+descriptors apply only to player title and artist text; they do not replace
+the Latin Regular/Bold 24 data, metrics, kerning or bitmaps.
 
 ## Font and coverage
 
@@ -24,8 +18,7 @@ FFCA–FFCF, FFD2–FFD7, FFDA–FFDC, FFE0–FFE6, FFE8–FFEE.
 This is not all Unicode CJK: Noto lacks 4DB6–4DBF and 9FF0–9FFF;
 Ext B+, emoji, unlisted compatibility ideographs and variation sequences
 are excluded. Full modern Hangul, jamo, kana, Han/Ext A above are retained.
-U+3031/U+3032 remain taller than the unchanged 32 px field and clip;
-the exhaustive native test reports four field/codepoint cases explicitly.
+U+3031/U+3032 are taller than the 32 px field and clip.
 
 ## Representation and integration
 
@@ -42,23 +35,4 @@ tinf 1.2.1 by Joergen Ibsen is included under its zlib license. Source is
 plainly marked as altered: decoder data and code-length scratch are static,
 so it is intentionally non-reentrant and called only on the display thread.
 
-Normal ARM link: 2,001,004 B flash; 96,148 B flash headroom. Linker heap
-182,504 B; main process stack 2,048 B. Font TU ARM stack-usage frames <=64 B;
-this is not a measurement of complete physical main-loop high-water use.
-
-Native real pinned LVGL: all 79,116 title/artist codepoint lookups, 18,096
-Latin/fixture checks, six pixel-identical Latin marquee frames, moving mixed
-marquee and 1,000 long/change/clear/short cycles with identical final short
-pixels and stable 40,200 B LVGL free space. Separate ASan+UBSan codec test
-compares all 39,558 exact generated monochrome glyph bitmaps/metrics and
-100,000 cache-churn lookups. New decoder retains all sanitizer checks.
-Only the inherited LVGL compressed-font TU excludes its known shift UB.
-
-Idle sender/receiver suite: 66 PASS lines. Complete source inventory proves
-idle bytes exactly match the verified idle worker and unrelated FPS, GPIO,
-EEPROM, HID and UTF-8 transport bytes are unchanged. Both UF2 payload and
-RP2040 family/address/block checks are validated against its own ELF.
-
-Physical SPI/FPS and cold-glyph latency are NOT measured. The preview is
-native LVGL label rendering, not a photo of a physical panel or full screen.
-No publication, canonical edits or user delivery occurred.
+These resource details do not establish physical SPI/FPS or cold-glyph latency.

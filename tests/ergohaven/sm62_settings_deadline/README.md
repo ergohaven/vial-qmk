@@ -3,8 +3,13 @@
 Focused production-backed native regression, single-core settings policy only.
 No MCU build or physical-display claim.
 
+Run from the repository root with Python 3, a native C compiler and
+`AGENT_BUILD_CACHE` set to an existing external build-cache directory. In a
+managed agent environment, use the owning project's storage wrapper to provide
+that directory and enforce its budget.
+
 ```sh
-/home/agent/.local/bin/agent-storage run --agent ben --project work/sm62/entropy-sm62-multi-device/publication-0aaa9947/firmware-source -- python3 tests/ergohaven/sm62_settings_deadline/run.py --phase green
+python3 tests/ergohaven/sm62_settings_deadline/run.py --phase ci
 ```
 
 The runner creates a fresh absolute directory under `AGENT_BUILD_CACHE`, compiles
@@ -23,31 +28,5 @@ ordinary ship normalization, pending release, deferred EEPROM and role-correct
 split sending. Calls to the public pending accessor represent the renderer's
 normal polling; this does not claim scheduler-only release without that caller.
 
-## Retained checkpoints
-
-Base HEAD: `05ec665ecf879b3eee4362d966980365bbd34663` (production source was staged).
-Cache root:
-`/home/agent/.cache/agent-build/ben/work_sm62_entropy-sm62-multi-device_publication-0aaa9947_firmware-sour-cd1496a620/`
-
-- RED: `settings-deadline-red-jesumihz/`, exit 1, 24 pass / 16 fail.
-  Only `repeated` and `late` fail across all eight role/clock combinations.
-  Repeated GETs keep pending true at 4000–4500ms and block master split sync;
-  a GET at 3900ms also extends the 4000ms bound.
-  Production SHA256: `8dbae874b4ce8ef86e5d6894a40ba31869a2575ec693d846b33ea5050c2ed642`.
-- GREEN: `settings-deadline-green-6_55gmj4/`, exit 0, 40 pass / 0 fail.
-  Production SHA256: `3e07490fa05e39339e723f698388183c38853173bd1cd6f5992138c667fa0ee8`.
-
-Each directory retains the exact production input, generated native fixture,
-source hashes, compile command/log, test commands/log and machine-readable
-results/summary. Both checkpoints use byte-identical test inputs.
-Replay RED with `--settings-source <RED-directory>/settings-production.c`.
-
-Historical setup run `settings-deadline-red-x8qn7y51/` also had an incorrect
-right-side ship-enabled expectation (leaving factory ship intentionally disables
-it); it is not the clean RED checkpoint. This expectation was corrected before
-any production edit. An initial agent-storage attempt refused transient existing
-cache symlinks; inspection later found none and the unchanged wrapper succeeded.
-
-Minimal repair adds the absolute SET-age bound to the readback gap branch;
-GET behavior, saved layout, setter normalization, persistence and split rules
-are unchanged. `git diff --check` passed. No staging, commits or broad suites.
+For baseline comparisons, `--settings-source /absolute/path/to/settings.c`
+selects an archived production input without replacing the repository source.
