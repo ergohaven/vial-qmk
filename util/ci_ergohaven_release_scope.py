@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Verify that every Ergohaven Vial keymap has an explicit release policy."""
+"""Verify the Ergohaven-only source tree, frozen archive and release policy."""
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -13,30 +14,17 @@ KEYBOARDS_ROOT = Path("keyboards")
 ERGOHAVEN_ROOT = KEYBOARDS_ROOT / "ergohaven"
 MATRIX_ENTRY = re.compile(r"^\s*-\s*\{\s*kb:\s*([^,]+),\s*km:\s*([^}]+)\}\s*$")
 
-# Maintainer and retired keymaps stay in-tree for development/personal builds,
-# but are intentionally excluded from official Ergohaven release artifacts.
+# Maintainer keymaps and excluded variants of supported devices stay active.
+# Retired device sources are frozen separately, outside QMK discovery.
 EXCLUDED_KEYMAPS = {
-    ERGOHAVEN_ROOT / "k03pro/keymaps/v1/vial.json",
-    ERGOHAVEN_ROOT / "hpd/keymaps/v1/vial.json",
-    ERGOHAVEN_ROOT / "imperial44/keymaps/v1_v2/vial.json",
-    ERGOHAVEN_ROOT / "k02/keymaps/v1/vial.json",
-    ERGOHAVEN_ROOT / "k03/keymaps/v1_v2/vial.json",
-    ERGOHAVEN_ROOT / "macropad/keymaps/v1/vial.json",
-    ERGOHAVEN_ROOT / "planeta/keymaps/v1/vial.json",
-    ERGOHAVEN_ROOT / "planeta/keymaps/v2/vial.json",
-    ERGOHAVEN_ROOT / "remnant/keymaps/v1/vial.json",
-    ERGOHAVEN_ROOT / "velvet/keymaps/v1/vial.json",
     ERGOHAVEN_ROOT / "hpd/keymaps/v2_lcd_ball/vial.json",
     ERGOHAVEN_ROOT / "macropad/keymaps/v2_ccw/vial.json",
     ERGOHAVEN_ROOT / "hpd/keymaps/kissetfall/vial.json",
     ERGOHAVEN_ROOT / "imperial44/keymaps/kissetfall/vial.json",
-    ERGOHAVEN_ROOT / "k02/keymaps/kissetfall/vial.json",
     ERGOHAVEN_ROOT / "k03/keymaps/kissetfall/vial.json",
-    ERGOHAVEN_ROOT / "planeta/keymaps/kissetfall/vial.json",
-    ERGOHAVEN_ROOT / "remnant/keymaps/kissetfall/vial.json",
 }
 
-# Permanently retired product generations remain available for manual builds only.
+# Permanently retired generations must stay outside live keyboard discovery.
 RETIRED_RELEASE_TARGETS = {
     ("ergohaven/k03pro/rev1/43mm", "v1"),
     ("ergohaven/k03pro/rev1/65mm", "v1"),
@@ -81,6 +69,68 @@ REQUIRED_RELEASE_TARGETS = {
 }
 
 
+ARCHIVE_ROOT = Path("archive/ergohaven")
+ARCHIVE_MANIFEST = ARCHIVE_ROOT / "manifest.json"
+# Intentional archive additions require review; never refresh this pin to hide a mismatch.
+ARCHIVE_MANIFEST_SHA256 = "28bb88ba8be9c46827f9702a214dd3035415f220d2302802649d0637dccf2b4d"
+
+
+def _archive_manifest():
+    raw = ARCHIVE_MANIFEST.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != ARCHIVE_MANIFEST_SHA256:
+        raise ValueError("Frozen archive manifest changed")
+    return json.loads(raw)
+
+
+def find_archived_vial_definition(keyboard, keymap):
+    for target in _archive_manifest()["targets"]:
+        if (target["keyboard"], target["keymap"]) == (keyboard, keymap):
+            return Path(target["definition"])
+    return None
+
+
+def verify_archived_sources():
+    manifest = _archive_manifest()
+    targets = [(row["keyboard"], row["keymap"]) for row in manifest["targets"]]
+    if manifest["schema"] != 1 or len(targets) != len(set(targets)) or set(targets) != RETIRED_RELEASE_TARGETS:
+        raise ValueError("Frozen archive target inventory changed")
+    expected = set()
+    originals = set()
+    for record in manifest["files"]:
+        path = Path(record["path"])
+        original = Path(record["original_path"])
+        path.relative_to(ARCHIVE_ROOT)
+        original.relative_to(ERGOHAVEN_ROOT)
+        if ".." in path.parts or ".." in original.parts or path in expected or original in originals:
+            raise ValueError("Unsafe or duplicated archive mapping")
+        expected.add(path)
+        originals.add(original)
+        if path.is_symlink() or not path.is_file():
+            raise ValueError("Missing or unsafe frozen archive file: " + str(path))
+        if hashlib.sha256(path.read_bytes()).hexdigest() != record["sha256"]:
+            raise ValueError("Frozen device source changed: " + str(path))
+        mode = "100755" if path.stat().st_mode & 0o111 else "100644"
+        if mode != record["mode"]:
+            raise ValueError("Frozen source mode changed: " + str(path))
+        if original.exists():
+            raise ValueError("Retired source restored into active tree: " + str(original))
+    metadata = {ARCHIVE_MANIFEST, ARCHIVE_ROOT / "README.md", ARCHIVE_ROOT / "AGENTS.md"}
+    actual = {path for path in ARCHIVE_ROOT.rglob("*") if path.is_file() or path.is_symlink()} - metadata
+    if actual != expected:
+        raise ValueError("Frozen archive file inventory changed")
+    if any(Path(row["definition"]) not in expected for row in manifest["targets"]):
+        raise ValueError("Retired target missing its archived definition")
+    return manifest
+
+
+def verify_keyboard_namespace():
+    entries = {path.name for path in KEYBOARDS_ROOT.iterdir()}
+    if entries != {"ergohaven"}:
+        raise ValueError("keyboards/ must contain only ergohaven/; found: " + ", ".join(sorted(entries)))
+    if ERGOHAVEN_ROOT.is_symlink() or not ERGOHAVEN_ROOT.is_dir():
+        raise ValueError("keyboards/ergohaven must be a real directory")
+
+
 def find_vial_definition(keyboard, keymap):
     keyboard_dir = KEYBOARDS_ROOT / keyboard
     while keyboard_dir != KEYBOARDS_ROOT:
@@ -92,6 +142,16 @@ def find_vial_definition(keyboard, keymap):
 
 
 def main(*, matrix=False):
+    try:
+        verify_keyboard_namespace()
+    except (OSError, ValueError) as error:
+        print("Invalid product keyboard namespace: {}".format(error))
+        return 1
+    try:
+        verify_archived_sources()
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        print("Invalid frozen device archive: {}".format(error))
+        return 1
     workflow_text = WORKFLOW.read_text(encoding="utf-8")
     targets = []
     for line in workflow_text.splitlines():

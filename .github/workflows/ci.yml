@@ -2,7 +2,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [ergohaven]
+    branches: [ergohaven, ci/source-check]
   workflow_dispatch:
 
 concurrency:

@@ -7,6 +7,7 @@ import subprocess
 import tempfile
 import textwrap
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / '.github/workflows/release-validation.yml'
@@ -14,7 +15,7 @@ MANUAL = ROOT / '.github/workflows/build-ergohaven.yml'
 
 
 class QMKCIContract(unittest.TestCase):
-    def test_automatic_checks_are_production_only_and_manual_build_is_separate(self):
+    def test_automatic_checks_are_production_or_staging_and_manual_build_is_separate(self):
         header = MANUAL.read_text().split('\njobs:', 1)[0]
         self.assertIn('workflow_dispatch:', header)
         for event in ('workflow_call:', 'pull_request:', 'push:'):
@@ -23,7 +24,7 @@ class QMKCIContract(unittest.TestCase):
         self.assertIn('workflow_call:', release)
         self.assertNotIn('workflow_dispatch:', release)
         uid = (ROOT / '.github/workflows/ci.yml').read_text()
-        self.assertIn('push:\n    branches: [ergohaven]', uid)
+        self.assertIn('push:\n    branches: [ergohaven, ci/source-check]', uid)
         self.assertIn('pull_request:', uid)
         self.assertIn('fetch-depth: 0', uid)
         self.assertIn("unittest discover -s .github/scripts -p 'test_*.py'", uid)
@@ -83,7 +84,7 @@ class QMKCIContract(unittest.TestCase):
                 retained.append(line)
         self.assertEqual(removed, retired)
         self.assertEqual(WORKFLOW.read_bytes().split(b'\n  verify-release-scope:', 1)[1]
-                         .split(b'\n  upstream-compatibility:', 1)[0], b''.join(retained))
+                         .split(b'\n  product-scope:', 1)[0], b''.join(retained))
 
     def test_native_uses_the_known_working_qmk_arm_toolchain(self):
         text = MANUAL.read_text()
@@ -177,34 +178,58 @@ class QMKCIContract(unittest.TestCase):
                                     capture_output=True, text=True)
             self.assertEqual(result.returncode == 0, value == 'success')
 
-    def test_upstream_mass_compile_is_release_only_with_unchanged_coverage(self):
-        path = '.github/workflows/upstream-compatibility.yml'
+    def test_product_source_scope_replaces_foreign_mass_compile_without_duplicate_builds(self):
+        path = '.github/workflows/product-scope.yml'
         text = (ROOT / path).read_text()
         header = text.split('\njobs:', 1)[0]
         self.assertIn('workflow_call:', header)
         self.assertNotIn('workflow_dispatch:', header)
         self.assertNotIn('schedule:', header)
-        original = subprocess.check_output([
-            'git', 'show', '088af4594448e3cc11e67626fa0553ba2cc066e2:' + path], cwd=ROOT, text=True)
-        old_trigger = "on:\n  workflow_dispatch:\n  schedule:\n    - cron: '17 3 * * 1'\n"
-        self.assertEqual(text.replace('on:\n  workflow_call:\n', old_trigger, 1), original)
+        self.assertFalse((ROOT / '.github/workflows/upstream-compatibility.yml').exists())
+        self.assertFalse((ROOT / '.github/upstream-vial-known-failures.txt').exists())
+        self.assertIn('contents: read', header)
+        self.assertIn('persist-credentials: false', text)
+        self.assertIn('python3 -B util/ci_ergohaven_release_scope.py', text)
+        self.assertIn('python3 -B util/ci_vial_verify_uid.py', text)
+        for foreign_or_duplicate_build in ('mass-compile', 'qmk compile', 'run_ci.py', 'apt-get'):
+            self.assertNotIn(foreign_or_duplicate_build, text)
         release = WORKFLOW.read_text()
-        self.assertIn('uses: ./.github/workflows/upstream-compatibility.yml', release)
-        self.assertIn('needs: [required, upstream-compatibility]', release)
+        self.assertIn('uses: ./.github/workflows/product-scope.yml', release)
+        self.assertIn('needs: [required, product-scope]', release)
         command = next(line.strip() for line in release.splitlines()
                        if line.strip().startswith("python3 -c 'import json, os, sys; results ="))
         for required in ('success', 'failure', 'cancelled', 'skipped'):
-            for upstream in ('success', 'failure', 'cancelled', 'skipped'):
-                values = {'required': {'result': required}, 'upstream-compatibility': {'result': upstream}}
+            for source_scope in ('success', 'failure', 'cancelled', 'skipped'):
+                values = {'required': {'result': required}, 'product-scope': {'result': source_scope}}
                 result = subprocess.run(['bash', '-c', command],
                                         env={**os.environ, 'RELEASE_RESULTS': json.dumps(values)},
                                         capture_output=True, text=True)
-                self.assertEqual(result.returncode == 0, required == upstream == 'success')
-        for values in ({}, {'required': {'result': 'success'}}):
+                self.assertEqual(result.returncode == 0, required == source_scope == 'success')
+        for values in ({}, {'required': {'result': 'success'}}, {'product-scope': {'result': 'success'}}):
             result = subprocess.run(['bash', '-c', command],
                                     env={**os.environ, 'RELEASE_RESULTS': json.dumps(values)},
                                     capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)
+
+    def test_product_keyboard_namespace_rejects_foreign_sources_and_missing_product(self):
+        namespace = __import__('runpy').run_path(str(ROOT / 'util/ci_ergohaven_release_scope.py'))
+        verify = namespace['verify_keyboard_namespace']
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            product = root / 'ergohaven'
+            with patch.dict(verify.__globals__, KEYBOARDS_ROOT=root, ERGOHAVEN_ROOT=product):
+                with self.assertRaisesRegex(ValueError, 'only ergohaven'):
+                    verify()
+                product.mkdir()
+                verify()
+                foreign = root / 'foreign'
+                foreign.mkdir()
+                with self.assertRaisesRegex(ValueError, 'foreign'):
+                    verify()
+                foreign.rmdir()
+                foreign.write_text('Foreign files are forbidden too')
+                with self.assertRaisesRegex(ValueError, 'foreign'):
+                    verify()
 
 
 

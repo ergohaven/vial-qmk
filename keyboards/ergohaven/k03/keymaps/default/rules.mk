@@ -5,8 +5,9 @@ ifeq ($(strip $(OLED_ENABLE)), yes)
 endif
 
 ifeq ($(strip $(OLED_GAMING)), yes)
-  SRC += keyboards/ergohaven/k02/game/game.c
-  SRC += keyboards/ergohaven/k02/game/drawing.c
-  SRC += keyboards/ergohaven/k02/game/rndgen.c
+  EXTRAINCDIRS += keyboards/ergohaven/src/oled
+  SRC += keyboards/ergohaven/src/oled/game/game.c
+  SRC += keyboards/ergohaven/src/oled/game/drawing.c
+  SRC += keyboards/ergohaven/src/oled/game/rndgen.c
 endif
 AUTO_SHIFT_ENABLE = yes

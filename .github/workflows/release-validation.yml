@@ -215,17 +215,17 @@ jobs:
           path: ${{ runner.temp }}/ci-proof/native.json
           if-no-files-found: error
 
-  upstream-compatibility:
-    uses: ./.github/workflows/upstream-compatibility.yml
+  product-scope:
+    uses: ./.github/workflows/product-scope.yml
 
   complete-release:
     name: Complete release qualification
     if: ${{ always() }}
-    needs: [required, upstream-compatibility]
+    needs: [required, product-scope]
     runs-on: ubuntu-latest
     steps:
       - name: Require every release owner
         env:
           RELEASE_RESULTS: ${{ toJSON(needs) }}
         run: |
-          python3 -c 'import json, os, sys; results = json.loads(os.environ["RELEASE_RESULTS"]); sys.exit(0 if set(results) == {"required", "upstream-compatibility"} and all(job["result"] == "success" for job in results.values()) else "Full release qualification did not complete successfully")'
+          python3 -c 'import json, os, sys; results = json.loads(os.environ["RELEASE_RESULTS"]); sys.exit(0 if set(results) == {"required", "product-scope"} and all(job["result"] == "success" for job in results.values()) else "Full release qualification did not complete successfully")'

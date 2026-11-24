@@ -50,7 +50,7 @@ class ReleaseScope(unittest.TestCase):
         for target in [('ergohaven/hpd/rev2', 'v2_lcd_ball'), ('ergohaven/macropad/rev2', 'v2_ccw')]:
             self.assertNotIn(target, targets)
             self.assertIn(scope.find_vial_definition(*target), scope.EXCLUDED_KEYMAPS)
-        self.assertEqual(len(scope.EXCLUDED_KEYMAPS), 18)
+        self.assertEqual(len(scope.EXCLUDED_KEYMAPS), 5)
         retired = {
             ("ergohaven/k03pro/rev1/43mm", "v1"),
             ("ergohaven/k03pro/rev1/65mm", "v1"),
@@ -66,8 +66,12 @@ class ReleaseScope(unittest.TestCase):
         }
         self.assertEqual(scope.RETIRED_RELEASE_TARGETS, retired)
         self.assertTrue(retired.isdisjoint(targets))
+        archive = scope.verify_archived_sources()
+        self.assertEqual(archive['snapshot_commit'], "8bd528239a8ae1bc0747af53a6f0ba5a32f63fbc")
+        self.assertEqual(len(archive['files']), 131)
         for target in retired:
-            self.assertIn(scope.find_vial_definition(*target), scope.EXCLUDED_KEYMAPS)
+            self.assertIsNone(scope.find_vial_definition(*target))
+            self.assertTrue((ROOT / scope.find_archived_vial_definition(*target)).is_file())
         result = subprocess.run([sys.executable, 'util/ci_ergohaven_release_scope.py'],
                                 cwd=ROOT, text=True, capture_output=True)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -79,7 +83,7 @@ class ReleaseIdentity(unittest.TestCase):
         self.assertRegex((root / 'config.h').read_text(), r'#define EH_FIRMWARE_VERSION 0x00040200\b')
         self.assertIn('#define EH_VERSION_STR "4.2.0"', (root / 'ergohaven.h').read_text())
         definitions = sorted(root.glob('**/vial.json'))
-        self.assertEqual(len(definitions), 39)
+        self.assertEqual(len(definitions), 26)
         # Keep strings (including comment-like text) intact while stripping comments.
         token = re.compile(r'"(?:\\.|[^"\\])*"|//[^\n]*|/\*.*?\*/', re.S)
         for path in definitions:
@@ -97,7 +101,7 @@ class ReleaseIdentity(unittest.TestCase):
                 usb.append(path)
                 with self.subTest(owner=path.relative_to(ROOT)):
                     self.assertEqual(versions, ['4.2.0'])
-        self.assertEqual(len(usb), 25)
+        self.assertEqual(len(usb), 14)
 
 
 class ReleasePublication(unittest.TestCase):
