@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Production player font expressions + marquee, real pinned LVGL/fonts (no hardware)."""
+"""Player fonts/marquee and invisible unsupported glyphs, pinned LVGL (no hardware)."""
 import argparse, re, subprocess
 from pathlib import Path
 from macropad_native_support import validate_lvgl
@@ -49,6 +49,12 @@ int main(int argc,char **argv){
    assert(x.adv_w==y.adv_w&&x.box_w==y.box_w&&x.box_h==y.box_h&&x.ofs_x==y.ofs_x&&x.ofs_y==y.ofs_y);
    assert(lv_font_get_glyph_bitmap(old[f],c)==lv_font_get_glyph_bitmap(newf[f],c));checks++;
   }
+  for(unsigned c=0x400;c<0x500;c++){
+   lv_font_glyph_dsc_t x={0},y={0};if(!lv_font_get_glyph_dsc(old[f],&x,c,0))continue;
+   assert(lv_font_get_glyph_dsc(newf[f],&y,c,0)&&!y.is_placeholder);
+   assert(x.adv_w==y.adv_w&&x.box_w==y.box_w&&x.box_h==y.box_h&&x.ofs_x==y.ofs_x&&x.ofs_y==y.ofs_y);
+   assert(lv_font_get_glyph_bitmap(old[f],c)==lv_font_get_glyph_bitmap(newf[f],c));checks++;
+  }
  }
  const char *latin="Latin AV To WAVE 123 abc xyz -- long scrolling original text";
  set_track_text(latin);
@@ -61,27 +67,28 @@ int main(int argc,char **argv){
  const unsigned fixture[]={0xac00,0xd7a3,0xd55c,0x1100,0x3131,0x3042,0x3093,0x30a2,0x30f3,0x65e5,0x672c,0x97f3,0x4e2d,0x56fd,0x570b,0x9fef,0x3400,0x4db5,0x3002,0xff01};
  for(int f=0;f<2;f++)for(unsigned i=0;i<sizeof(fixture)/sizeof(*fixture);i++){
   lv_font_glyph_dsc_t d={0};bool ok=lv_font_get_glyph_dsc(newf[f],&d,fixture[i],0);
-  if(!ok||d.is_placeholder||!d.box_w||!d.box_h){fprintf(stderr,"MISSING CJK U+%04X field=%d\n",fixture[i],f);return 1;}
-  assert(lv_font_get_glyph_bitmap(d.resolved_font,fixture[i]));if(d.ofs_y+d.box_h>newf[f]->line_height-newf[f]->base_line){fprintf(stderr,"BOUNDS U+%04X field=%d h=%d y=%d resolved=%s\n",fixture[i],f,d.box_h,d.ofs_y,d.resolved_font==old[f]?"original":"fallback");return 1;}checks++;
+  if(!ok||d.is_placeholder||d.adv_w||d.box_w||d.box_h){fprintf(stderr,"VISIBLE UNSUPPORTED U+%04X field=%d\n",fixture[i],f);return 1;}
+  assert(!lv_font_get_glyph_bitmap(d.resolved_font,fixture[i]));checks++;
  }
  const unsigned ranges[][2]={{0x1100,0x11ff},{0x3000,0x303f},{0x3041,0x3096},{0x3099,0x30ff},{0x3131,0x318e},{0x3400,0x4db5},{0x4e00,0x9fef},{0xac00,0xd7a3},{0xff01,0xffbe},{0xffc2,0xffc7},{0xffca,0xffcf},{0xffd2,0xffd7},{0xffda,0xffdc},{0xffe0,0xffe6},{0xffe8,0xffee}};
- unsigned covered=0,clipped=0;
+ unsigned skipped=0;
  for(int f=0;f<2;f++)for(unsigned r=0;r<sizeof(ranges)/sizeof(*ranges);r++)for(unsigned cp=ranges[r][0];cp<=ranges[r][1];cp++){
   lv_font_glyph_dsc_t d={0};assert(lv_font_get_glyph_dsc(newf[f],&d,cp,0)&&!d.is_placeholder);
-  if(d.box_w&&d.box_h)assert(lv_font_get_glyph_bitmap(d.resolved_font,cp));
-  int top=newf[f]->line_height-newf[f]->base_line-d.box_h-d.ofs_y;
-  if(top<0||top+d.box_h>32)clipped++;
-  covered++;
+  assert(!d.adv_w&&!d.box_w&&!d.box_h);skipped++;
  }
- assert(covered==79116);printf("CJK coverage: %u field/codepoint lookups, %u outside 32px (explicit field bounds reported)\n",covered,clipped);
+ assert(skipped==79116);printf("CJK suppression: %u field/codepoint lookups, zero pixels/advance, no placeholders\n",skipped);
  const unsigned unsupported[]={0x9ff0,0x9fff,0x4db6,0x4dbf,0x20000,0x1f600};
- for(unsigned i=0;i<sizeof(unsupported)/sizeof(*unsupported);i++){lv_font_glyph_dsc_t d={0};assert(!lv_font_get_glyph_dsc(newf[0],&d,unsupported[i],0)||d.is_placeholder);}
+ for(int f=0;f<2;f++)for(unsigned i=0;i<sizeof(unsupported)/sizeof(*unsupported);i++){lv_font_glyph_dsc_t d={0};assert(lv_font_get_glyph_dsc(newf[f],&d,unsupported[i],0)&&!d.is_placeholder&&!d.adv_w&&!d.box_w&&!d.box_h);}
  set_track_text("Latin 한국어 日本語 カタカナ ひらがな 简体中文 繁體中文 -- long title");lv_obj_update_layout(label_title);
  assert(lv_obj_get_width(label_title)>185);unsigned hashes[4];int xs[4];
  for(int t=0;t<4;t++){lv_tick_inc(1000);lv_timer_handler();render();hashes[t]=hash();xs[t]=lv_obj_get_x(label_title);}
  assert(xs[0]>xs[1]&&xs[1]>xs[2]&&xs[2]>xs[3]);assert(hashes[0]!=hashes[1]&&hashes[1]!=hashes[2]);
  FILE *out=fopen("frame.ppm","wb");fprintf(out,"P6\n240 80\n255\n");for(unsigned i=0;i<240*80;i++){lv_color32_t c; c.full=lv_color_to32(frame[i]);fputc(c.ch.red,out);fputc(c.ch.green,out);fputc(c.ch.blue,out);}fclose(out);
- printf("PASS %u Latin metrics/bitmap + CJK glyph checks; mixed marquee x=%d,%d,%d,%d; frame hashes=%08x,%08x,%08x,%08x\n",checks,xs[0],xs[1],xs[2],xs[3],hashes[0],hashes[1],hashes[2],hashes[3]);
+ printf("PASS %u Latin/Cyrillic metrics/bitmap + hidden glyph checks; mixed marquee x=%d,%d,%d,%d; frame hashes=%08x,%08x,%08x,%08x\n",checks,xs[0],xs[1],xs[2],xs[3],hashes[0],hashes[1],hashes[2],hashes[3]);
+ set_track_text("");render();unsigned blank_hash=hash();
+ set_track_text("日本語 한국어 简体中文 繁體中文");render();assert(hash()==blank_hash);
+ set_track_text("ABC");render();unsigned visible_hash=hash();
+ set_track_text("ABC日本語한국어中文");render();assert(hash()==visible_hash);
  set_track_text("Short");lv_obj_update_layout(label_title);render();unsigned short_hash=hash();
  lv_mem_monitor_t before,after;lv_mem_monitor(&before);
  for(unsigned i=0;i<1000;i++){
@@ -95,7 +102,7 @@ int main(int argc,char **argv){
 '''
 src=a.output/'player.c';src.write_text(pre+test)
 fontdir=ROOT/'keyboards/ergohaven/macropad'
-extra=list((ROOT/'keyboards/ergohaven/sm62').glob('player_fonts.c'))+list((ROOT/'keyboards/ergohaven/sm62').glob('sm62_font_cjk_24*.c'))
+extra=[ROOT/'keyboards/ergohaven/sm62/player_fonts.c']
 cmd=['gcc','-std=gnu11','-O1','-g','-Wall','-Wextra','-Werror','-fsanitize=undefined','-fno-sanitize-recover=all','-DLV_CONF_SKIP','-DLV_USE_FONT_COMPRESSED=1','-DLV_USE_ASSERT_MALLOC=1','-DLV_USE_LOG=1','-I'+str(lvgl),'-I'+str(ROOT/'keyboards/ergohaven/sm62'),str(src),str(fontdir/'sm62_font_zen_regular_24.c'),str(fontdir/'sm62_font_zen_bold_24.c'),*map(str,extra),*sorted(str(f) for f in (lvgl/'src').rglob('*.c') if f.name!='lv_font_fmt_txt.c'),str(a.output/'lv_font_fmt_txt.o'),'-lm','-o',str(a.output/'player')]
 # Pinned LVGL's RLE decoder shifts a negative integer at line 506. Keep
 # all other UBSan checks, disabling shift only for that unchanged dependency.
