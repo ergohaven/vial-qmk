@@ -27,6 +27,17 @@ def generate_define(define, value=None):
 #endif // {define}"""
 
 
+def bcd_version(version):
+    """Encode MAJOR.MINOR, retaining the existing MAJOR.MINOR.PATCH encoding."""
+    parts = version.split('.')
+    if len(parts) not in (2, 3) or any(not p.isascii() or not p.isdigit() for p in parts):
+        raise ValueError('Expected a two- or three-component USB device version')
+    if int(parts[0]) > 99 or any(int(p) > (99 if len(parts) == 2 else 9) for p in parts[1:]):
+        raise ValueError('USB device version exceeds four BCD digits')
+    suffix = parts[1].zfill(2) if len(parts) == 2 else ''.join(parts[1:])
+    return '0x' + parts[0].zfill(2) + suffix
+
+
 def direct_pins(direct_pins, postfix):
     """Return the config.h lines that set the direct pins.
     """
@@ -119,8 +130,7 @@ def generate_config_items(kb_info_json, config_h_lines):
             escaped_str = config_value.replace('\\', '\\\\').replace('"', '\\"')
             config_h_lines.append(generate_define(config_key, f'"{escaped_str}"'))
         elif key_type == 'bcd_version':
-            (major, minor, revision) = config_value.split('.')
-            config_h_lines.append(generate_define(config_key, f'0x{major.zfill(2)}{minor}{revision}'))
+            config_h_lines.append(generate_define(config_key, bcd_version(config_value)))
         else:
             config_h_lines.append(generate_define(config_key, config_value))
 

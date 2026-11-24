@@ -1,5 +1,7 @@
 """Release integration contracts; templates remain C-preprocessor input, not JSON."""
 import importlib.util
+import ast
+import json
 from pathlib import Path
 import re
 import subprocess
@@ -86,8 +88,8 @@ class ReleaseScope(unittest.TestCase):
 class ReleaseIdentity(unittest.TestCase):
     def test_all_independent_version_owners_are_aligned(self):
         root = ROOT / 'keyboards/ergohaven'
-        self.assertRegex((root / 'config.h').read_text(), r'#define EH_FIRMWARE_VERSION 0x00040200\b')
-        self.assertIn('#define EH_VERSION_STR "4.2.0"', (root / 'ergohaven.h').read_text())
+        self.assertRegex((root / 'config.h').read_text(), r'#define EH_FIRMWARE_VERSION 0x00010000\b')
+        self.assertIn('#define EH_VERSION_STR "1.0"', (root / 'ergohaven.h').read_text())
         definitions = sorted(root.glob('**/vial.json'))
         self.assertEqual(len(definitions), 26)
         # Keep strings (including comment-like text) intact while stripping comments.
@@ -98,16 +100,53 @@ class ReleaseIdentity(unittest.TestCase):
                 preamble = token.sub(lambda m: m[0] if m[0].startswith('"') else '', preamble)
                 firmware = re.findall(r'"firmware"\s*:\s*\{([^{}]*)\}', preamble)
                 self.assertEqual(len(firmware), 1)
-                self.assertEqual(re.findall(r'"version"\s*:\s*"([^"]+)"', firmware[0]), ['4.2.0'])
-                self.assertEqual(re.findall(r'"firmwareVersion"\s*:\s*"([^"]+)"', preamble), ['4.2.0'])
+                self.assertEqual(re.findall(r'"version"\s*:\s*"([^"]+)"', firmware[0]), ['1.0'])
+                self.assertEqual(re.findall(r'"firmwareVersion"\s*:\s*"([^"]+)"', preamble), ['1.0'])
         usb = []
         for path in sorted(root.glob('**/keyboard.json')):
             versions = re.findall(r'"device_version"\s*:\s*"([^"]+)"', path.read_text())
             if versions:
                 usb.append(path)
                 with self.subTest(owner=path.relative_to(ROOT)):
-                    self.assertEqual(versions, ['4.2.0'])
+                    self.assertEqual(versions, ['1.0'])
         self.assertEqual(len(usb), 14)
+
+    def test_two_component_usb_versions_use_the_real_config_generator(self):
+        path = ROOT / 'lib/python/qmk/cli/generate/config_h.py'
+        tree = ast.parse(path.read_text())
+        owner = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == 'bcd_version')
+        namespace = {}
+        exec(compile(ast.Module(body=[owner], type_ignores=[]), str(path), 'exec'), namespace)
+        encode = namespace['bcd_version']
+        pattern = json.loads((ROOT / 'data/schemas/definitions.jsonschema').read_text())['bcd_version']['pattern']
+        for version, expected in [('1.0', '0x0100'), ('1.1', '0x0101'), ('1.10', '0x0110'),
+                                  ('2.0', '0x0200'), ('99.99', '0x9999'), ('4.2.0', '0x0420'), ('1.2.3', '0x0123')]:
+            with self.subTest(version=version):
+                self.assertRegex(version, pattern)
+                self.assertEqual(encode(version), expected)
+        for version in ['1', '1.2.3.4', '100.0', '1.100', '1.10.1', '1.-1', '1.a']:
+            with self.subTest(version=version):
+                self.assertIsNone(re.fullmatch(pattern, version))
+                with self.assertRaises(ValueError):
+                    encode(version)
+
+    def test_release_prefix_defaults_to_two_components_without_normalizing(self):
+        path = ROOT / 'util/prepare_ergohaven_release.py'
+        tree = ast.parse(path.read_text())
+        names = {'validate_release_version', 'release_name'}
+        owners = [node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name in names]
+        self.assertEqual(len(owners), len(names))
+        namespace = {'re': re}
+        exec(compile(ast.Module(body=owners, type_ignores=[]), str(path), 'exec'), namespace)
+        validate = namespace['validate_release_version']
+        for version in ['1.0', '1.1', '2.0', '1.10', 'latest']:
+            validate(version)
+        for version in ['1.0.0', '1.0.1', '4.2.0', 'v1.0', '01.0', '1', '../1.0', '1.0-rc1']:
+            with self.subTest(version=version):
+                with self.assertRaises(ValueError):
+                    validate(version)
+        validate('1.0.1', allow_patch_version=True)
+        self.assertEqual(namespace['release_name']('ergohaven/phenom/rev1', 'v1', '1.0'), '1.0_phenom_v1.uf2')
 
 
 class ReleasePublication(unittest.TestCase):

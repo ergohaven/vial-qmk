@@ -77,9 +77,20 @@ def hpd_archive(files, version, source_commit):
     return packed
 
 
-def prepare(input_dir, output_dir, version, source_commit):
-    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,63}", version) or ".." in version:
-        raise ValueError("Unsafe release prefix; preserve the exact valid tag")
+def validate_release_version(version, allow_patch_version=False):
+    """Firmware releases use MAJOR.MINOR unless a patch release is requested."""
+    if version == "latest":
+        return
+    component = r"(?:0|[1-9][0-9]?)"
+    pattern = component + r"\." + component
+    if allow_patch_version:
+        pattern = "(?:" + pattern + "|" + component + r"\.[0-9]\.[0-9])"
+    if not re.fullmatch(pattern, version):
+        raise ValueError("Use an exact MAJOR.MINOR firmware tag; a third component requires --allow-patch-version")
+
+
+def prepare(input_dir, output_dir, version, source_commit, allow_patch_version=False):
+    validate_release_version(version, allow_patch_version)
     if not re.fullmatch(r"[0-9a-f]{40}", source_commit):
         raise ValueError("The exact 40-character firmware source commit is required")
     expected = {
@@ -139,12 +150,14 @@ def main():
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--version", required=True)
+    parser.add_argument("--allow-patch-version", action="store_true",
+                        help="Only for an explicitly requested three-component firmware release")
     parser.add_argument("--source-commit", required=True)
     parser.add_argument("--manifest", type=Path, required=True)
     args = parser.parse_args()
     if args.manifest.exists():
         raise FileExistsError("Preserve the existing manifest: " + str(args.manifest))
-    manifest = prepare(args.input, args.output, args.version, args.source_commit)
+    manifest = prepare(args.input, args.output, args.version, args.source_commit, args.allow_patch_version)
     args.manifest.parent.mkdir(parents=True, exist_ok=True)
     with args.manifest.open("x", encoding="utf-8") as stream:
         json.dump(manifest, stream, indent=2)
