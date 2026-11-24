@@ -9,10 +9,8 @@ LV_FONT_DECLARE(eh_font_iosevka_22);
 LV_FONT_DECLARE(eh_font_iosevka_28);
 
 const char *default_layer_label(uint8_t layer) {
-    static const char *PROGMEM default_layer_labels[] = {
-        "MAIN", "EXTRA", "RAISE", "ADJST", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN", "ELEVN", "TWLVE", "THRTN", "FRTN", "FIFTN",
-    };
-    return default_layer_labels[layer];
+    static const char default_layer_labels[DYNAMIC_KEYMAP_LAYER_COUNT][LAYER_LABEL_SIZE] PROGMEM = {"Main", "Extra"};
+    return layer < ARRAY_SIZE(default_layer_labels) ? default_layer_labels[layer] : "";
 }
 
 uint16_t get_keycode(int layer, int row, int col) {

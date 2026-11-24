@@ -13,9 +13,9 @@
 #include <debug.h>
 #include <qmk_settings.h>
 #include "via.h"
-#ifdef EH_PHENOM_LAYER_NAMES
-#    include <strings.h>
-#endif
+#include "dynamic_keymap.h"
+#include "keymap_introspection.h"
+#include <strings.h>
 #if defined(KEYBOARD_ergohaven_sm62)
 #    include "keyboards/ergohaven/sm62/sm62_settings.h"
 #endif
@@ -262,18 +262,43 @@ __attribute__((weak)) uint32_t get_split_lcd_timeout_ms(void) {
     return get_lcd_timeout_ms();
 }
 
-__attribute__((weak)) const char *default_layer_label(uint8_t layer) {
-#ifdef EH_PHENOM_LAYER_NAMES
+static const char empty_layer_label[LAYER_LABEL_SIZE] PROGMEM = {0};
+
+static const char *standard_layer_label(uint8_t layer) {
     static const char default_layer_labels[][LAYER_LABEL_SIZE] PROGMEM = {
-        "Base", "Num + Nav", "Symbols", "Adjust", "Mouse", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15",
-    };
-    return layer < ARRAY_SIZE(default_layer_labels) ? default_layer_labels[layer] : "";
+        "Base", "Num + Nav", "Symbols", "Adjust",
+#if defined(EH_PHENOM_LAYER_NAMES) || defined(POINTING_DEVICE_ENABLE)
+        "Mouse",
 #else
-    static const char *PROGMEM default_layer_labels[] = {
-        "BASE", "LOWER", "RAISE", "ADJST", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN", "ELEVN", "TWLVE", "THRTN", "FRTN", "FIFTN",
-    };
-    return default_layer_labels[layer];
+        "4",
 #endif
+        "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15",
+    };
+    return layer < ARRAY_SIZE(default_layer_labels) ? default_layer_labels[layer] : empty_layer_label;
+}
+
+static bool layer_has_assignments(uint8_t layer, bool factory) {
+    for (uint8_t row = 0; row < MATRIX_ROWS; ++row) {
+        for (uint8_t column = 0; column < MATRIX_COLS; ++column) {
+            uint16_t keycode = factory ? keycode_at_keymap_location_raw(layer, row, column)
+                                       : dynamic_keymap_get_keycode(layer, row, column);
+            if (keycode != KC_NO && keycode != KC_TRNS) return true;
+        }
+    }
+#if defined(ENCODER_ENABLE) && defined(ENCODER_MAP_ENABLE)
+    for (uint8_t encoder = 0; encoder < NUM_ENCODERS; ++encoder) {
+        for (uint8_t direction = 0; direction < 2; ++direction) {
+            uint16_t keycode = factory ? keycode_at_encodermap_location_raw(layer, encoder, direction != 0)
+                                       : dynamic_keymap_get_encoder(layer, encoder, direction != 0);
+            if (keycode != KC_NO && keycode != KC_TRNS) return true;
+        }
+    }
+#endif
+    return false;
+}
+
+__attribute__((weak)) const char *default_layer_label(uint8_t layer) {
+    return layer_has_assignments(layer, true) ? standard_layer_label(layer) : empty_layer_label;
 }
 
 void kb_settings_layer_labels_reset(void) {
@@ -291,9 +316,14 @@ void kb_settings_layer_labels_init(void) {
          * bleed into the next row/render snapshot. Sanitize RAM only. */
         layer_names[i][LAYER_LABEL_SIZE - 1] = '\0';
     }
-#ifdef EH_PHENOM_LAYER_NAMES
     static const char *const legacy[] = {
-        "BASE", "LOWER", "RAISE", "ADJST", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN", "ELEVN", "TWLVE", "THRTN", "FRTN", "FIFTN",
+        "BASE",
+#if defined(KEYBOARD_ergohaven_sm62)
+        "NAV",
+#else
+        "LOWER",
+#endif
+        "RAISE", "ADJST", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN", "ELEVN", "TWLVE", "THRTN", "FRTN", "FIFTN",
     };
     bool factory_profile = DYNAMIC_KEYMAP_LAYER_COUNT <= ARRAY_SIZE(legacy);
     for (uint8_t layer = 0; factory_profile && layer < DYNAMIC_KEYMAP_LAYER_COUNT; ++layer) {
@@ -301,20 +331,23 @@ void kb_settings_layer_labels_init(void) {
         snprintf(numeric, sizeof(numeric), "%u", layer);
         snprintf(generated, sizeof(generated), "Layer %u", layer);
         const char *name = layer_names[layer];
-        factory_profile = !*name || !strcasecmp(name, legacy[layer]) || !strcmp(name, default_layer_label(layer))
+        factory_profile = !*name || !strcasecmp(name, legacy[layer]) || !strcasecmp(name, standard_layer_label(layer))
+                          || !strcasecmp(name, default_layer_label(layer))
                           || !strcmp(name, numeric) || !strcasecmp(name, generated) || (layer == 0 && !strcasecmp(name, "Main"));
     }
     // Migrate only an entirely generated factory profile; retain every custom profile unchanged.
     if (factory_profile) {
         for (uint8_t layer = 0; layer < DYNAMIC_KEYMAP_LAYER_COUNT; ++layer) {
-            if (!strcmp(layer_names[layer], default_layer_label(layer))) continue;
+            const char *default_name = default_layer_label(layer);
+            if (!strcmp(layer_names[layer], default_name)) continue;
+            // A formerly unused factory slot may now contain the user's keys.
+            if (!*default_name && !layer_has_assignments(layer, true) && layer_has_assignments(layer, false)) continue;
             memset(layer_names[layer], 0, LAYER_LABEL_SIZE);
-            strncpy(layer_names[layer], default_layer_label(layer), LAYER_LABEL_SIZE - 1);
+            strncpy(layer_names[layer], default_name, LAYER_LABEL_SIZE - 1);
             eeconfig_update_kb_datablock(layer_names[layer], KB_SETTINGS_LAYER_LABELS_OFFSET + layer * LAYER_LABEL_SIZE, LAYER_LABEL_SIZE);
             layer_name_updated = true;
         }
     }
-#endif
 }
 
 void kb_settings_reset(void) {
