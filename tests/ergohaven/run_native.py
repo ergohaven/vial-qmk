@@ -262,14 +262,31 @@ assert 'kb_settings_reset();' in function('keyboards/ergohaven/src/eh_settings.c
 out.append(run('unlock_insecure',unlock+'int main(void) { vial_unlocked=1; command(vial_unlock_start); vial_unlock_task(); command(vial_lock); assert(vial_unlocked); puts("unlock insecure build unchanged: PASS"); }',['-DVIAL_INSECURE']))
 reset_flags=unlock+r"""
 #define VIAL_ENABLE
-#define DYNAMIC_KEYMAP_LAYER_COUNT 2
+#define DYNAMIC_KEYMAP_LAYER_COUNT 5
 #define MATRIX_ROWS 2
 #define MATRIX_COLS 2
-static unsigned writes,erases;
+#define KC_NO 0
+#define KC_TRNS 1
+#define ENCODER_ENABLE
+#define ENCODER_MAP_ENABLE
+#define NUM_ENCODERS 1
+static unsigned writes,encoder_writes,erases;
 void nvm_dynamic_keymap_erase(void) { assert(vial_unlocked); erases++; }
-uint16_t keycode_at_keymap_location_raw(int layer,int row,int column) { return layer*4+row*2+column; }
+uint16_t keycode_at_keymap_location_raw(int layer,int row,int column) {
+    if (layer==2 || layer==3 || layer==4) return KC_TRNS;
+    return layer*4+row*2+column;
+}
+uint16_t keycode_at_encodermap_location_raw(int layer,int encoder,bool clockwise) {
+    assert(encoder==0);
+    return layer==3 && clockwise ? 42 : KC_TRNS;
+}
 void dynamic_keymap_set_keycode(int layer,int row,int column,uint16_t keycode) {
-    assert(vial_unlocked && keycode==layer*4+row*2+column); writes++;
+    uint16_t expected=(layer==2 || layer==4) ? KC_NO : keycode_at_keymap_location_raw(layer,row,column);
+    assert(vial_unlocked && keycode==expected); writes++;
+}
+void dynamic_keymap_set_encoder(int layer,int encoder,bool clockwise,uint16_t keycode) {
+    uint16_t expected=(layer==2 || layer==4) ? KC_NO : keycode_at_encodermap_location_raw(layer,encoder,clockwise);
+    assert(vial_unlocked && keycode==expected); encoder_writes++;
 }
 #define SM62_VIAL_LEGACY_EXTENSION
 #define BUILD_ID 0x123456
@@ -299,6 +316,7 @@ bool sm62_vial_flash_program(unsigned bank,unsigned offset,const uint8_t *page) 
 keymap=(ROOT/'quantum/dynamic_keymap.c').read_text()
 checked=keymap[keymap.index('bool dynamic_keymap_reset_checked(void) {'):keymap.index('void dynamic_keymap_get_buffer(')]
 reset_flags+='\n'+function('quantum/via.c','via_eeprom_set_valid')
+reset_flags+='\n'+function('quantum/keymap_introspection.c','keymap_layer_has_assignments_raw')
 reset_flags+='\n#ifdef SM62_VIAL_LEGACY_EXTENSION\n'+checked
 reset_flags+='\n'+function('quantum/dynamic_keymap.c','dynamic_keymap_reset')+r"""
 int main(void) {
@@ -306,20 +324,21 @@ int main(void) {
     for(unsigned unlocked=0;unlocked<2;unlocked++) for(unsigned active=0;active<2;active++) {
         vial_unlocked=unlocked; vial_unlock_in_progress=active;
         via_eeprom_set_valid(true);
-        writes=erases=0; dynamic_keymap_reset();
-        assert(vial_unlocked==unlocked && vial_unlock_in_progress==active && writes==8 && erases==1);
+        writes=encoder_writes=erases=0; dynamic_keymap_reset();
+        assert(vial_unlocked==unlocked && vial_unlock_in_progress==active && writes==20 && encoder_writes==10 && erases==1);
         assert(marker[0]==0x56 && marker[1]==0x34 && marker[2]==0x12);
         /* Populate real extension storage; fail only its NOR erase boundary. */
         uint8_t entry[10]={1};
         assert(sm62_vial_ext_set(1,4,entry)==0);
-        extension_erase_fails=true; writes=erases=0; dynamic_keymap_reset();
-        assert(vial_unlocked==unlocked && vial_unlock_in_progress==active && writes==0 && erases==0);
+        extension_erase_fails=true; writes=encoder_writes=erases=0; dynamic_keymap_reset();
+        assert(vial_unlocked==unlocked && vial_unlock_in_progress==active && writes==0 && encoder_writes==0 && erases==0);
         assert(marker[0]==255 && marker[1]==255 && marker[2]==255);
         extension_erase_fails=false;
         assert(dynamic_keymap_reset_checked());
     }
     puts("unlock flags: actual public bool declarations/definitions; reset temporarily unlocks and restores both initial states without changing progress: PASS");
     puts("checked reset: real extension journal success/failure, real VIA marker invalidation, no legacy writes on failure in all four lock/progress states: PASS");
+    puts("empty factory layers reset to No; populated and encoder-only layers retain their exact actions and transparency: PASS");
 }
 """
 out.append(run('unlock_reset_flags',reset_flags))

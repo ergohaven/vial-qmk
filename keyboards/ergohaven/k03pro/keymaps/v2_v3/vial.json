@@ -7,6 +7,8 @@
     },
 #include "keyboards/ergohaven/src/json/keycodes_all.json"
     "settings": [
+#include "keyboards/ergohaven/src/json/settings_encoders.json"
+,
 #include "keyboards/ergohaven/src/json/settings_touchpad_select_encoder.json"
 ,
 #include "keyboards/ergohaven/src/json/settings_leds.json"

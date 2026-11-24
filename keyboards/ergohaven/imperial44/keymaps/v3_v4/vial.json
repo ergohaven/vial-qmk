@@ -9,6 +9,8 @@
     "settings": [
 #include "keyboards/ergohaven/src/json/settings_leds.json"
 ,
+#include "keyboards/ergohaven/src/json/settings_encoders.json"
+,
 #include "keyboards/ergohaven/src/json/settings_ruen.json"
     ],
  "layouts": {

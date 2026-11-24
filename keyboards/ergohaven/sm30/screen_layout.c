@@ -9,7 +9,7 @@ LV_FONT_DECLARE(eh_font_iosevka_22);
 LV_FONT_DECLARE(eh_font_iosevka_28);
 
 const char *default_layer_label(uint8_t layer) {
-    static const char default_layer_labels[DYNAMIC_KEYMAP_LAYER_COUNT][LAYER_LABEL_SIZE] PROGMEM = {"Main", "Extra"};
+    static const char default_layer_labels[DYNAMIC_KEYMAP_LAYER_COUNT][LAYER_LABEL_SIZE] PROGMEM = {"Base", "Extra"};
     return layer < ARRAY_SIZE(default_layer_labels) ? default_layer_labels[layer] : "";
 }
 

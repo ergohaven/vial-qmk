@@ -18,6 +18,9 @@ uint16_t keycode_at_keymap_location_raw(uint8_t layer_num, uint8_t row, uint8_t 
 // Get the keycode for the keymap location, potentially stored dynamically
 uint16_t keycode_at_keymap_location(uint8_t layer_num, uint8_t row, uint8_t column);
 
+// Whether a factory layer has any own key or encoder action (not No/Transparent).
+bool keymap_layer_has_assignments_raw(uint8_t layer_num);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Encoder mapping
 

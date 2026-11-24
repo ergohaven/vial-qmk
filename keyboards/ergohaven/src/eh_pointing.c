@@ -84,7 +84,7 @@ uint8_t encoder_map_key_delay(uint8_t index) {
 #    endif
     return get_split_pointing_side_encoder_interval_ms(side);
 }
-#elif defined(EH_ENCODER_INTERVAL_SETTINGS) && defined(ENCODER_ENABLE) && defined(ENCODER_MAP_ENABLE)
+#elif defined(EH_ENCODER_INTERVAL_SETTINGS) && !defined(EH_ENCODER_SETTINGS) && defined(ENCODER_ENABLE) && defined(ENCODER_MAP_ENABLE)
 uint8_t encoder_map_key_delay(uint8_t index) {
     (void)index;
     return get_pointing_encoder_interval_ms();

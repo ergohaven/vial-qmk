@@ -5,6 +5,9 @@
 #include "eh_settings.h"
 #include "eh_ruen.h"
 #include "eh_pointing.h"
+#ifdef EH_ENCODER_SETTINGS
+#    include "eh_encoder.h"
+#endif
 #include "ergohaven_rgb.h"
 #ifdef EH_QMK_SETTINGS_SIMPLE_JOYSTICK
 #    include "drivers/sensors/analog_joystick.h"
@@ -264,9 +267,13 @@ __attribute__((weak)) uint32_t get_split_lcd_timeout_ms(void) {
 
 static const char empty_layer_label[LAYER_LABEL_SIZE] PROGMEM = {0};
 
+#ifndef EH_ADJUST_LAYER_LABEL
+#    define EH_ADJUST_LAYER_LABEL "Adjust"
+#endif
+
 static const char *standard_layer_label(uint8_t layer) {
     static const char default_layer_labels[][LAYER_LABEL_SIZE] PROGMEM = {
-        "Base", "Num + Nav", "Symbols", "Adjust",
+        "Base", "Num + Nav", "Symbols", EH_ADJUST_LAYER_LABEL,
 #if defined(EH_PHENOM_LAYER_NAMES) || defined(POINTING_DEVICE_ENABLE)
         "Mouse",
 #else
@@ -278,18 +285,17 @@ static const char *standard_layer_label(uint8_t layer) {
 }
 
 static bool layer_has_assignments(uint8_t layer, bool factory) {
+    if (factory) return keymap_layer_has_assignments_raw(layer);
     for (uint8_t row = 0; row < MATRIX_ROWS; ++row) {
         for (uint8_t column = 0; column < MATRIX_COLS; ++column) {
-            uint16_t keycode = factory ? keycode_at_keymap_location_raw(layer, row, column)
-                                       : dynamic_keymap_get_keycode(layer, row, column);
+            uint16_t keycode = dynamic_keymap_get_keycode(layer, row, column);
             if (keycode != KC_NO && keycode != KC_TRNS) return true;
         }
     }
 #if defined(ENCODER_ENABLE) && defined(ENCODER_MAP_ENABLE)
     for (uint8_t encoder = 0; encoder < NUM_ENCODERS; ++encoder) {
         for (uint8_t direction = 0; direction < 2; ++direction) {
-            uint16_t keycode = factory ? keycode_at_encodermap_location_raw(layer, encoder, direction != 0)
-                                       : dynamic_keymap_get_encoder(layer, encoder, direction != 0);
+            uint16_t keycode = dynamic_keymap_get_encoder(layer, encoder, direction != 0);
             if (keycode != KC_NO && keycode != KC_TRNS) return true;
         }
     }
@@ -333,7 +339,8 @@ void kb_settings_layer_labels_init(void) {
         const char *name = layer_names[layer];
         factory_profile = !*name || !strcasecmp(name, legacy[layer]) || !strcasecmp(name, standard_layer_label(layer))
                           || !strcasecmp(name, default_layer_label(layer))
-                          || !strcmp(name, numeric) || !strcasecmp(name, generated) || (layer == 0 && !strcasecmp(name, "Main"));
+                          || !strcmp(name, numeric) || !strcasecmp(name, generated) || (layer == 0 && !strcasecmp(name, "Main"))
+                          || (layer == 3 && !strcasecmp(name, "Adjust"));
     }
     // Migrate only an entirely generated factory profile; retain every custom profile unchanged.
     if (factory_profile) {
@@ -351,6 +358,9 @@ void kb_settings_layer_labels_init(void) {
 }
 
 void kb_settings_reset(void) {
+#ifdef EH_ENCODER_SETTINGS
+    eh_encoder_settings_reset();
+#endif
     kb_settings_ruen_reset();
     kb_settings_layer_labels_reset();
     kb_settings_pointing_reset();
@@ -371,6 +381,9 @@ void eeconfig_init_kb(void) {
 }
 
 void kb_settings_init(void) {
+#ifdef EH_ENCODER_SETTINGS
+    eh_encoder_settings_init();
+#endif
     kb_settings_ruen_init();
     kb_settings_layer_labels_init();
     kb_settings_pointing_init();
@@ -1610,6 +1623,19 @@ static int date_option_set(const qmk_settings_proto_t *proto, const void *settin
 }
 #endif
 
+#ifdef EH_ENCODER_SETTINGS
+static int encoders_get(const qmk_settings_proto_t *proto, void *setting, size_t maxsz) {
+    if (maxsz < sizeof(uint8_t)) return -1;
+    *(uint8_t *)setting = eh_encoder_setting_get(proto->qsid == 332);
+    return 0;
+}
+
+static int encoders_set(const qmk_settings_proto_t *proto, const void *setting, size_t maxsz) {
+    if (maxsz < sizeof(uint8_t)) return -1;
+    return eh_encoder_setting_set(proto->qsid == 332, *(const uint8_t *)setting) ? 0 : -1;
+}
+#endif
+
 qmk_settings_proto_t kb_protos[KB_SETTINGS_NPROTOS] PROGMEM = {
     // clang-format off
     DECLARE_SETTING(100, ruen_toggle_get, ruen_toggle_set),
@@ -1830,8 +1856,12 @@ qmk_settings_proto_t kb_protos[KB_SETTINGS_NPROTOS] PROGMEM = {
 #    ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
     DECLARE_SETTING(324, modules_select_get, modules_select_set),
 #    endif
-#    ifdef EH_ENCODER_INTERVAL_SETTINGS
+#    if defined(EH_ENCODER_INTERVAL_SETTINGS) && !defined(EH_ENCODER_SETTINGS)
     DECLARE_SETTING(325, modules_select_get, modules_select_set),
+#    endif
+#    ifdef EH_ENCODER_SETTINGS
+    DECLARE_SETTING(325, encoders_get, encoders_set),
+    DECLARE_SETTING(332, encoders_get, encoders_set),
 #    endif
 #    ifdef POINTING_DEVICE_DRIVER_azoteq_iqs5xx
     DECLARE_SETTING(327, modules_bool_get, modules_bool_set),

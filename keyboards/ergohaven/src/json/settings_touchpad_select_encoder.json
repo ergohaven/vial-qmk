@@ -6,7 +6,6 @@
         { "type": "integer", "title": "Scroll sens", "qsid": 122, "min": 1, "max": 255, "width": 1 },
         { "type": "integer", "title": "Text sens", "qsid": 123, "min": 1, "max": 255, "width": 1 },
         { "type": "boolean", "title": "Touch gestures", "qsid": 327, "bit": 0 },
-        { "type": "select", "title": "Encoder interval", "qsid": 325, "variants": ["0 ms", "5 ms", "10 ms", "15 ms", "20 ms", "30 ms", "40 ms", "60 ms", "80 ms", "100 ms"] },
         { "type": "boolean", "title": "Invert scroll vertical", "qsid": 124, "bit": 0 },
         { "type": "boolean", "title": "Invert scroll horizontal", "qsid": 124, "bit": 4 },
         { "type": "boolean", "title": "Invert text vertical", "qsid": 124, "bit": 3 },
