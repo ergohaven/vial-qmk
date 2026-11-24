@@ -1,8 +1,7 @@
 name: Pre-Release
 
 on:
-  push:
-    branches: ['vial']
+  workflow_dispatch:
 
 jobs:
 

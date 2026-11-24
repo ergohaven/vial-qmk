@@ -24,7 +24,7 @@ class QMKCIContract(unittest.TestCase):
         self.assertIn('workflow_call:', release)
         self.assertNotIn('workflow_dispatch:', release)
         uid = (ROOT / '.github/workflows/ci.yml').read_text()
-        self.assertIn('push:\n    branches: [ergohaven, ci/source-check]', uid)
+        self.assertIn('push:\n    branches: [main, ci/source-check]', uid)
         self.assertIn('pull_request:', uid)
         self.assertIn('fetch-depth: 0', uid)
         self.assertIn("unittest discover -s .github/scripts -p 'test_*.py'", uid)
@@ -161,6 +161,14 @@ class QMKCIContract(unittest.TestCase):
             self.assertEqual(restored.replace(b'uses: ./.github/workflows/release-validation.yml',
                                               b'uses: ./.github/workflows/build-ergohaven.yml'), original)
 
+
+    def test_prerelease_is_manual_and_keeps_its_existing_qualification_and_payload(self):
+        current = (ROOT / '.github/workflows/pre-release.yml').read_bytes()
+        original = subprocess.check_output([
+            'git', 'show', 'df0666fba81afa036dde0f16f222e3f9225d5168:.github/workflows/pre-release.yml'], cwd=ROOT)
+        expected = original.replace(b"on:\n  push:\n    branches: ['vial']\n", b'on:\n  workflow_dispatch:\n', 1)
+        self.assertEqual(current, expected)
+        self.assertIn(b'uses: ./.github/workflows/release-validation.yml', current)
 
     def test_protected_branch_contexts_remain_fail_closed_and_lightweight(self):
         text = (ROOT / '.github/workflows/ci.yml').read_text()

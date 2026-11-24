@@ -19,6 +19,12 @@ def scope_module():
 
 def publisher_before_packaging(text, path):
     name = Path(path).name
+    if name == 'pre-release.yml':
+        # Reverse only the separately approved routing change for the historical payload comparison.
+        trigger = 'on:\n  workflow_dispatch:\n'
+        if text.count(trigger) != 1:
+            raise AssertionError('Expected exactly one manual prerelease trigger')
+        text = text.replace(trigger, "on:\n  push:\n    branches: ['vial']\n", 1)
     steps = {'release.yml': '      - name: Prepare release assets\n        env:\n          RELEASE_VERSION: ${{ github.ref_name }}\n          SOURCE_COMMIT: ${{ github.sha }}\n        run: |\n          python3 util/prepare_ergohaven_release.py \\\n            --input ergohaven_fw/ergohaven_fw \\\n            --output release_assets \\\n            --version "$RELEASE_VERSION" \\\n            --source-commit "$SOURCE_COMMIT" \\\n            --manifest "$RUNNER_TEMP/qmk-release-assets.json"\n\n', 'pre-release.yml': '      - name: Prepare release assets\n        env:\n          RELEASE_VERSION: latest\n          SOURCE_COMMIT: ${{ github.sha }}\n        run: |\n          python3 util/prepare_ergohaven_release.py \\\n            --input ergohaven_fw/ergohaven_fw \\\n            --output release_assets \\\n            --version "$RELEASE_VERSION" \\\n            --source-commit "$SOURCE_COMMIT" \\\n            --manifest "$RUNNER_TEMP/qmk-release-assets.json"\n\n'}
     if name not in steps or text.count(steps[name]) != 1:
         raise AssertionError('Expected exactly one reviewed packaging step')

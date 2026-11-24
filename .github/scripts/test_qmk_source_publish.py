@@ -76,9 +76,9 @@ class PublicationContract(unittest.TestCase):
     def test_staging_only_changes_the_existing_lightweight_ci_trigger(self):
         original = subprocess.check_output([
             'git', 'show', '8bd528239a8ae1bc0747af53a6f0ba5a32f63fbc:.github/workflows/ci.yml'], cwd=ROOT)
-        expected = original.replace(b'branches: [ergohaven]', b'branches: [ergohaven, ci/source-check]')
+        expected = original.replace(b'branches: [ergohaven]', b'branches: [main, ci/source-check]')
         self.assertEqual((ROOT / '.github/workflows/ci.yml').read_bytes(), expected)
-        self.assertEqual(publish.PRODUCTION, 'ergohaven')
+        self.assertEqual(publish.PRODUCTION, 'main')
         self.assertEqual(publish.STAGING, 'ci/source-check')
 
     def test_controller_stages_once_and_never_promotes_unrecognized_checks(self):

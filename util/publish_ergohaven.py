@@ -23,7 +23,7 @@ from urllib.parse import quote
 ROOT = Path(__file__).resolve().parents[1]
 REPO = "ergohaven/vial-qmk"
 REMOTE = "https://github.com/" + REPO + ".git"
-PRODUCTION = "ergohaven"
+PRODUCTION = "main"
 STAGING = "ci/source-check"
 ACTOR = "kissetfall"
 EMAIL = "j@ergohaven.xyz"
