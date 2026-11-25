@@ -6,6 +6,26 @@ import sys
 import struct
 from collections import defaultdict
 
+def find_uid(config_h, pattern, visited=None):
+    """Read literal UIDs from config.h and its repository-local quoted includes."""
+    config_h = config_h.resolve()
+    visited = set() if visited is None else visited
+    if (not config_h.is_relative_to(Path("keyboards").resolve())
+            or config_h in visited or not config_h.is_file()
+            or config_h.stat().st_size >= 100000):
+        return None
+    visited.add(config_h)
+    content = config_h.read_text()
+    uid = pattern.search(content)
+    if uid:
+        return uid
+    for include in re.finditer(r'^\s*#\s*include\s+"([^"\r\n]+)"', content, re.M):
+        uid = find_uid(config_h.parent / include[1], pattern, visited)
+        if uid:
+            return uid
+    return None
+
+
 def main():
 
     VIAL_UID_REGEX = re.compile(r"#\s*define\s+VIAL_KEYBOARD_UID\s+(?:\\(?:\n|\r)\s*)*{\s*((?:0(?:x|X)(?:[0-9a-fA-F]){2}\s*,\s*){7}(?:0(?:x|X)(?:[0-9a-fA-F]){2}))\s*}")
@@ -21,9 +41,7 @@ def main():
 
         while True:
             config_h = dirname.joinpath("config.h")
-            if config_h.exists() and config_h.stat().st_size < 100000:
-                content = config_h.read_text()
-                uid = VIAL_UID_REGEX.search(content)
+            uid = find_uid(config_h, VIAL_UID_REGEX)
             if uid:
                 break
             dirname = dirname.parents[0]

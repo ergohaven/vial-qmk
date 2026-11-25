@@ -15,6 +15,39 @@ MANUAL = ROOT / '.github/workflows/build-ergohaven.yml'
 
 
 class QMKCIContract(unittest.TestCase):
+    def test_uid_validator_follows_shared_config_without_losing_duplicate_checks(self):
+        validator = ROOT / 'util/ci_vial_verify_uid.py'
+        uid = '#define VIAL_KEYBOARD_UID {0xBB, 0x17, 0xF0, 0x5B, 0x02, 0x80, 0x1D, 0x1D}\n'
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            shared = base / 'keyboards/first/keymaps/common_config.h'
+            keymap = shared.parent / 'v1'
+            keymap.mkdir(parents=True)
+            (keymap / 'vial.json').write_text('{}')
+            (keymap / 'config.h').write_text('#include "../common_config.h"\n')
+            shared.write_text(uid)
+
+            def run():
+                return subprocess.run(['python3', str(validator)], cwd=base,
+                                      capture_output=True, text=True)
+
+            result = run()
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn('first uses UID 1d1d80025bf017bb', result.stdout)
+            second = base / 'keyboards/second/keymaps/v1'
+            second.mkdir(parents=True)
+            (second / 'vial.json').write_text('{}')
+            (second / 'config.h').write_text(uid)
+            result = run()
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+            self.assertIn('duplicated:', result.stdout)
+            # Cycles terminate; a UID outside keyboards cannot mask a missing UID.
+            shared.write_text('#include "v1/config.h"\n#include "../../../outside.h"\n')
+            (base / 'outside.h').write_text(uid)
+            result = run()
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+            self.assertIn('first does not define a VIAL_KEYBOARD_UID', result.stdout)
+
     def test_automatic_checks_are_production_or_staging_and_manual_build_is_separate(self):
         header = MANUAL.read_text().split('\njobs:', 1)[0]
         self.assertIn('workflow_dispatch:', header)
