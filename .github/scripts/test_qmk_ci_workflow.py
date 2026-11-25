@@ -134,8 +134,8 @@ class QMKCIContract(unittest.TestCase):
             key, value = output.read_text().strip().split('=', 1)
             self.assertEqual(key, 'matrix')
             rows = json.loads(value)['include']
-        self.assertEqual(len(rows), 21)
-        self.assertEqual(len({(row['kb'], row['km']) for row in rows}), 21)
+        self.assertEqual(len(rows), 19)
+        self.assertEqual(len({(row['kb'], row['km']) for row in rows}), 19)
         scope_text = WORKFLOW.read_text()
         expected = [tuple(part.strip() for part in match.groups())
                     for line in scope_text.splitlines()

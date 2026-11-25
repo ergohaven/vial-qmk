@@ -36,6 +36,8 @@ RETIRED_RELEASE_TARGETS = {
     ("ergohaven/planeta/rev1", "v1"),
     ("ergohaven/planeta/rev2", "v2"),
     ("ergohaven/remnant", "v1"),
+    ("ergohaven/trackball", "v1"),
+    ("ergohaven/trackball", "v2"),
     ("ergohaven/velvet/rev1", "v1"),
 }
 
@@ -62,8 +64,6 @@ REQUIRED_RELEASE_TARGETS = {
     ("ergohaven/phenom_mini/rev1", "v1"),
     ("ergohaven/sm30", "v1"),
     ("ergohaven/sm62", "v1"),
-    ("ergohaven/trackball", "v1"),
-    ("ergohaven/trackball", "v2"),
     ("ergohaven/velvet/rev2", "v2"),
     ("ergohaven/velvet/rev3", "v3"),
 }
@@ -72,7 +72,7 @@ REQUIRED_RELEASE_TARGETS = {
 ARCHIVE_ROOT = Path("archive/ergohaven")
 ARCHIVE_MANIFEST = ARCHIVE_ROOT / "manifest.json"
 # Intentional archive additions require review; never refresh this pin to hide a mismatch.
-ARCHIVE_MANIFEST_SHA256 = "28bb88ba8be9c46827f9702a214dd3035415f220d2302802649d0637dccf2b4d"
+ARCHIVE_MANIFEST_SHA256 = "e2ccff6c0425efa30b9b46dbaf90ffba546f30a9bc44d5d6babfad7369f1ef25"
 
 
 def _archive_manifest():

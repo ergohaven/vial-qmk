@@ -51,10 +51,10 @@ class ReleaseScope(unittest.TestCase):
                    for line in text.splitlines() if (match := scope.MATRIX_ENTRY.match(line))]
         self.assertIn(('ergohaven/sm62', 'v1'), scope.REQUIRED_RELEASE_TARGETS)
         self.assertEqual(set(targets), scope.REQUIRED_RELEASE_TARGETS)
-        self.assertEqual(len(targets), 21)
-        self.assertEqual(len(set(targets)), 21)
+        self.assertEqual(len(targets), 19)
+        self.assertEqual(len(set(targets)), 19)
         names = [kb.replace('/', '_') + '_' + km + '.uf2' for kb, km in targets]
-        self.assertEqual(len(set(names)), 21)
+        self.assertEqual(len(set(names)), 19)
         for target in [('ergohaven/hpd/rev2', 'v2_lcd_ball'), ('ergohaven/macropad/rev2', 'v2_ccw')]:
             self.assertNotIn(target, targets)
             self.assertIn(scope.find_vial_definition(*target), scope.EXCLUDED_KEYMAPS)
@@ -70,13 +70,20 @@ class ReleaseScope(unittest.TestCase):
             ("ergohaven/planeta/rev1", "v1"),
             ("ergohaven/planeta/rev2", "v2"),
             ("ergohaven/remnant", "v1"),
+            ("ergohaven/trackball", "v1"),
+            ("ergohaven/trackball", "v2"),
             ("ergohaven/velvet/rev1", "v1"),
         }
         self.assertEqual(scope.RETIRED_RELEASE_TARGETS, retired)
         self.assertTrue(retired.isdisjoint(targets))
         archive = scope.verify_archived_sources()
         self.assertEqual(archive['snapshot_commit'], "8bd528239a8ae1bc0747af53a6f0ba5a32f63fbc")
-        self.assertEqual(len(archive['files']), 131)
+        self.assertEqual(len(archive['files']), 148)
+        trackball_files = [row for row in archive['files']
+                           if row['path'].startswith('archive/ergohaven/trackball/')]
+        self.assertEqual(len(trackball_files), 17)
+        self.assertEqual({row['snapshot_commit'] for row in trackball_files},
+                         {'65e965c27694a3f15c1e7bf7574f39865ca45893'})
         for target in retired:
             self.assertIsNone(scope.find_vial_definition(*target))
             self.assertTrue((ROOT / scope.find_archived_vial_definition(*target)).is_file())
@@ -91,7 +98,7 @@ class ReleaseIdentity(unittest.TestCase):
         self.assertRegex((root / 'config.h').read_text(), r'#define EH_FIRMWARE_VERSION 0x00010000\b')
         self.assertIn('#define EH_VERSION_STR "1.0"', (root / 'ergohaven.h').read_text())
         definitions = sorted(root.glob('**/vial.json'))
-        self.assertEqual(len(definitions), 26)
+        self.assertEqual(len(definitions), 24)
         # Keep strings (including comment-like text) intact while stripping comments.
         token = re.compile(r'"(?:\\.|[^"\\])*"|//[^\n]*|/\*.*?\*/', re.S)
         for path in definitions:
@@ -109,7 +116,7 @@ class ReleaseIdentity(unittest.TestCase):
                 usb.append(path)
                 with self.subTest(owner=path.relative_to(ROOT)):
                     self.assertEqual(versions, ['1.0'])
-        self.assertEqual(len(usb), 14)
+        self.assertEqual(len(usb), 13)
 
     def test_two_component_usb_versions_use_the_real_config_generator(self):
         path = ROOT / 'lib/python/qmk/cli/generate/config_h.py'

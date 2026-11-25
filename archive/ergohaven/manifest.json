@@ -740,6 +740,125 @@
     },
     {
       "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/config.h",
+      "path": "archive/ergohaven/trackball/config.h",
+      "sha256": "96b360b7aa5725a178425aa567c40b9242e64abf2f76628830146af80a2f8e33",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/halconf.h",
+      "path": "archive/ergohaven/trackball/halconf.h",
+      "sha256": "550f12a7a205b9bbce0c9408005c279ef7b970affebaef12cd151de4fc1c9c0f",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/keyboard.json",
+      "path": "archive/ergohaven/trackball/keyboard.json",
+      "sha256": "4770ef39453cd948cd8bb00db3970c5f1ad8ca18857c1fb7c7aa7f0b3540687e",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/keymaps/default/keymap.c",
+      "path": "archive/ergohaven/trackball/keymaps/default/keymap.c",
+      "sha256": "eb146964c3bd308c7e155d860cd47d880070cbae4c8f74986f8d71ad1ff213c2",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/keymaps/default/rules.mk",
+      "path": "archive/ergohaven/trackball/keymaps/default/rules.mk",
+      "sha256": "78104126928e79635abef2ab3c6138d9ca704a401564e98212cafd8b02fa30f8",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/keymaps/v1/config.h",
+      "path": "archive/ergohaven/trackball/keymaps/v1/config.h",
+      "sha256": "71033c000645efe7cf5c4059898a02665aa188fd405166eaf92fa48b1e92d7da",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/keymaps/v1/keymap.c",
+      "path": "archive/ergohaven/trackball/keymaps/v1/keymap.c",
+      "sha256": "4dafb28b568103059a04eb6a1ef00c38b44ade625392ab7f4c0bea7c79aa38de",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/keymaps/v1/rules.mk",
+      "path": "archive/ergohaven/trackball/keymaps/v1/rules.mk",
+      "sha256": "56cd3ee358b3b03e39b494de7d3a7f46712b60cc4678db31e65fb869fb98fa0e",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/keymaps/v1/vial.json",
+      "path": "archive/ergohaven/trackball/keymaps/v1/vial.json",
+      "sha256": "f31c357fd9bc1671c1f54bc2678007b214c9b81c34a7c53665195711f64a1b77",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/keymaps/v2/config.h",
+      "path": "archive/ergohaven/trackball/keymaps/v2/config.h",
+      "sha256": "587c84f906ed2be9ee9b67efb60377a9a7f82e9e30691d78696444e2eed987f2",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/keymaps/v2/keymap.c",
+      "path": "archive/ergohaven/trackball/keymaps/v2/keymap.c",
+      "sha256": "c5ec6fec866e146089f584cf88fb93e2ffe8f578087c8760d348678eacca3568",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/keymaps/v2/rules.mk",
+      "path": "archive/ergohaven/trackball/keymaps/v2/rules.mk",
+      "sha256": "113399e08cce16247dfa4bb0577f67491f230ae1469f009026f5254bff9dcffb",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/keymaps/v2/vial.json",
+      "path": "archive/ergohaven/trackball/keymaps/v2/vial.json",
+      "sha256": "39d7b4713bfa079090064b207ea7b59b22059ac52c1bf22d0243b44b625355f8",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/mcuconf.h",
+      "path": "archive/ergohaven/trackball/mcuconf.h",
+      "sha256": "d32321506f6a7a876f2243af487e2d9984139165db739bb713b3466a24a2d896",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/readme.md",
+      "path": "archive/ergohaven/trackball/readme.md",
+      "sha256": "6f96f574696275f30e592c4533aa02e28d954a59c04ac57444b0cdbcf173ba86",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/rules.mk",
+      "path": "archive/ergohaven/trackball/rules.mk",
+      "sha256": "4347502025a4081c08adea128de21246bef94e84ae41497f9b4e7831b9cb2764",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/trackball.c",
+      "path": "archive/ergohaven/trackball/trackball.c",
+      "sha256": "842755440180128b765c298d4102ce8dfe4edc2d4755e72f8d1a53f229c07491",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
       "original_path": "keyboards/ergohaven/velvet/keymaps/v1/config.h",
       "path": "archive/ergohaven/velvet/keymaps/v1/config.h",
       "sha256": "e861663eb8022163f1ce61ca0d3a3af4bd5838d44ce804ecee0fb0e8cae93fcf"
@@ -839,6 +958,18 @@
       "definition": "archive/ergohaven/remnant/keymaps/v1/vial.json",
       "keyboard": "ergohaven/remnant",
       "keymap": "v1"
+    },
+    {
+      "definition": "archive/ergohaven/trackball/keymaps/v1/vial.json",
+      "keyboard": "ergohaven/trackball",
+      "keymap": "v1",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "definition": "archive/ergohaven/trackball/keymaps/v2/vial.json",
+      "keyboard": "ergohaven/trackball",
+      "keymap": "v2",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
     },
     {
       "definition": "archive/ergohaven/velvet/keymaps/v1/vial.json",

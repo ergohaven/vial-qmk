@@ -4,9 +4,13 @@ This directory freezes retired device-specific sources outside QMK's live
 `keyboards/` discovery tree. These devices are not built or published by the
 current firmware workflows.
 
-The snapshot was taken from commit `8bd528239a8ae1bc0747af53a6f0ba5a32f63fbc`.
+The original snapshot was taken from commit `8bd528239a8ae1bc0747af53a6f0ba5a32f63fbc`.
+Standalone Trackball v1/v2 sources were added from commit
+`65e965c27694a3f15c1e7bf7574f39865ca45893`, without changing the original snapshots.
 `manifest.json` records every original path, archived path, file mode and SHA-256,
 and maps all retired firmware targets to their preserved Vial definitions.
+An entry's optional `snapshot_commit` overrides the original top-level snapshot
+for that entry; Trackball file and target entries record their own snapshot.
 The release-scope validator pins the manifest and checks every archived file.
 
 ## Retired generations
@@ -15,6 +19,7 @@ The release-scope validator pins the manifest and checks every archived file.
 - HPD v1, Imperial44 v1/v2 and K:03 v1/v2
 - K:03 Pro v1, including both 43 mm and 65 mm variants
 - Macropad v1 and Velvet v1
+- Standalone Trackball v1/v2 (not HPD or Phenom trackball modules)
 
 Shared code still used by supported keyboards remains in the active tree.
 The OLED game formerly stored under K:02 was extracted byte-for-byte to
@@ -25,8 +30,9 @@ not this archive.
 
 The archived files are historical source, not a buildable keyboard namespace.
 Their original includes and build rules intentionally remain unchanged. For a
-historical build, obtain the complete pinned commit above and its pinned
-submodules in a separately authorized workspace. Do not compile archived files
+historical build, obtain the complete snapshot commit recorded for the selected
+device and its pinned submodules in a separately authorized workspace.
+Do not compile archived files
 against the moving current shared firmware or restore them into the active tree.
 
 Do not reformat, version-bump or otherwise maintain these snapshots. A deliberate

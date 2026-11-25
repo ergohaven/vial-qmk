@@ -13,14 +13,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         _______,   KC_1,      KC_2,      KC_3,      KC_4,      KC_5,                          KC_6,      KC_7,      KC_8,      KC_9,      KC_0,      _______,
         _______,   KC_HOME,   KC_INS,    KC_DEL,    KC_END,    KC_ENT,                        _______,   KC_LEFT,   KC_DOWN,   KC_UP,     KC_RIGHT,  _______,
         _______,   _______,   _______,   _______,   _______,   KC_PSCR,                       _______,   _______,   _______,   _______,   _______,   _______,
-        KC_PGUP,   KC_PGDN,   _______,   _______,   _______,                       _______,   ADJUST,    _______,   KC_CAPS,   CW_TOGG
+        KC_PGDN,   KC_PGUP,   _______,   _______,   _______,                       _______,   ADJUST,    _______,   KC_CAPS,   CW_TOGG
     ),
 
         [_RAISE] = LAYOUT(
         _______,   KC_AT,     KC_LABK,   KC_EQL,    KC_RABK,   KC_GRV,                        KC_CIRC,   KC_LBRC,   KC_UNDS,   KC_RBRC,   _______,   _______,
         _______,   KC_BSLS,   KC_LPRN,   KC_MINS,   KC_RPRN,   KC_PLUS,                       KC_PERC,   KC_LCBR,   KC_SCLN,   KC_RCBR,   KC_EXLM,   _______,
         _______,   KC_HASH,   KC_ASTR,   KC_COLN,   KC_SLSH,   _______,                       _______,   KC_PIPE,   KC_TILD,   KC_AMPR,   KC_DLR,    _______,
-        _______,   _______,   _______,   ADJUST,    KC_HASH,                       _______,   _______,   _______,   _______,   _______
+        _______,   _______,   _______,   ADJUST,    _______,                       _______,   _______,   _______,   _______,   _______
     ),
 
       [_ADJUST] = LAYOUT(
