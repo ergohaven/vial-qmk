@@ -15,6 +15,21 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[4] / 'tests/ergohaven'))
 from native_vial_firewall import firewall_source
 from native_resident_boundary import READONLY_FLASH_SOURCE
 
+
+def clang_warning_flags(compiler, *, lvgl=False):
+    version = subprocess.check_output([compiler, '--version'], text=True)
+    if 'clang' not in version.splitlines()[0].lower():
+        return []
+
+    # Clang reports the extracted QMK key-override comparison separately
+    # from the GCC -Wtype-limits diagnostic.
+    flags = ['-Wno-error=tautological-constant-out-of-range-compare']
+    if lvgl:
+        # The pinned LVGL source increments a debug counter without reading it.
+        flags.append('-Wno-error=unused-but-set-variable')
+    return flags
+
+
 p = argparse.ArgumentParser()
 p.add_argument('--firmware', type=Path, default=Path(__file__).resolve().parents[4])
 p.add_argument('--output', type=Path, required=True)
@@ -60,7 +75,7 @@ chain = 'static bool selected_quantum_chain(uint16_t keycode, keyrecord_t *recor
 text = header + production + processors + pre + kb + body(quantum, 'uint16_t get_record_keycode(') + body(quantum, 'bool pre_process_record_quantum(') + chain + (Path(__file__).parent / 'pipeline_cases.inc').read_text()
 c = a.output / 'pipeline.c'
 c.write_text(text)
-cmd = ['gcc', '-std=gnu11', '-O1', '-g', '-Wall', '-Wextra', '-Werror', '-Wno-unused-parameter', '-Wno-type-limits', '-I'+str(a.firmware/'quantum'), '-I'+str(a.firmware/'quantum/sequencer'), '-I'+str(a.firmware/'quantum/keymap_extras'), '-I'+str(a.firmware/'tmk_core/common'), '-I'+str(a.firmware/'keyboards/ergohaven'), str(c), '-o', str(a.output/'pipeline')]
+cmd = ['gcc', '-std=gnu11', '-O1', '-g', '-Wall', '-Wextra', '-Werror', '-Wno-unused-parameter', '-Wno-type-limits', *clang_warning_flags('gcc'), '-I'+str(a.firmware/'quantum'), '-I'+str(a.firmware/'quantum/sequencer'), '-I'+str(a.firmware/'quantum/keymap_extras'), '-I'+str(a.firmware/'tmk_core/common'), '-I'+str(a.firmware/'keyboards/ergohaven'), str(c), '-o', str(a.output/'pipeline')]
 r = subprocess.run(cmd, capture_output=True, text=True)
 (a.output/'build.log').write_text(r.stdout+r.stderr)
 if r.returncode:

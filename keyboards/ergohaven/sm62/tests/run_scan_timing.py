@@ -6,12 +6,14 @@ import json
 import hashlib
 import subprocess
 from pathlib import Path
+
 HERE = Path(__file__).resolve().parent
 # Reuse only the reviewed test generator, never retired production.
 ns = {'__file__': str(HERE/'run_repeat_display.py')}
 prefix = (HERE/'run_repeat_display.py').read_text().split("cases = (HERE/")[0]
 exec(compile(prefix, str(HERE/'run_repeat_display.py'), 'exec'), ns)
 a, ROOT, body, stripped, source = (ns[k] for k in ['a','ROOT','body','stripped','source'])
+clang_warning_flags = ns['clang_warning_flags']
 header = ns['header'].replace('static void action_exec(keyevent_t e) { (void)e; assert(!"complex native Vial action is outside fixture"); }','static void action_exec(keyevent_t e);')
 # Normal SINGLE uses this header's real no-op branch, not diagnostic tracing.
 header += '#include "sm62_trace.h"\n'
@@ -135,7 +137,7 @@ cases=(HERE/'scan_timing_cases.inc').read_text()
 text=base+scan+policy_boundary+policy+flush_boundary+service+flush+loop_boundary+loop+cases
 c=a.output/'scan_timing.c';c.write_text(text)
 fonts=[ROOT/'keyboards/ergohaven/src/display/fonts'/f'eh_font_iosevka_{n}.c' for n in [18,28]]+[ROOT/'keyboards/ergohaven/macropad'/f'sm62_font_zen_medium_{n}.c' for n in [16,17,20,28]]
-cmd=['gcc','-std=gnu11','-O1','-g','-Wall','-Wextra','-Werror','-Wno-unused-function','-Wno-unused-variable','-Wno-unused-parameter','-Wno-type-limits','-fsanitize=undefined','-fno-sanitize-recover=all','-DLV_CONF_SKIP','-DLV_USE_ASSERT_MALLOC=1',*['-I'+str(p) for p in [ROOT/'lib/lvgl',ROOT/'quantum',ROOT/'quantum/sequencer',ROOT/'quantum/keymap_extras',ROOT/'tmk_core/common',ROOT/'keyboards/ergohaven']],str(c),*map(str,fonts),*sorted(str(f) for f in (ROOT/'lib/lvgl/src').rglob('*.c')),'-lm','-o',str(a.output/'scan_timing')]
+cmd=['gcc','-std=gnu11','-O1','-g','-Wall','-Wextra','-Werror','-Wno-unused-function','-Wno-unused-variable','-Wno-unused-parameter','-Wno-type-limits',*clang_warning_flags('gcc', lvgl=True),'-fsanitize=undefined','-fno-sanitize-recover=all','-DLV_CONF_SKIP','-DLV_USE_ASSERT_MALLOC=1',*['-I'+str(p) for p in [ROOT/'lib/lvgl',ROOT/'quantum',ROOT/'quantum/sequencer',ROOT/'quantum/keymap_extras',ROOT/'tmk_core/common',ROOT/'keyboards/ergohaven']],str(c),*map(str,fonts),*sorted(str(f) for f in (ROOT/'lib/lvgl/src').rglob('*.c')),'-lm','-o',str(a.output/'scan_timing')]
 r=subprocess.run(cmd,capture_output=True,text=True);(a.output/'build.log').write_text(r.stdout+r.stderr)
 if r.returncode:print(r.stdout+r.stderr);raise SystemExit(r.returncode)
 results=[]

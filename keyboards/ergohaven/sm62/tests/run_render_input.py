@@ -16,6 +16,7 @@ namespace = {"__file__": str(HERE / "run_scan_timing.py")}
 prefix = (HERE / "run_scan_timing.py").read_text().split("c=a.output/")[0]
 exec(compile(prefix, str(HERE / "run_scan_timing.py"), "exec"), namespace)
 args, root, text = (namespace[key] for key in ["a", "ROOT", "text"])
+clang_warning_flags = namespace["clang_warning_flags"]
 text = text[:text.index("int main(int argc,char **argv)")]
 
 
@@ -80,6 +81,7 @@ includes = [root / p for p in ["lib/lvgl", "quantum", "quantum/sequencer", "quan
 executable = args.output / "render_input"
 command = ["gcc", "-std=gnu11", "-O1", "-g", "-Wall", "-Wextra", "-Werror",
            "-Wno-unused-function", "-Wno-unused-variable", "-Wno-unused-parameter", "-Wno-type-limits",
+           *clang_warning_flags("gcc", lvgl=True),
            "-fsanitize=undefined", "-fno-sanitize-recover=all", "-DLV_CONF_SKIP", "-DLV_USE_ASSERT_MALLOC=1",
            *["-I" + str(p) for p in includes], str(generated), *map(str, fonts),
            *sorted(str(p) for p in (root / "lib/lvgl/src").rglob("*.c")), "-lm", "-o", str(executable)]

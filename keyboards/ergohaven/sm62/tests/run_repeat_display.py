@@ -26,6 +26,7 @@ sys.argv = [str(HERE/'run_pipeline.py'), '--firmware', str(ROOT), '--output', st
 exec(compile((HERE/'run_pipeline.py').read_text().split("cmd = ['gcc'")[0], str(HERE/'run_pipeline.py'), 'exec'), ns)
 sys.argv = saved
 body, stripped, source = (ns[k] for k in ['body', 'stripped', 'source'])
+clang_warning_flags = ns['clang_warning_flags']
 header = ns['header']
 for name in ['vial_keycode_down', 'vial_keycode_up', 'vial_keycode_tap', 'process_record_vial', 'display_process_keyevent', 'read_source_layers_cache', 'get_event_keycode']:
     header = re.sub(r'^static [^\n]*\b'+name+r'\([^\n]*\n', '', header, flags=re.M)
@@ -117,7 +118,7 @@ src = a.output/'repeat_display.c'
 src.write_text(text)
 fonts = [ROOT/'keyboards/ergohaven/src/display/fonts'/f'eh_font_iosevka_{n}.c' for n in [18,28]]
 fonts += [ROOT/'keyboards/ergohaven/macropad'/f'sm62_font_zen_medium_{n}.c' for n in [16,17,20,28]]
-cmd = ['gcc','-std=gnu11','-O1','-g','-Wall','-Wextra','-Werror','-Wno-unused-function','-Wno-unused-variable','-Wno-unused-parameter','-Wno-type-limits','-fsanitize=undefined','-fno-sanitize-recover=all','-DLV_CONF_SKIP','-DLV_USE_ASSERT_MALLOC=1',*['-I'+str(x) for x in [ROOT/'lib/lvgl',ROOT/'quantum',ROOT/'quantum/sequencer',ROOT/'quantum/keymap_extras',ROOT/'tmk_core/common',ROOT/'keyboards/ergohaven']],str(src),*map(str,fonts),*sorted(str(f) for f in (ROOT/'lib/lvgl/src').rglob('*.c')),'-lm','-o',str(a.output/'repeat_display')]
+cmd = ['gcc','-std=gnu11','-O1','-g','-Wall','-Wextra','-Werror','-Wno-unused-function','-Wno-unused-variable','-Wno-unused-parameter','-Wno-type-limits',*clang_warning_flags('gcc', lvgl=True),'-fsanitize=undefined','-fno-sanitize-recover=all','-DLV_CONF_SKIP','-DLV_USE_ASSERT_MALLOC=1',*['-I'+str(x) for x in [ROOT/'lib/lvgl',ROOT/'quantum',ROOT/'quantum/sequencer',ROOT/'quantum/keymap_extras',ROOT/'tmk_core/common',ROOT/'keyboards/ergohaven']],str(src),*map(str,fonts),*sorted(str(f) for f in (ROOT/'lib/lvgl/src').rglob('*.c')),'-lm','-o',str(a.output/'repeat_display')]
 r = subprocess.run(cmd,capture_output=True,text=True)
 (a.output/'build.log').write_text(r.stdout+r.stderr)
 if r.returncode:

@@ -47,6 +47,8 @@ def generated(script, arguments, filename):
             if command[0] == sys.executable:
                 with patch.object(sys, 'argv', command[1:]), patch.dict(os.environ, kwargs.get('env', {})):
                     runpy.run_path(command[1], run_name='__main__')
+            if command == ['gcc', '--version']:
+                return subprocess.CompletedProcess(command, 0, stdout='Apple clang version 21.0.0\n')
             assert command[0] == 'gcc', command
             compiler.extend(command)
             raise CompilerBoundary
