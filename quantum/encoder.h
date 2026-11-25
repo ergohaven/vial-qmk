@@ -40,7 +40,8 @@
 #ifdef ENCODER_ENABLE
 
 __attribute__((weak)) bool should_process_encoder(void);
-__attribute__((weak)) uint8_t encoder_map_key_delay(uint8_t index);
+uint8_t encoder_map_key_delay(uint8_t index);
+uint8_t encoder_map_steps(uint8_t index);
 
 void encoder_init(void);
 bool encoder_task(void);

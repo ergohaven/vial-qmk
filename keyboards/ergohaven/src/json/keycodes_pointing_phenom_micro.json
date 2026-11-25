@@ -4,7 +4,7 @@
 ,{"name": "HRM_LALT_LPRN", "shortName": "LAlt_T\n(", "title": "( on tap, left Alt on hold"}
 ,{"name": "HRM_LCTL_RPRN", "shortName": "LCtl_T\n)", "title": ") on tap, left Ctrl on hold"}
 ,{"name": "HRM_RCTL_LCBR", "shortName": "RCtl_T\n{", "title": "{ on tap, right Ctrl on hold"}
-,{"name": "HRM_RALT_RCBR", "shortName": "RAlt_T\n}", "title": "} on tap, right Alt on hold"}
+,{"name": "HRM_RALT_RCBR", "shortName": "LAlt_T\n}", "title": "} on tap, left Alt on hold"}
 ,{"name": "EH_SNP", "shortName": "Sniper\nmode", "title": "Set both pointing devices to sniper mode"}
 ,{"name": "EH_SCR", "shortName": "Scroll\nmode", "title": "Set both pointing devices to scroll mode"}
 ,{"name": "EH_TXT", "shortName": "Text\nmode", "title": "Set both pointing devices to text mode"}

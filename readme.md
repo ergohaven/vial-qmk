@@ -1,36 +1,52 @@
-# Quantum Mechanical Keyboard Firmware
+# Ergohaven QMK firmware
 
-[![Current Version](https://img.shields.io/github/tag/qmk/qmk_firmware.svg)](https://github.com/qmk/qmk_firmware/tags)
-[![Discord](https://img.shields.io/discord/440868230475677696.svg)](https://discord.gg/qmk)
-[![Docs Status](https://img.shields.io/badge/docs-ready-orange.svg)](https://docs.qmk.fm)
-[![GitHub contributors](https://img.shields.io/github/contributors/qmk/qmk_firmware.svg)](https://github.com/qmk/qmk_firmware/pulse/monthly)
-[![GitHub forks](https://img.shields.io/github/forks/qmk/qmk_firmware.svg?style=social&label=Fork)](https://github.com/qmk/qmk_firmware/)
+Firmware maintained by [Ergohaven](https://eh.works) for our keyboards, macropads and pointing devices. This fork is based on QMK and Vial, with support for configuration through Entropy.
 
-This is a keyboard firmware based on the [tmk\_keyboard firmware](https://github.com/tmk/tmk_keyboard) with some useful features for Atmel AVR and ARM controllers, and more specifically, the [OLKB product line](https://olkb.com), the [ErgoDox EZ](https://ergodox-ez.com) keyboard, and the Clueboard product line.
+## Firmware and configuration
 
-## Documentation
+Download published firmware from [Releases](https://github.com/ergohaven/vial-qmk/releases). Choose the file for your exact model and hardware revision.
 
-* [See the official documentation on docs.qmk.fm](https://docs.qmk.fm)
+Use [Entropy](https://github.com/ergohaven/entropy) to edit your layout, encoder assignments and supported device settings. Vial clients are also supported. Available settings depend on the device and firmware version.
 
-The docs are powered by [VitePress](https://vitepress.dev/). They are also viewable offline; see [Previewing the Documentation](https://docs.qmk.fm/#/contributing?id=previewing-the-documentation) for more details.
+Before updating firmware, export your current layout to a file in Entropy so you can restore it if needed.
 
-You can request changes by making a fork and opening a [pull request](https://github.com/qmk/qmk_firmware/pulls).
+HPD v2 release builds package the supported module variants in one ZIP, with instructions for selecting and flashing the correct variant.
 
-## Supported Keyboards
+## Current release targets
 
-* [Planck](/keyboards/planck/)
-* [Preonic](/keyboards/preonic/)
-* [ErgoDox EZ](/keyboards/ergodox_ez/)
-* [Clueboard](/keyboards/clueboard/)
-* [Cluepad](/keyboards/clueboard/17/)
-* [Atreus](/keyboards/atreus/)
+- Phenom, Phenom Mini and Phenom Micro
+- K:03 v3/v4
+- K:03 Pro v2/v3
+- Imperial44 v3/v4
+- HPD v2
+- Velvet v2/v3
+- Macropad v2/v3
+- SM30 and SM62
+- Trackball v1/v2
 
-The project also includes community support for [lots of other keyboards](/keyboards/).
+Device sources are in [keyboards/ergohaven](keyboards/ergohaven/). The [release-scope validator](util/ci_ergohaven_release_scope.py) defines the official build inventory.
 
-## Maintainers
+Retired models are preserved in [archive/ergohaven](archive/ergohaven/README.md) and excluded from current builds. Their historical firmware remains available in Releases. Archived sources are frozen snapshots, not build targets in the current tree.
 
-QMK is developed and maintained by Jack Humbert of OLKB with contributions from the community, and of course, [Hasu](https://github.com/tmk). The OLKB product firmwares are maintained by [Jack Humbert](https://github.com/jackhumbert), the Ergodox EZ by [ZSA Technology Labs](https://github.com/zsa), the Clueboard by [Zach White](https://github.com/skullydazed), and the Atreus by [Phil Hagelberg](https://github.com/technomancy).
+## Building firmware
 
-## Official Website
+Maintainers can run the [Build Ergohaven workflow](https://github.com/ergohaven/vial-qmk/actions/workflows/build-ergohaven.yml) to produce test firmware for the current release targets without publishing a release.
 
-[qmk.fm](https://qmk.fm) is the official website of QMK, where you can find links to this page, the documentation, and the keyboards supported by QMK.
+For local builds, install the QMK CLI and use the ARM toolchain pinned in [the build workflow](.github/workflows/build-ergohaven.yml). From the repository root, initialize the submodules and compile the required target. For example, to build Phenom:
+
+```sh
+git submodule update --init --recursive
+qmk compile -kb ergohaven/phenom/rev1 -km v1
+```
+
+List the official keyboard and keymap combinations with:
+
+```sh
+python3 util/ci_ergohaven_release_scope.py --matrix
+```
+
+## Upstream and license
+
+This project builds on [QMK](https://github.com/qmk/qmk_firmware) and [Vial](https://github.com/vial-kb/vial-qmk). General firmware development documentation is available at [docs.qmk.fm](https://docs.qmk.fm).
+
+See [LICENSE](LICENSE) for the repository license. Individual files and bundled libraries may carry their own notices.

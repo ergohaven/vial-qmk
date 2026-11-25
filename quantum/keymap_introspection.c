@@ -77,6 +77,24 @@ __attribute__((weak)) uint16_t keycode_at_encodermap_location(uint8_t layer_num,
 
 #endif // defined(ENCODER_ENABLE) && defined(ENCODER_MAP_ENABLE)
 
+bool keymap_layer_has_assignments_raw(uint8_t layer_num) {
+    for (uint8_t row = 0; row < MATRIX_ROWS; ++row) {
+        for (uint8_t column = 0; column < MATRIX_COLS; ++column) {
+            uint16_t keycode = keycode_at_keymap_location_raw(layer_num, row, column);
+            if (keycode != KC_NO && keycode != KC_TRNS) return true;
+        }
+    }
+#if defined(ENCODER_ENABLE) && defined(ENCODER_MAP_ENABLE)
+    for (uint8_t encoder = 0; encoder < NUM_ENCODERS; ++encoder) {
+        for (uint8_t direction = 0; direction < 2; ++direction) {
+            uint16_t keycode = keycode_at_encodermap_location_raw(layer_num, encoder, direction != 0);
+            if (keycode != KC_NO && keycode != KC_TRNS) return true;
+        }
+    }
+#endif
+    return false;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Dip Switch mapping
 

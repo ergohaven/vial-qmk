@@ -43,8 +43,9 @@ The linked ARM allocation workload retained all screen objects and Orbit's
 image while drawing Orbit/keymap/player/clock with long CJK media strings.
 It passed with 3,072 bytes unclaimed heap and 1,556 bytes maximum emulated stack
 depth. The SRAM park disassembly has no calls, literal loads or external branch
-targets. These checks are repeated by the separate development CI job and do
-not substitute for hardware stack, scheduling or DMA validation.
+targets. The manual [SM62 isolated development workflow](../../../.github/workflows/sm62-isolated.yml)
+repeats these checks with `sm62_isolated` enabled. It does not substitute for
+hardware stack, scheduling or DMA validation.
 
 ## Hardware acceptance procedure (not executed)
 

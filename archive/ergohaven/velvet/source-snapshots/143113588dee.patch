@@ -1,0 +1,264 @@
+diff --git a/keyboards/ergohaven/src/eh_pointing.c b/keyboards/ergohaven/src/eh_pointing.c
+index 459474ceafd8c0c04522d17f1a87699728a61fb0..1183703aff32cab1b9f1482928bb0f98ed4f76d1 100644
+--- a/keyboards/ergohaven/src/eh_pointing.c
++++ b/keyboards/ergohaven/src/eh_pointing.c
+@@ -829,6 +829,35 @@ uint8_t get_text_sens(void) {
+     return kb_settings_pointing.sens[POINTING_MODE_TEXT];
+ }
+ 
++#ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++// Reuse only HPD's unused sens[0]: low seven bits = threshold, high bit = no key reset.
++// The existing raw default 1 means threshold 1 and key reset enabled; legacy zero reads as 1.
++#    define HPD_AUTO_MOUSE_THRESHOLD_MASK 0x7Fu
++#    define HPD_AUTO_MOUSE_NO_KEY_RESET 0x80u
++
++uint8_t get_hpd_auto_mouse_threshold(void) {
++    uint8_t threshold = kb_settings_pointing.sens[POINTING_MODE_NORMAL] & HPD_AUTO_MOUSE_THRESHOLD_MASK;
++    return threshold ? threshold : 1;
++}
++
++void set_hpd_auto_mouse_threshold(uint8_t threshold) {
++    if (threshold < 1 || threshold > HPD_AUTO_MOUSE_THRESHOLD_MASK) return;
++    kb_settings_pointing_t new_config = kb_settings_pointing;
++    new_config.sens[POINTING_MODE_NORMAL] = (new_config.sens[POINTING_MODE_NORMAL] & HPD_AUTO_MOUSE_NO_KEY_RESET) | threshold;
++    kb_settings_pointing_update(new_config);
++}
++
++bool get_hpd_auto_mouse_off_on_key(void) {
++    return !(kb_settings_pointing.sens[POINTING_MODE_NORMAL] & HPD_AUTO_MOUSE_NO_KEY_RESET);
++}
++
++void set_hpd_auto_mouse_off_on_key(bool enabled) {
++    kb_settings_pointing_t new_config = kb_settings_pointing;
++    new_config.sens[POINTING_MODE_NORMAL] = get_hpd_auto_mouse_threshold() | (enabled ? 0 : HPD_AUTO_MOUSE_NO_KEY_RESET);
++    kb_settings_pointing_update(new_config);
++}
++#endif
++
+ void set_invert_scroll(bool invert) {
+     kb_settings_pointing_t new_config = kb_settings_pointing;
+     new_config.invert_scroll          = invert;
+@@ -965,6 +994,14 @@ bool auto_mouse_activation(report_mouse_t mouse_report) {
+     return is_mouse_active_override_enabled ? is_mouse_active_override : is_mouse_active;
+ }
+ 
++#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++bool auto_mouse_should_reset_on_key(uint16_t keycode, keyrecord_t *record) {
++    (void)keycode;
++    (void)record;
++    return get_hpd_auto_mouse_off_on_key();
++}
++#    endif
++
+ bool is_mouse_record_kb(uint16_t keycode, keyrecord_t *record) {
+     switch (keycode) {
+         case EH_SCR:
+@@ -1254,7 +1291,12 @@ bool process_record_pointing(uint16_t keycode, keyrecord_t *record) {
+ report_mouse_t pointing_device_task_user(report_mouse_t mrpt) {
+ #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
+     if (!is_mouse_active_override_enabled) {
+-        is_mouse_active = abs(mrpt.x) >= 1 || abs(mrpt.y) >= 1 || abs(mrpt.v) >= 1 || abs(mrpt.h) >= 1 || mrpt.buttons;
++#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++        uint8_t threshold = get_hpd_auto_mouse_threshold();
++#    else
++        uint8_t threshold = 1;
++#    endif
++        is_mouse_active = abs(mrpt.x) >= threshold || abs(mrpt.y) >= threshold || abs(mrpt.v) >= threshold || abs(mrpt.h) >= threshold || mrpt.buttons;
+     }
+ #endif
+     pointing_mode_t pmode = pointing_mode;
+diff --git a/keyboards/ergohaven/src/eh_pointing.h b/keyboards/ergohaven/src/eh_pointing.h
+index 550a3b471bedb8798a1afd1fade7a77b209c7dd3..8cd6dc64c37e20eb571d29e533b7e1c9d22af3a9 100644
+--- a/keyboards/ergohaven/src/eh_pointing.h
++++ b/keyboards/ergohaven/src/eh_pointing.h
+@@ -117,6 +117,13 @@ uint8_t get_sniper_sens(void);
+ void    set_text_sens(uint8_t sens);
+ uint8_t get_text_sens(void);
+ 
++#ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++uint8_t get_hpd_auto_mouse_threshold(void);
++void    set_hpd_auto_mouse_threshold(uint8_t threshold);
++bool    get_hpd_auto_mouse_off_on_key(void);
++void    set_hpd_auto_mouse_off_on_key(bool enabled);
++#endif
++
+ void set_invert_scroll(bool invert);
+ bool get_invert_scroll(void);
+ void set_invert_scroll_h(bool invert);
+diff --git a/keyboards/ergohaven/src/eh_settings.c b/keyboards/ergohaven/src/eh_settings.c
+index f5fe52528a2c3d999bf7e74eb05b559b9b9e80e8..495ade558e9c426bd491d5626b68afdd83a0d8c5 100644
+--- a/keyboards/ergohaven/src/eh_settings.c
++++ b/keyboards/ergohaven/src/eh_settings.c
+@@ -777,6 +777,9 @@ static int modules_bool_get(const qmk_settings_proto_t *proto, void *setting, si
+         case 128: value = get_acceleration(); break;
+         case 136: value = get_invert_text(); break;
+         case 327: value = get_pointing_touch_gestures(); break;
++#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++        case 375: value = get_hpd_auto_mouse_off_on_key(); break;
++#    endif
+         case 133:
+         case 140: value = get_sticky_mode(); break;
+         case 134:
+@@ -824,6 +827,9 @@ static int modules_bool_set(const qmk_settings_proto_t *proto, const void *setti
+         case 128: set_acceleration(value); break;
+         case 136: set_invert_text(value); break;
+         case 327: set_pointing_touch_gestures(value); break;
++#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++        case 375: set_hpd_auto_mouse_off_on_key(value); break;
++#    endif
+         case 133:
+         case 140: set_sticky_mode(value); break;
+         case 134:
+@@ -857,6 +863,16 @@ void set_split_pointing_side_settings_module(split_pointing_side_t side, uint8_t
+ }
+ #endif
+ 
++#ifndef EH_KEYBOARD_SPLIT_POINTING_V2
++#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++static const uint16_t modules_auto_mouse_timeout_ms[] = {50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 750, 1000, 1250, 1500};
++#        define MODULES_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX 10
++#    else
++static const uint16_t modules_auto_mouse_timeout_ms[] = {250, 500, 750, 1000, 1250, 1500};
++#        define MODULES_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX 2
++#    endif
++#endif
++
+ static int modules_select_get(const qmk_settings_proto_t *proto, void *setting, size_t maxsz) {
+     uint8_t v = 0;
+ #if defined(EH_KEYBOARD_SPLIT_POINTING_V2)
+@@ -890,16 +906,15 @@ static int modules_select_get(const qmk_settings_proto_t *proto, void *setting,
+ #else
+     switch (proto->qsid) {
+         case 324: {
+-            static const uint16_t timeout_variants[] = {250, 500, 750, 1000, 1250, 1500};
+-            uint16_t              timeout_ms         = 750;
++            uint16_t timeout_ms = 750;
+ #    ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
+             if (qmk_settings_get(32, &timeout_ms, sizeof(timeout_ms)) < 0) {
+                 timeout_ms = 750;
+             }
+ #    endif
+             uint16_t best_delta = UINT16_MAX;
+-            for (uint8_t i = 0; i < ARRAY_SIZE(timeout_variants); ++i) {
+-                uint16_t delta = timeout_variants[i] > timeout_ms ? timeout_variants[i] - timeout_ms : timeout_ms - timeout_variants[i];
++            for (uint8_t i = 0; i < ARRAY_SIZE(modules_auto_mouse_timeout_ms); ++i) {
++                uint16_t delta = modules_auto_mouse_timeout_ms[i] > timeout_ms ? modules_auto_mouse_timeout_ms[i] - timeout_ms : timeout_ms - modules_auto_mouse_timeout_ms[i];
+                 if (delta < best_delta) {
+                     best_delta = delta;
+                     v          = i;
+@@ -910,6 +925,11 @@ static int modules_select_get(const qmk_settings_proto_t *proto, void *setting,
+         case 325:
+             v = get_pointing_encoder_interval_idx();
+             break;
++#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++        case 374:
++            v = get_hpd_auto_mouse_threshold();
++            break;
++#    endif
+         case 129:
+         case 130:
+         case 131:
+@@ -964,12 +984,11 @@ static int modules_select_set(const qmk_settings_proto_t *proto, const void *set
+ #else
+     switch (proto->qsid) {
+         case 324: {
+-            static const uint16_t timeout_variants[] = {250, 500, 750, 1000, 1250, 1500};
+-            if (v >= ARRAY_SIZE(timeout_variants)) {
+-                v = 2;
++            if (v >= ARRAY_SIZE(modules_auto_mouse_timeout_ms)) {
++                v = MODULES_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX;
+             }
+ #    ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
+-            uint16_t timeout_ms = timeout_variants[v];
++            uint16_t timeout_ms = modules_auto_mouse_timeout_ms[v];
+             if (qmk_settings_set(32, &timeout_ms, sizeof(timeout_ms)) < 0) {
+                 return -1;
+             }
+@@ -979,6 +998,12 @@ static int modules_select_set(const qmk_settings_proto_t *proto, const void *set
+         case 325:
+             set_pointing_encoder_interval_idx(v);
+             break;
++#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++        case 374:
++            if (v < 1 || v > 127) return -1;
++            set_hpd_auto_mouse_threshold(v);
++            break;
++#    endif
+         case 129:
+         case 130:
+         case 131:
+@@ -1866,6 +1891,10 @@ qmk_settings_proto_t kb_protos[KB_SETTINGS_NPROTOS] PROGMEM = {
+ #    ifdef POINTING_DEVICE_DRIVER_azoteq_iqs5xx
+     DECLARE_SETTING(327, modules_bool_get, modules_bool_set),
+ #    endif
++#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++    DECLARE_SETTING(374, modules_select_get, modules_select_set),
++    DECLARE_SETTING(375, modules_bool_get, modules_bool_set),
++#    endif
+ #endif
+     // clang-format on
+ };
+diff --git a/keyboards/ergohaven/velvet/keymaps/v3/rules.mk b/keyboards/ergohaven/velvet/keymaps/v3/rules.mk
+index 622abfa8febce2933afb09a4bcbb96fa9f5ac805..67234da66f67bc99a1d6b1c83323a0deff685ea2 100755
+--- a/keyboards/ergohaven/velvet/keymaps/v3/rules.mk
++++ b/keyboards/ergohaven/velvet/keymaps/v3/rules.mk
+@@ -1,2 +1,3 @@
+ VIAL_ENABLE = yes
+ AUTO_SHIFT_ENABLE = yes
++OPT_DEFS += -DEH_QMK_SETTINGS_DISABLE_LAYER_LEDS
+diff --git a/keyboards/ergohaven/velvet/keymaps/v3/vial.json b/keyboards/ergohaven/velvet/keymaps/v3/vial.json
+index a3c625988912ac48aa0e06d8835f2853f5ca2894..746dc132bc7e79758e4e6162300bb3c8443d9b74 100755
+--- a/keyboards/ergohaven/velvet/keymaps/v3/vial.json
++++ b/keyboards/ergohaven/velvet/keymaps/v3/vial.json
+@@ -2,7 +2,10 @@
+     "firmware": {"version": "1.0"},
+     "firmwareVersion": "1.0",
+     "matrix": { "rows": 8, "cols": 6},
+-#include "keyboards/ergohaven/src/json/keycodes_all.json"
++    "customKeycodes": [
++#include "keyboards/ergohaven/src/json/keycodes_base.json"
++#include "keyboards/ergohaven/src/json/keycodes_ruen.json"
++    ],
+     "settings": [
+ #include "keyboards/ergohaven/src/json/settings_ruen.json"
+     ],
+diff --git a/quantum/pointing_device/pointing_device_auto_mouse.c b/quantum/pointing_device/pointing_device_auto_mouse.c
+index 38ed4720cc3860f170c68a318849120e74e16561..192f0d870b641f6e126263d821b27a370e910d67 100644
+--- a/quantum/pointing_device/pointing_device_auto_mouse.c
++++ b/quantum/pointing_device/pointing_device_auto_mouse.c
+@@ -307,6 +307,12 @@ void auto_mouse_reset_trigger(bool pressed) {
+     auto_mouse_context.timer.delay = timer_read();
+ }
+ 
++__attribute__((weak)) bool auto_mouse_should_reset_on_key(uint16_t keycode, keyrecord_t* record) {
++    (void)keycode;
++    (void)record;
++    return true;
++}
++
+ /**
+  * @brief handle key events processing for auto mouse
+  *
+@@ -408,7 +414,7 @@ bool process_auto_mouse(uint16_t keycode, keyrecord_t* record) {
+             // check if keyrecord is mousekey
+             if (is_mouse_record(keycode, record)) {
+                 auto_mouse_keyevent(record->event.pressed);
+-            } else if (!is_auto_mouse_active()) {
++            } else if (!is_auto_mouse_active() && auto_mouse_should_reset_on_key(keycode, record)) {
+                 // all non-mousekey presses restart delay timer and reset status
+                 auto_mouse_reset_trigger(record->event.pressed);
+             }
+diff --git a/quantum/pointing_device/pointing_device_auto_mouse.h b/quantum/pointing_device/pointing_device_auto_mouse.h
+index 2c0d4d10434f732832740f4c3ca2cc736e4b22d9..5bef57b55a7b7cbf6f31c36fd2403b99647febcd 100644
+--- a/quantum/pointing_device/pointing_device_auto_mouse.h
++++ b/quantum/pointing_device/pointing_device_auto_mouse.h
+@@ -99,6 +99,9 @@ bool get_auto_mouse_toggle(void);            // get toggle mouse layer flag valu
+ bool is_mouse_record_kb(uint16_t keycode, keyrecord_t* record);
+ bool is_mouse_record_user(uint16_t keycode, keyrecord_t* record);
+ 
++// Policy for the existing inactive, non-mouse key reset (both press and release); defaults true.
++bool auto_mouse_should_reset_on_key(uint16_t keycode, keyrecord_t* record);
++
+ /* ----------Core functions (only used in custom pointing devices or key processing)------------------------- */
+ void pointing_device_task_auto_mouse(report_mouse_t mouse_report); // add to pointing_device_task_*
+ bool process_auto_mouse(uint16_t keycode, keyrecord_t* record);    // add to process_record_*

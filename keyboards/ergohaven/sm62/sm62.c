@@ -31,7 +31,7 @@ void kb_settings_layer_labels_init(void);
  * Do not override is_keyboard_left_impl: the same image serves both halves. */
 
 const char *default_layer_label(uint8_t layer) {
-    static const char labels[][16] = {"MAIN", "NAV", "RAISE", "ADJST", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN", "ELEVN", "TWLVE", "THRTN", "FRTN", "FIFTN"};
+    static const char labels[DYNAMIC_KEYMAP_LAYER_COUNT][LAYER_LABEL_SIZE] = {"Main", "Extra"};
     return layer < ARRAY_SIZE(labels) ? labels[layer] : "";
 }
 

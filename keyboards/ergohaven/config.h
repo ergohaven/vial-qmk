@@ -17,7 +17,7 @@
 
 #define WEAR_LEVELING_BACKING_SIZE 16384 // increase EEPROM size
 
-#define EH_FIRMWARE_VERSION 0x00040200
+#define EH_FIRMWARE_VERSION 0x00010000
 #ifndef VIA_FIRMWARE_VERSION
 #    define VIA_FIRMWARE_VERSION EH_FIRMWARE_VERSION
 #endif
@@ -43,7 +43,7 @@
 #define KB_SETTINGS_POINTING_SIZE 8
 #define KB_SETTINGS_POINTING_OFFSET (KB_SETTINGS_RUEN_OFFSET + KB_SETTINGS_RUEN_SIZE)
 #if defined(KEYBOARD_ergohaven_phenom_rev1) || defined(KEYBOARD_ergohaven_phenom_mini_rev1) || defined(KEYBOARD_ergohaven_phenom_micro_rev1)
-#    define KB_SETTINGS_POINTING_PROTOS 38
+#    define KB_SETTINGS_POINTING_PROTOS 44
 #else
 #    define KB_SETTINGS_POINTING_PROTOS 30
 #endif

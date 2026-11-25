@@ -43,7 +43,7 @@ SRC += keyboards/ergohaven/src/display/eh_display.c
 SRC += keyboards/ergohaven/src/display/lvgl_helpers.c
 SRC += keyboards/ergohaven/src/display/eh_keycode_str.c
 SRC += keyboards/ergohaven/src/display/fonts/eh_font_iosevka_28.c
-SRC += keyboards/ergohaven/sm30/anim.c
+SRC += keyboards/ergohaven/src/display/space_mission_anim.c
 SRC += screen_orbit_exact.c
 SRC += keyboards/ergohaven/macropad/sm62_starfield.c
 SRC += keyboards/ergohaven/macropad/sm62_layer_04.c
@@ -66,7 +66,6 @@ SRC += screen_keymap.c
 SRC += keyboards/ergohaven/macropad/sm62_font_zen_regular_24.c
 SRC += keyboards/ergohaven/macropad/sm62_font_zen_bold_24.c
 SRC += player_fonts.c
-SRC += sm62_font_cjk_24.c
 
 SRC += vial_extension.c
 SRC += vial_extension_flash.c

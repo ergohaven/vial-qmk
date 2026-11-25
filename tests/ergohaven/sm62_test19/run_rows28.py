@@ -123,7 +123,7 @@ def main():
     fonts += [repo / f'keyboards/ergohaven/src/display/fonts/eh_font_iosevka_{n}.c'
               for n in [18, 28]]
     extras = [sm62 / 'player_fonts.c', *sorted(sm62.glob('sm62_font_cjk_24*.c')),
-              repo / 'keyboards/ergohaven/sm30/anim.c',
+              repo / 'keyboards/ergohaven/src/display/space_mission_anim.c',
               repo / 'keyboards/ergohaven/macropad/sm62_layer_04.c',
               sm62 / 'render_exchange.c', sm62 / 'flash_guard.c', sm62 / 'flash_gate.c']
     sources = [output / (name + '.c') for name in names] + fonts + extras

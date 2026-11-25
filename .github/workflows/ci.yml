@@ -2,13 +2,8 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [ergohaven]
+    branches: [main, ci/source-check]
   workflow_dispatch:
-    inputs:
-      sm62_isolated:
-        description: Build SM62 isolated development firmware
-        type: boolean
-        default: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
@@ -46,44 +41,3 @@ jobs:
         env:
           CHECKS_RESULT: ${{ needs.check-uid.result }}
         run: test "$CHECKS_RESULT" = success
-
-  isolated:
-    name: Build SM62 isolated development firmware
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.sm62_isolated }}
-    permissions:
-      contents: read
-    runs-on: ubuntu-latest
-    container: ghcr.io/qmk/qmk_cli:latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-          submodules: recursive
-      - name: Build isolated owner against pinned dependencies
-        run: |
-          git config --global --add safe.directory "$(pwd)"
-          make ergohaven/sm62:v1 SM62_DUALCORE_RENDER=yes SM62_SCAN_TRACE=yes
-      - name: Install pinned resource-test dependencies
-        run: python3 -m pip install --no-input unicorn==2.1.4 pyelftools==0.33
-      - name: Check linked ARM renderer allocations and SRAM park
-        run: |
-          python3 keyboards/ergohaven/sm62/tests/run_render_resources.py \
-          --firmware .build/ergohaven_sm62_v1.elf --output .build/sm62-resources --side left
-          python3 keyboards/ergohaven/sm62/tests/run_render_resources.py \
-          --firmware .build/ergohaven_sm62_v1.elf --output .build/sm62-resources-right --side right
-      - name: Verify development qualification artifacts
-        run: |
-          test -s .build/sm62-resources/resources.json
-          test -s .build/sm62-resources/flash-park.asm
-          test -s .build/sm62-resources-right/resources.json
-      - uses: actions/upload-artifact@v4
-        with:
-          name: sm62-isolated-development
-          path: |
-            ergohaven_sm62_v1.uf2
-            .build/ergohaven_sm62_v1.elf
-            .build/ergohaven_sm62_v1.map
-            .build/sm62-resources/resources.json
-            .build/sm62-resources/flash-park.asm
-            .build/sm62-resources-right/resources.json
-          if-no-files-found: error

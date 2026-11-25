@@ -1,23 +1,14 @@
 # Locked QK_BOOT ingress and immutable resident recovery
 
-## Status
-
-The native SET, application publication and resident cold-scan regressions are
-closed. The focused runner is GREEN: all four process cases exit zero, with
-41 recorded PASS controls and zero bootloader calls. The intermediate cold-scan
-failure (40 PASS / 1 FAIL) remains historical evidence, not the current status.
-
-The original saved RED had both native/application exit 1 and zero bootloader
-calls. Before production edits, the atomic-refusal expectation was rerun and
-failed on both original source hashes. Subsequent additional cases characterize
-and challenge the candidate; they are not claimed as preimplementation RED.
-
 ## Run
 
+Run from the repository root with Python 3, native GCC and an external build
+cache. In managed agent environments, use the owning project's storage wrapper
+to provide `AGENT_BUILD_CACHE` and enforce its budget.
+
 ```sh
-/home/agent/.local/bin/agent-storage run --agent ben \
-  --project work/sm62/entropy-sm62-multi-device/publication-0aaa9947/firmware-source \
-  -- sh -c 'python3 tests/ergohaven/sm62_locked_boot/run.py --output-dir "$AGENT_BUILD_CACHE/locked-boot-next-run"'
+python3 tests/ergohaven/sm62_locked_boot/run.py \
+  --output-dir "${AGENT_BUILD_CACHE:?}/locked-boot-next-run"
 ```
 
 Use a fresh absolute output basename with an existing parent; existing paths,
@@ -28,7 +19,7 @@ outside sources. The real exported firewall is compiled in a separate native TU
 using its actual declaration, not a copied policy. GCC uses warnings-as-errors
 and UBSan.
 
-## Candidate policy
+## Assignment and recovery policy
 
 - Export existing `vial_keycode_firewall` through `quantum/vial.c` / `vial.h`.
 - Use it at external VIA single-key SET, not in internal NVM setters.
@@ -45,7 +36,7 @@ and UBSan.
 - The single-key firewall call is conditional on `VIAL_ENABLE`; VIA-only builds
   keep their existing behavior without requiring a Vial symbol.
 
-## Executed coverage
+## Coverage
 
 - Complete actual `raw_hid_receive` switch -> native real dynamic-keymap and
   EEPROM wrappers; application packets enter via its keyboard callback.
@@ -58,10 +49,11 @@ and UBSan.
   real journal STORE/SELECT using a NOR boundary model, no-wear and raw-byte
   equality controls; READY -> relock -> STORE revalidation; warm/cold SELECT;
   inactive stack import/SELECT refusal.
-- Bootloader calls remain zero. This proves assignment/readback/publication,
-  not action_exec behavior, a host-only exploit or a physical bootloader jump.
+- Assertions require zero bootloader calls. The cases cover assignment,
+  readback and publication, not action_exec behavior, a host-only exploit or
+  a physical bootloader jump.
 
-## Cold-scan repair
+## Cold-scan behavior
 
 The regression cold-scans an intact stored QK_BOOT record while locked. SELECT
 is refused, but QUERY/ENUM/full READ retain its exact bytes without writes.
@@ -71,12 +63,12 @@ integrity; a READY token obtained while unlocked cannot bypass a later lock.
 
 ## Other native fixture dependencies
 
-Source-extraction fixtures now need the actual firewall and its `vial_unlocked`
+Source-extraction fixtures need the actual firewall and its `vial_unlocked`
 external state ahead of their callers. In particular,
-`sm62_macro_storage/test_macro_storage.py` now extracts the actual firewall
-before the real `vial_handle_cmd` / `raw_hid_receive`; its vial.h pin was updated
-only for the reviewed API declaration. Do not mock the helper or blind-refresh
-configuration pins. Other app-engine extraction consumers must do likewise:
+`sm62_macro_storage/test_macro_storage.py` extracts the actual firewall before
+the real `vial_handle_cmd` / `raw_hid_receive`. Keep its `vial.h` pin aligned with
+the actual API declaration; do not mock the helper or blind-refresh configuration
+pins. Other app-engine extraction consumers must do likewise:
 `run_compact_usb.py`, `run_macropad_bugs.py`, `run_macropad_wake.py`,
 `run_sm62_layout.py`, `run_sm62_split.py`, `run_sm62_cached_split.py`,
 `run_sm62_delta_split.py`, `run_sm62_display.py`, `run_sm62_screen.py`.

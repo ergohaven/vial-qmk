@@ -48,6 +48,7 @@ header = '''
 #define DYNAMIC_KEYMAP_LAYER_COUNT 16
 #define MATRIX_ROWS 10
 #define MATRIX_COLS 7
+#define KC_NO 0
 typedef struct {uint16_t qsid;} qmk_settings_proto_t;
 '''+hid+strip((HERE.parent / "sm62_settings.h").read_text())+'\n'+strip((HERE.parent / "render_owner.h").read_text())
 fixture = r'''
@@ -106,6 +107,7 @@ static uint8_t get_display_background_red(void) { return 4; }
 static uint8_t get_display_background_green(void) { return 5; }
 static uint8_t get_display_background_blue(void) { return 6; }
 static void nvm_dynamic_keymap_erase(void) { code=0; }
+static bool keymap_layer_has_assignments_raw(uint8_t layer) { return layer==0; }
 static uint16_t keycode_at_keymap_location_raw(unsigned l,unsigned r,unsigned c) { (void)l;(void)r;(void)c; return 15; }
 static void nvm_dynamic_keymap_update_keycode(uint8_t l,uint8_t r,uint8_t c,uint16_t k) {
     (void)l;(void)r;(void)c;code=k;
@@ -165,6 +167,7 @@ int main(void) {
     uint8_t bytes[]={13}; dynamic_keymap_set_buffer(0,1,bytes); publish();
     /* Native reset uses the same production setter for every physical cell. */
     dynamic_keymap_reset();
+    assert(code==KC_NO); /* The last layer is empty in the factory map. */
     publish();
     side_left=false;
     s=publish(); assert(!s->left && s->native_codes[15][4][6]==code+9);

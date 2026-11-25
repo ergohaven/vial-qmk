@@ -15,7 +15,7 @@ class MacropadProductName(unittest.TestCase):
         self.assertEqual(metadata["usb"]["vid"], "0xE126")
         self.assertEqual(metadata["usb"]["pid"], "0x0042")
         self.assertEqual(metadata["manufacturer"], "Ergohaven")
-        name = re.search(r'^#define EH_SHORT_PRODUCT_NAME "([^"]+)"$', (board / "config.h").read_text(), re.M)
+        name = re.search(r'^#define EH_SHORT_PRODUCT_NAME "([^"]+)"$', (board.parent / "config.h").read_text(), re.M)
         assert name is not None
         self.assertEqual(name.group(1), "Macropad")
 

@@ -1,13 +1,16 @@
-# SM62 TEST19: current-production rows28 KEYMAP regression
+# SM62 cooperative rows28 KEYMAP characterization
 
-Portable source-only native characterization. Requirements: Linux/Python 3, GCC,
-pthreads, UBSan, and the delivered firmware source tree including its exact
-LVGL dependency. No Git history, external fixture tree, prebuilt `.o`, or firmware
-build is required. The runner never initializes submodules or changes sources.
+This runner targets the cooperative rows28 profile, not the production SINGLE
+firmware. It is not part of the SINGLE CI wave and requires the compatible
+source tree and pinned LVGL overlay described below.
+
+Requirements: Linux/Python 3, GCC, pthreads and UBSan. No Git history, prebuilt
+`.o` or firmware build is required. The runner never initializes submodules or
+changes sources. Run from the repository root:
 
 ```sh
-python3 /absolute/path/to/portable-tests/run_rows28.py \
-  --repo-root /absolute/path/to/firmware \
+python3 tests/ergohaven/sm62_test19/run_rows28.py \
+  --repo-root /absolute/path/to/compatible-firmware \
   --output /absolute/path/outside-firmware/fresh-rows28-run
 ```
 
@@ -20,9 +23,9 @@ for diagnosis; use another fresh output directory for a rerun.
 
 ## What is exercised
 
-* Read the **actual production config** and require rows=28/slice=4. Generate a
+* Read the **selected source config** and require rows=28/slice=4. Generate a
   header from those values, not an embedded rows4 geometry.
-* Generate fixture TUs from current production renderer, render-owner, exchange,
+* Generate fixture TUs from the selected renderer, render-owner, exchange,
   display policies, formatting, deferred executor and QP source. Strip only
   include/pragma lines to use the native hardware-boundary declarations, keeping
   source bodies. Pull `qp_internal_task` from the current QP translation unit.
@@ -39,14 +42,12 @@ for diagnosis; use another fresh output directory for a rerun.
   **all 606 base blobs**, exactly five base-checked overlays, and only the
   approved timer replacement (`e7ba614ada69d7ae8e7fd82ceeee7ef3dd941c53`,
   SHA256 `92eb59b8cdeb0aae6f808227431a287d874b4d38671804869abb338ee1313513`).
-  Validator checks are unchanged; only manifest locations are relocated.
-  Original `macropad_native_support.py` is neither patched nor replaced.
+  Keep the validator checks and `macropad_native_support.py` unchanged.
 * Hash production C/headers before and after, requiring unchanged identity.
   `result.json` contains the source identity map and actual measurements.
 
-This is characterization of already accepted behavior, not a new bug repair or
-new test-first RED/GREEN claim. Expected records and panel hashes are extracted
-from existing iteration14 rows28 evidence, not regenerated from the tested run.
+Reference records and panel hashes are fixed test inputs. Do not regenerate
+them from the tested run; that would remove the independent comparison.
 
 ## Inputs and identity boundaries
 
@@ -64,26 +65,10 @@ input hashes and the reference production identity boundaries. Production hashes
 there are provenance, not a whole-tree freeze gate, so deliberate future source
 changes can run against the same behavioral assertions.
 
-The original iteration14 rows4-versus-rows28 experiment and iteration13 full
-panel/recovery suite remain **external evidence**. This runner reproduces the
-current28 KEYMAP subset and compares it to the recorded hashes; it does not rerun
+This runner covers the rows28 KEYMAP subset and compares it to the recorded
+hashes. It does not exercise
 rows4, all screen/recovery scenarios, slave roles, hardware, physical timing,
 stack measurements, RPC or flash workflows. Deterministic host scheduling and
 operation counts are not physical millisecond measurements or causality proof.
 
-## Verified local execution
-
-Executed once against `iteration15-rows28/firmware` with output at
-`iteration16-checkpoint/portable-rows28-verification`, exit **0**:
-
-```text
-PASS exact pinned revision + 606 blobs + five base-checked overlays; only approved timer replacement
-PASS rows=28 side=1 role=1
-PASS rows=28 side=0 role=1
-PASS current production rows28: 6 exact operation-count cases, 6 panel SHA256 references; production C/header identity unchanged
-```
-
-For each side, full repaint and first press used 10 panel parts, 67200 pixels,
-and 3 worker steps; focus used 1 part, 4761 pixels, and 1 worker step. Exact
-function counts and hashes are in the reference input and external `result.json`.
-No generated outputs belong in this package or the eventual commit.
+Keep generated outputs outside this package and the source repository.

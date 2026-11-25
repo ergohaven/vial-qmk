@@ -1,0 +1,583 @@
+diff --git a/keyboards/ergohaven/hpd/keymaps/v2/rules.mk b/keyboards/ergohaven/hpd/keymaps/v2/rules.mk
+index 622abfa8febce2933afb09a4bcbb96fa9f5ac805..b0ba11814847a9376069190d28f1026c86a925b7 100755
+--- a/keyboards/ergohaven/hpd/keymaps/v2/rules.mk
++++ b/keyboards/ergohaven/hpd/keymaps/v2/rules.mk
+@@ -1,2 +1,3 @@
+ VIAL_ENABLE = yes
++OPT_DEFS += -DEH_HPD_FACTORY_LAYER_NAMES -DEH_QMK_SETTINGS_DISABLE_LAYER_LEDS
+ AUTO_SHIFT_ENABLE = yes
+diff --git a/keyboards/ergohaven/hpd/keymaps/v2_ball_enc/rules.mk b/keyboards/ergohaven/hpd/keymaps/v2_ball_enc/rules.mk
+index 636e270cad1fbb728ea952a66fa30789c5f58e86..3f43c51566831cea36cf95cd3ea4641bdc8fc51e 100755
+--- a/keyboards/ergohaven/hpd/keymaps/v2_ball_enc/rules.mk
++++ b/keyboards/ergohaven/hpd/keymaps/v2_ball_enc/rules.mk
+@@ -1,4 +1,6 @@
+ VIAL_ENABLE = yes
++OPT_DEFS += -DEH_HPD_FACTORY_LAYER_NAMES -DEH_ENCODER_SETTINGS -DEH_ENCODER_INTERVAL_SETTINGS -DEH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++SRC += keyboards/ergohaven/src/eh_encoder.c
+ ENCODER_ENABLE = yes
+ ENCODER_MAP_ENABLE = yes
+ 
+diff --git a/keyboards/ergohaven/hpd/keymaps/v2_ball_enc/vial.json b/keyboards/ergohaven/hpd/keymaps/v2_ball_enc/vial.json
+index 60b87147e9903b4b08338b999404e27f34ce2fa4..b05d787aad00b0a32c4e169346d5a0b68f201b67 100755
+--- a/keyboards/ergohaven/hpd/keymaps/v2_ball_enc/vial.json
++++ b/keyboards/ergohaven/hpd/keymaps/v2_ball_enc/vial.json
+@@ -7,10 +7,12 @@
+     },
+ #include "keyboards/ergohaven/src/json/keycodes_all.json"
+     "settings": [
+-#include "keyboards/ergohaven/src/json/settings_trackball_select.json"
++#include "keyboards/ergohaven/src/json/settings_hpd_trackball_select.json"
+ , 
+ #include "keyboards/ergohaven/src/json/settings_leds.json"
+ ,
++#include "keyboards/ergohaven/src/json/settings_encoders.json"
++,
+ #include "keyboards/ergohaven/src/json/settings_ruen.json"
+     ],
+     "layouts": {
+@@ -27,7 +29,7 @@
+             [{"y":-0.45},"9,5","9,4",{"y":-0.1},"9,3",{"y":0.1},"9,2",{"y":0.45},"9,1","9,0"],
+             [{"x":-2.2,"y":0.35},"10,1",{"y":-0.2},"10,0",{"y":-0.2},"10,5",{"y":-0.2},"10,4",{"x":0.2,"y":-0.3},"10,3",{"y":0.1},"10,2"],
+ 
+-            [{"rx":10.0,"ry":2.95},"11,6",{"y":-0.5,"x":-2},"0,1\n\n\n\n\n\n\n\n\ne",{"y":1.0,"x":-1},"0,0\n\n\n\n\n\n\n\n\ne"]
++            [{"rx":10.0,"ry":1.95},"0,0\n\n\n\n\n\n\n\n\ne",{"x":-1,"y":1},"11,6",{"x":-1,"y":1},"0,1\n\n\n\n\n\n\n\n\ne"]
+         ]
+     }
+ }
+diff --git a/keyboards/ergohaven/hpd/keymaps/v2_enc_ball/rules.mk b/keyboards/ergohaven/hpd/keymaps/v2_enc_ball/rules.mk
+index 636e270cad1fbb728ea952a66fa30789c5f58e86..3f43c51566831cea36cf95cd3ea4641bdc8fc51e 100755
+--- a/keyboards/ergohaven/hpd/keymaps/v2_enc_ball/rules.mk
++++ b/keyboards/ergohaven/hpd/keymaps/v2_enc_ball/rules.mk
+@@ -1,4 +1,6 @@
+ VIAL_ENABLE = yes
++OPT_DEFS += -DEH_HPD_FACTORY_LAYER_NAMES -DEH_ENCODER_SETTINGS -DEH_ENCODER_INTERVAL_SETTINGS -DEH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++SRC += keyboards/ergohaven/src/eh_encoder.c
+ ENCODER_ENABLE = yes
+ ENCODER_MAP_ENABLE = yes
+ 
+diff --git a/keyboards/ergohaven/hpd/keymaps/v2_enc_ball/vial.json b/keyboards/ergohaven/hpd/keymaps/v2_enc_ball/vial.json
+index 46f9f1b9efc7ae6ad437e32e480d2f7ceceddf58..b3eed82573fb3f7a525bcff49bd27a3b3457ae1a 100755
+--- a/keyboards/ergohaven/hpd/keymaps/v2_enc_ball/vial.json
++++ b/keyboards/ergohaven/hpd/keymaps/v2_enc_ball/vial.json
+@@ -7,10 +7,12 @@
+     },
+ #include "keyboards/ergohaven/src/json/keycodes_all.json"
+     "settings": [
+-#include "keyboards/ergohaven/src/json/settings_trackball_select.json"
++#include "keyboards/ergohaven/src/json/settings_hpd_trackball_select.json"
+ , 
+ #include "keyboards/ergohaven/src/json/settings_leds.json"
+ ,
++#include "keyboards/ergohaven/src/json/settings_encoders.json"
++,
+ #include "keyboards/ergohaven/src/json/settings_ruen.json"
+     ],
+     "layouts": {
+@@ -27,7 +29,7 @@
+             [{"y":-0.45},"9,5","9,4",{"y":-0.1},"9,3",{"y":0.1},"9,2",{"y":0.45},"9,1","9,0"],
+             [{"x":-2.2,"y":0.35},"10,1",{"y":-0.2},"10,0",{"y":-0.2},"10,5",{"y":-0.2},"10,4",{"x":0.2,"y":-0.3},"10,3",{"y":0.1},"10,2"],
+ 
+-            [{"rx":6.5,"ry":2.95},"5,6",{"y":-0.5},"0,1\n\n\n\n\n\n\n\n\ne",{"y":1.0,"x":-1},"0,0\n\n\n\n\n\n\n\n\ne"]
++            [{"rx":6.5,"ry":1.95},"0,0\n\n\n\n\n\n\n\n\ne",{"x":-1,"y":1},"5,6",{"x":-1,"y":1},"0,1\n\n\n\n\n\n\n\n\ne"]
+         ]
+     }
+ }
+diff --git a/keyboards/ergohaven/hpd/keymaps/v2_enc_enc/rules.mk b/keyboards/ergohaven/hpd/keymaps/v2_enc_enc/rules.mk
+index 66328d20ce29966b9a209fb9d6816485d86b8847..382611c7a187cf7f437b8958023ca69381e622d4 100755
+--- a/keyboards/ergohaven/hpd/keymaps/v2_enc_enc/rules.mk
++++ b/keyboards/ergohaven/hpd/keymaps/v2_enc_enc/rules.mk
+@@ -1,4 +1,6 @@
+ VIAL_ENABLE = yes
++OPT_DEFS += -DEH_HPD_FACTORY_LAYER_NAMES -DEH_ENCODER_SETTINGS
++SRC += keyboards/ergohaven/src/eh_encoder.c
+ ENCODER_ENABLE = yes
+ ENCODER_MAP_ENABLE = yes
+ 
+diff --git a/keyboards/ergohaven/hpd/keymaps/v2_enc_enc/vial.json b/keyboards/ergohaven/hpd/keymaps/v2_enc_enc/vial.json
+index 1504c499ad1ce98092335a0cd70b7dac9691c9b2..bf062ea77f39453d36aa14cba3b815344a12aeed 100755
+--- a/keyboards/ergohaven/hpd/keymaps/v2_enc_enc/vial.json
++++ b/keyboards/ergohaven/hpd/keymaps/v2_enc_enc/vial.json
+@@ -9,6 +9,8 @@
+     "settings": [
+ #include "keyboards/ergohaven/src/json/settings_leds.json"
+ ,
++#include "keyboards/ergohaven/src/json/settings_encoders.json"
++,
+ #include "keyboards/ergohaven/src/json/settings_ruen.json"
+     ],
+     "layouts": {
+@@ -25,8 +27,8 @@
+             [{"y":-0.45},"9,5","9,4",{"y":-0.1},"9,3",{"y":0.1},"9,2",{"y":0.45},"9,1","9,0"],
+             [{"x":-2.2,"y":0.35},"10,1",{"y":-0.2},"10,0",{"y":-0.2},"10,5",{"y":-0.2},"10,4",{"x":0.2,"y":-0.3},"10,3",{"y":0.1},"10,2"],
+ 
+-            [{"rx":6.5,"ry":2.95},"5,6",{"y":-0.5},"0,1\n\n\n\n\n\n\n\n\ne",{"y":1.0,"x":-1},"0,0\n\n\n\n\n\n\n\n\ne"],
+-            [{"rx":10.0,"ry":2.95},"11,6",{"y":-0.5,"x":-2},"0,1\n\n\n\n\n\n\n\n\ne",{"y":1.0,"x":-1},"0,0\n\n\n\n\n\n\n\n\ne"]
++            [{"rx":6.5,"ry":1.95},"0,0\n\n\n\n\n\n\n\n\ne",{"x":-1,"y":1},"5,6",{"x":-1,"y":1},"0,1\n\n\n\n\n\n\n\n\ne"],
++            [{"rx":10.0,"ry":1.95},"1,0\n\n\n\n\n\n\n\n\ne",{"x":-1,"y":1},"11,6",{"x":-1,"y":1},"1,1\n\n\n\n\n\n\n\n\ne"]
+         ]
+     }
+ }
+diff --git a/keyboards/ergohaven/hpd/keymaps/v2_enc_joy/rules.mk b/keyboards/ergohaven/hpd/keymaps/v2_enc_joy/rules.mk
+index 68dbfde9f7fba5d186ee9eeafb8f59470df52343..454b7c58932e161b73cf52cab783b7e86a855ce5 100755
+--- a/keyboards/ergohaven/hpd/keymaps/v2_enc_joy/rules.mk
++++ b/keyboards/ergohaven/hpd/keymaps/v2_enc_joy/rules.mk
+@@ -1,4 +1,5 @@
+ VIAL_ENABLE = yes
++OPT_DEFS += -DEH_HPD_FACTORY_LAYER_NAMES
+ ENCODER_ENABLE = yes
+ ENCODER_MAP_ENABLE = yes
+ 
+diff --git a/keyboards/ergohaven/hpd/keymaps/v2_enc_joy/vial.json b/keyboards/ergohaven/hpd/keymaps/v2_enc_joy/vial.json
+index aa257ecf42c8aa4cb1699607a9ece15cac430f49..156e60f97f55fe2e2de1a4467c99468b17c5db51 100755
+--- a/keyboards/ergohaven/hpd/keymaps/v2_enc_joy/vial.json
++++ b/keyboards/ergohaven/hpd/keymaps/v2_enc_joy/vial.json
+@@ -7,8 +7,6 @@
+     },
+ #include "keyboards/ergohaven/src/json/keycodes_all.json"
+     "settings": [
+-#include "keyboards/ergohaven/src/json/settings_joystick.json"
+-, 
+ #include "keyboards/ergohaven/src/json/settings_leds.json"
+ ,
+ #include "keyboards/ergohaven/src/json/settings_ruen.json"
+@@ -27,7 +25,7 @@
+             [{"y":-0.45},"9,5","9,4",{"y":-0.1},"9,3",{"y":0.1},"9,2",{"y":0.45},"9,1","9,0"],
+             [{"x":-2.2,"y":0.35},"10,1",{"y":-0.2},"10,0",{"y":-0.2},"10,5",{"y":-0.2},"10,4",{"x":0.2,"y":-0.3},"10,3",{"y":0.1},"10,2"],
+ 
+-            [{"rx":6.5,"ry":2.5},"5,6",{"y":-0.5},"0,1\n\n\n\n\n\n\n\n\ne",{"y":1.0,"x":-1},"0,0\n\n\n\n\n\n\n\n\ne"],
++            [{"rx":6.5,"ry":1.5},"0,0\n\n\n\n\n\n\n\n\ne",{"x":-1,"y":1},"5,6",{"x":-1,"y":1},"0,1\n\n\n\n\n\n\n\n\ne"],
+             [{"rx":10.5,"ry":1.5},"11,0"],
+             [{"x":-1},"11,1","11,6","11,2"],
+             ["11,3"]
+diff --git a/keyboards/ergohaven/hpd/keymaps/v2_enc_touch/rules.mk b/keyboards/ergohaven/hpd/keymaps/v2_enc_touch/rules.mk
+index 43d28e2ca79962055576266d4ee8fd9392b551d1..fe600d78fa4d4382a6ef3b763c224506a005e00d 100755
+--- a/keyboards/ergohaven/hpd/keymaps/v2_enc_touch/rules.mk
++++ b/keyboards/ergohaven/hpd/keymaps/v2_enc_touch/rules.mk
+@@ -1,4 +1,6 @@
+ VIAL_ENABLE = yes
++OPT_DEFS += -DEH_HPD_FACTORY_LAYER_NAMES -DEH_ENCODER_SETTINGS -DEH_ENCODER_INTERVAL_SETTINGS -DEH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++SRC += keyboards/ergohaven/src/eh_encoder.c
+ ENCODER_ENABLE = yes
+ ENCODER_MAP_ENABLE = yes
+ 
+diff --git a/keyboards/ergohaven/hpd/keymaps/v2_enc_touch/vial.json b/keyboards/ergohaven/hpd/keymaps/v2_enc_touch/vial.json
+index 1cf4d002f58da8e9c4dfa551124ae1a9bbd31b78..4b059009aa7763114bf4af76c6d7a479926987c0 100755
+--- a/keyboards/ergohaven/hpd/keymaps/v2_enc_touch/vial.json
++++ b/keyboards/ergohaven/hpd/keymaps/v2_enc_touch/vial.json
+@@ -7,10 +7,12 @@
+     },
+ #include "keyboards/ergohaven/src/json/keycodes_all.json"
+     "settings": [
+-#include "keyboards/ergohaven/src/json/settings_touchpad_select.json"
++#include "keyboards/ergohaven/src/json/settings_hpd_touchpad_select.json"
+ , 
+ #include "keyboards/ergohaven/src/json/settings_leds.json"
+ ,
++#include "keyboards/ergohaven/src/json/settings_encoders.json"
++,
+ #include "keyboards/ergohaven/src/json/settings_ruen.json"
+     ],
+     "layouts": {
+@@ -27,7 +29,7 @@
+             [{"y":-0.45},"9,5","9,4",{"y":-0.1},"9,3",{"y":0.1},"9,2",{"y":0.45},"9,1","9,0"],
+             [{"x":-2.2,"y":0.35},"10,1",{"y":-0.2},"10,0",{"y":-0.2},"10,5",{"y":-0.2},"10,4",{"x":0.2,"y":-0.3},"10,3",{"y":0.1},"10,2"],
+ 
+-            [{"rx":6.5,"ry":2.95},"5,6",{"y":-0.5},"0,1\n\n\n\n\n\n\n\n\ne",{"y":1.0,"x":-1},"0,0\n\n\n\n\n\n\n\n\ne"]
++            [{"rx":6.5,"ry":1.95},"0,0\n\n\n\n\n\n\n\n\ne",{"x":-1,"y":1},"5,6",{"x":-1,"y":1},"0,1\n\n\n\n\n\n\n\n\ne"]
+         ]
+     }
+ }
+diff --git a/keyboards/ergohaven/hpd/keymaps/v2_touch_enc/rules.mk b/keyboards/ergohaven/hpd/keymaps/v2_touch_enc/rules.mk
+index 43d28e2ca79962055576266d4ee8fd9392b551d1..fe600d78fa4d4382a6ef3b763c224506a005e00d 100755
+--- a/keyboards/ergohaven/hpd/keymaps/v2_touch_enc/rules.mk
++++ b/keyboards/ergohaven/hpd/keymaps/v2_touch_enc/rules.mk
+@@ -1,4 +1,6 @@
+ VIAL_ENABLE = yes
++OPT_DEFS += -DEH_HPD_FACTORY_LAYER_NAMES -DEH_ENCODER_SETTINGS -DEH_ENCODER_INTERVAL_SETTINGS -DEH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++SRC += keyboards/ergohaven/src/eh_encoder.c
+ ENCODER_ENABLE = yes
+ ENCODER_MAP_ENABLE = yes
+ 
+diff --git a/keyboards/ergohaven/hpd/keymaps/v2_touch_enc/vial.json b/keyboards/ergohaven/hpd/keymaps/v2_touch_enc/vial.json
+index 7f0343e073d384fc5b548e2dc818d5b7e4cd1ce5..fa8e957fa944b638fe06172c796f63ac440925fa 100755
+--- a/keyboards/ergohaven/hpd/keymaps/v2_touch_enc/vial.json
++++ b/keyboards/ergohaven/hpd/keymaps/v2_touch_enc/vial.json
+@@ -7,10 +7,12 @@
+     },
+ #include "keyboards/ergohaven/src/json/keycodes_all.json"
+     "settings": [
+-#include "keyboards/ergohaven/src/json/settings_touchpad_select.json"
++#include "keyboards/ergohaven/src/json/settings_hpd_touchpad_select.json"
+ ,
+ #include "keyboards/ergohaven/src/json/settings_leds.json"
+ ,
++#include "keyboards/ergohaven/src/json/settings_encoders.json"
++,
+ #include "keyboards/ergohaven/src/json/settings_ruen.json"
+     ],
+     "layouts": {
+@@ -27,7 +29,7 @@
+             [{"y":-0.45},"9,5","9,4",{"y":-0.1},"9,3",{"y":0.1},"9,2",{"y":0.45},"9,1","9,0"],
+             [{"x":-2.2,"y":0.35},"10,1",{"y":-0.2},"10,0",{"y":-0.2},"10,5",{"y":-0.2},"10,4",{"x":0.2,"y":-0.3},"10,3",{"y":0.1},"10,2"],
+ 
+-            [{"rx":10.0,"ry":2.95},"11,6",{"y":-0.5,"x":-2},"0,1\n\n\n\n\n\n\n\n\ne",{"y":1.0,"x":-1},"0,0\n\n\n\n\n\n\n\n\ne"]
++            [{"rx":10.0,"ry":1.95},"0,0\n\n\n\n\n\n\n\n\ne",{"x":-1,"y":1},"11,6",{"x":-1,"y":1},"0,1\n\n\n\n\n\n\n\n\ne"]
+         ]
+     }
+ }
+diff --git a/keyboards/ergohaven/hpd/rev2/rev2.c b/keyboards/ergohaven/hpd/rev2/rev2.c
+index 69b3e55e6b30e368e8c3a1b48b8eaf28c185ac20..97815034ef74c6074349b1d9b95c7f169c1819cf 100755
+--- a/keyboards/ergohaven/hpd/rev2/rev2.c
++++ b/keyboards/ergohaven/hpd/rev2/rev2.c
+@@ -3,6 +3,21 @@
+ #include QMK_KEYBOARD_H
+ #include "ergohaven.h"
+ 
++#ifdef EH_HPD_FACTORY_LAYER_NAMES
++const char *default_layer_label(uint8_t layer) {
++    static const char labels[DYNAMIC_KEYMAP_LAYER_COUNT][LAYER_LABEL_SIZE] PROGMEM = {
++        [0] = "Base",
++        [1] = "Num + Nav",
++        [2] = "Symbols",
++#    if defined(EH_QMK_SETTINGS_SIMPLE_TRACKBALL) || defined(EH_QMK_SETTINGS_SIMPLE_TOUCHPAD)
++        [4] = "Mouse",
++#    endif
++    };
++    static const char empty[LAYER_LABEL_SIZE] PROGMEM = {0};
++    return layer < DYNAMIC_KEYMAP_LAYER_COUNT ? labels[layer] : empty;
++}
++#endif
++
+ const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM = LAYOUT(
+ 'L', 'L', 'L', 'L', 'L', 'L',                       'R', 'R', 'R', 'R', 'R', 'R',
+ 'L', 'L', 'L', 'L', 'L', 'L',                       'R', 'R', 'R', 'R', 'R', 'R',
+diff --git a/keyboards/ergohaven/macropad/rev2/rules.mk b/keyboards/ergohaven/macropad/rev2/rules.mk
+index 2c9e6bc2ec822d1785ea9acdc54eb6bdb974835c..7409edcde1b8ca1e7a553f02a4f6d0c871020a08 100644
+--- a/keyboards/ergohaven/macropad/rev2/rules.mk
++++ b/keyboards/ergohaven/macropad/rev2/rules.mk
+@@ -3,6 +3,8 @@ BOARD = GENERIC_RP_RP2040
+ BOOTLOADER = rp2040
+ OPT_DEFS += -DPICO_FLASH_SIZE_BYTES=2097152
+ OPT_DEFS += -DEH_PICTOGRAM_ENABLE
++# This revision has a display backlight, but no per-layer RGB lighting.
++OPT_DEFS += -DEH_QMK_SETTINGS_DISABLE_LAYER_LEDS
+ EXTRALDFLAGS += -Wl,--defsym=FLASH_LEN=0x000B0000
+ # ALLOW_WARNINGS = yes
+ # PICO_INTRINSICS_ENABLED = no
+diff --git a/keyboards/ergohaven/src/eh_pointing.c b/keyboards/ergohaven/src/eh_pointing.c
+index 459474ceafd8c0c04522d17f1a87699728a61fb0..1183703aff32cab1b9f1482928bb0f98ed4f76d1 100644
+--- a/keyboards/ergohaven/src/eh_pointing.c
++++ b/keyboards/ergohaven/src/eh_pointing.c
+@@ -829,6 +829,35 @@ uint8_t get_text_sens(void) {
+     return kb_settings_pointing.sens[POINTING_MODE_TEXT];
+ }
+ 
++#ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++// Reuse only HPD's unused sens[0]: low seven bits = threshold, high bit = no key reset.
++// The existing raw default 1 means threshold 1 and key reset enabled; legacy zero reads as 1.
++#    define HPD_AUTO_MOUSE_THRESHOLD_MASK 0x7Fu
++#    define HPD_AUTO_MOUSE_NO_KEY_RESET 0x80u
++
++uint8_t get_hpd_auto_mouse_threshold(void) {
++    uint8_t threshold = kb_settings_pointing.sens[POINTING_MODE_NORMAL] & HPD_AUTO_MOUSE_THRESHOLD_MASK;
++    return threshold ? threshold : 1;
++}
++
++void set_hpd_auto_mouse_threshold(uint8_t threshold) {
++    if (threshold < 1 || threshold > HPD_AUTO_MOUSE_THRESHOLD_MASK) return;
++    kb_settings_pointing_t new_config = kb_settings_pointing;
++    new_config.sens[POINTING_MODE_NORMAL] = (new_config.sens[POINTING_MODE_NORMAL] & HPD_AUTO_MOUSE_NO_KEY_RESET) | threshold;
++    kb_settings_pointing_update(new_config);
++}
++
++bool get_hpd_auto_mouse_off_on_key(void) {
++    return !(kb_settings_pointing.sens[POINTING_MODE_NORMAL] & HPD_AUTO_MOUSE_NO_KEY_RESET);
++}
++
++void set_hpd_auto_mouse_off_on_key(bool enabled) {
++    kb_settings_pointing_t new_config = kb_settings_pointing;
++    new_config.sens[POINTING_MODE_NORMAL] = get_hpd_auto_mouse_threshold() | (enabled ? 0 : HPD_AUTO_MOUSE_NO_KEY_RESET);
++    kb_settings_pointing_update(new_config);
++}
++#endif
++
+ void set_invert_scroll(bool invert) {
+     kb_settings_pointing_t new_config = kb_settings_pointing;
+     new_config.invert_scroll          = invert;
+@@ -965,6 +994,14 @@ bool auto_mouse_activation(report_mouse_t mouse_report) {
+     return is_mouse_active_override_enabled ? is_mouse_active_override : is_mouse_active;
+ }
+ 
++#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++bool auto_mouse_should_reset_on_key(uint16_t keycode, keyrecord_t *record) {
++    (void)keycode;
++    (void)record;
++    return get_hpd_auto_mouse_off_on_key();
++}
++#    endif
++
+ bool is_mouse_record_kb(uint16_t keycode, keyrecord_t *record) {
+     switch (keycode) {
+         case EH_SCR:
+@@ -1254,7 +1291,12 @@ bool process_record_pointing(uint16_t keycode, keyrecord_t *record) {
+ report_mouse_t pointing_device_task_user(report_mouse_t mrpt) {
+ #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
+     if (!is_mouse_active_override_enabled) {
+-        is_mouse_active = abs(mrpt.x) >= 1 || abs(mrpt.y) >= 1 || abs(mrpt.v) >= 1 || abs(mrpt.h) >= 1 || mrpt.buttons;
++#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++        uint8_t threshold = get_hpd_auto_mouse_threshold();
++#    else
++        uint8_t threshold = 1;
++#    endif
++        is_mouse_active = abs(mrpt.x) >= threshold || abs(mrpt.y) >= threshold || abs(mrpt.v) >= threshold || abs(mrpt.h) >= threshold || mrpt.buttons;
+     }
+ #endif
+     pointing_mode_t pmode = pointing_mode;
+diff --git a/keyboards/ergohaven/src/eh_pointing.h b/keyboards/ergohaven/src/eh_pointing.h
+index 550a3b471bedb8798a1afd1fade7a77b209c7dd3..8cd6dc64c37e20eb571d29e533b7e1c9d22af3a9 100644
+--- a/keyboards/ergohaven/src/eh_pointing.h
++++ b/keyboards/ergohaven/src/eh_pointing.h
+@@ -117,6 +117,13 @@ uint8_t get_sniper_sens(void);
+ void    set_text_sens(uint8_t sens);
+ uint8_t get_text_sens(void);
+ 
++#ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++uint8_t get_hpd_auto_mouse_threshold(void);
++void    set_hpd_auto_mouse_threshold(uint8_t threshold);
++bool    get_hpd_auto_mouse_off_on_key(void);
++void    set_hpd_auto_mouse_off_on_key(bool enabled);
++#endif
++
+ void set_invert_scroll(bool invert);
+ bool get_invert_scroll(void);
+ void set_invert_scroll_h(bool invert);
+diff --git a/keyboards/ergohaven/src/eh_settings.c b/keyboards/ergohaven/src/eh_settings.c
+index f5fe52528a2c3d999bf7e74eb05b559b9b9e80e8..495ade558e9c426bd491d5626b68afdd83a0d8c5 100644
+--- a/keyboards/ergohaven/src/eh_settings.c
++++ b/keyboards/ergohaven/src/eh_settings.c
+@@ -777,6 +777,9 @@ static int modules_bool_get(const qmk_settings_proto_t *proto, void *setting, si
+         case 128: value = get_acceleration(); break;
+         case 136: value = get_invert_text(); break;
+         case 327: value = get_pointing_touch_gestures(); break;
++#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++        case 375: value = get_hpd_auto_mouse_off_on_key(); break;
++#    endif
+         case 133:
+         case 140: value = get_sticky_mode(); break;
+         case 134:
+@@ -824,6 +827,9 @@ static int modules_bool_set(const qmk_settings_proto_t *proto, const void *setti
+         case 128: set_acceleration(value); break;
+         case 136: set_invert_text(value); break;
+         case 327: set_pointing_touch_gestures(value); break;
++#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++        case 375: set_hpd_auto_mouse_off_on_key(value); break;
++#    endif
+         case 133:
+         case 140: set_sticky_mode(value); break;
+         case 134:
+@@ -857,6 +863,16 @@ void set_split_pointing_side_settings_module(split_pointing_side_t side, uint8_t
+ }
+ #endif
+ 
++#ifndef EH_KEYBOARD_SPLIT_POINTING_V2
++#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++static const uint16_t modules_auto_mouse_timeout_ms[] = {50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 750, 1000, 1250, 1500};
++#        define MODULES_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX 10
++#    else
++static const uint16_t modules_auto_mouse_timeout_ms[] = {250, 500, 750, 1000, 1250, 1500};
++#        define MODULES_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX 2
++#    endif
++#endif
++
+ static int modules_select_get(const qmk_settings_proto_t *proto, void *setting, size_t maxsz) {
+     uint8_t v = 0;
+ #if defined(EH_KEYBOARD_SPLIT_POINTING_V2)
+@@ -890,16 +906,15 @@ static int modules_select_get(const qmk_settings_proto_t *proto, void *setting,
+ #else
+     switch (proto->qsid) {
+         case 324: {
+-            static const uint16_t timeout_variants[] = {250, 500, 750, 1000, 1250, 1500};
+-            uint16_t              timeout_ms         = 750;
++            uint16_t timeout_ms = 750;
+ #    ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
+             if (qmk_settings_get(32, &timeout_ms, sizeof(timeout_ms)) < 0) {
+                 timeout_ms = 750;
+             }
+ #    endif
+             uint16_t best_delta = UINT16_MAX;
+-            for (uint8_t i = 0; i < ARRAY_SIZE(timeout_variants); ++i) {
+-                uint16_t delta = timeout_variants[i] > timeout_ms ? timeout_variants[i] - timeout_ms : timeout_ms - timeout_variants[i];
++            for (uint8_t i = 0; i < ARRAY_SIZE(modules_auto_mouse_timeout_ms); ++i) {
++                uint16_t delta = modules_auto_mouse_timeout_ms[i] > timeout_ms ? modules_auto_mouse_timeout_ms[i] - timeout_ms : timeout_ms - modules_auto_mouse_timeout_ms[i];
+                 if (delta < best_delta) {
+                     best_delta = delta;
+                     v          = i;
+@@ -910,6 +925,11 @@ static int modules_select_get(const qmk_settings_proto_t *proto, void *setting,
+         case 325:
+             v = get_pointing_encoder_interval_idx();
+             break;
++#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++        case 374:
++            v = get_hpd_auto_mouse_threshold();
++            break;
++#    endif
+         case 129:
+         case 130:
+         case 131:
+@@ -964,12 +984,11 @@ static int modules_select_set(const qmk_settings_proto_t *proto, const void *set
+ #else
+     switch (proto->qsid) {
+         case 324: {
+-            static const uint16_t timeout_variants[] = {250, 500, 750, 1000, 1250, 1500};
+-            if (v >= ARRAY_SIZE(timeout_variants)) {
+-                v = 2;
++            if (v >= ARRAY_SIZE(modules_auto_mouse_timeout_ms)) {
++                v = MODULES_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX;
+             }
+ #    ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
+-            uint16_t timeout_ms = timeout_variants[v];
++            uint16_t timeout_ms = modules_auto_mouse_timeout_ms[v];
+             if (qmk_settings_set(32, &timeout_ms, sizeof(timeout_ms)) < 0) {
+                 return -1;
+             }
+@@ -979,6 +998,12 @@ static int modules_select_set(const qmk_settings_proto_t *proto, const void *set
+         case 325:
+             set_pointing_encoder_interval_idx(v);
+             break;
++#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++        case 374:
++            if (v < 1 || v > 127) return -1;
++            set_hpd_auto_mouse_threshold(v);
++            break;
++#    endif
+         case 129:
+         case 130:
+         case 131:
+@@ -1866,6 +1891,10 @@ qmk_settings_proto_t kb_protos[KB_SETTINGS_NPROTOS] PROGMEM = {
+ #    ifdef POINTING_DEVICE_DRIVER_azoteq_iqs5xx
+     DECLARE_SETTING(327, modules_bool_get, modules_bool_set),
+ #    endif
++#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
++    DECLARE_SETTING(374, modules_select_get, modules_select_set),
++    DECLARE_SETTING(375, modules_bool_get, modules_bool_set),
++#    endif
+ #endif
+     // clang-format on
+ };
+diff --git a/keyboards/ergohaven/velvet/keymaps/v3/rules.mk b/keyboards/ergohaven/velvet/keymaps/v3/rules.mk
+index 622abfa8febce2933afb09a4bcbb96fa9f5ac805..67234da66f67bc99a1d6b1c83323a0deff685ea2 100755
+--- a/keyboards/ergohaven/velvet/keymaps/v3/rules.mk
++++ b/keyboards/ergohaven/velvet/keymaps/v3/rules.mk
+@@ -1,2 +1,3 @@
+ VIAL_ENABLE = yes
+ AUTO_SHIFT_ENABLE = yes
++OPT_DEFS += -DEH_QMK_SETTINGS_DISABLE_LAYER_LEDS
+diff --git a/keyboards/ergohaven/velvet/keymaps/v3/vial.json b/keyboards/ergohaven/velvet/keymaps/v3/vial.json
+index a3c625988912ac48aa0e06d8835f2853f5ca2894..746dc132bc7e79758e4e6162300bb3c8443d9b74 100755
+--- a/keyboards/ergohaven/velvet/keymaps/v3/vial.json
++++ b/keyboards/ergohaven/velvet/keymaps/v3/vial.json
+@@ -2,7 +2,10 @@
+     "firmware": {"version": "1.0"},
+     "firmwareVersion": "1.0",
+     "matrix": { "rows": 8, "cols": 6},
+-#include "keyboards/ergohaven/src/json/keycodes_all.json"
++    "customKeycodes": [
++#include "keyboards/ergohaven/src/json/keycodes_base.json"
++#include "keyboards/ergohaven/src/json/keycodes_ruen.json"
++    ],
+     "settings": [
+ #include "keyboards/ergohaven/src/json/settings_ruen.json"
+     ],
+diff --git a/quantum/pointing_device/pointing_device_auto_mouse.c b/quantum/pointing_device/pointing_device_auto_mouse.c
+index 38ed4720cc3860f170c68a318849120e74e16561..192f0d870b641f6e126263d821b27a370e910d67 100644
+--- a/quantum/pointing_device/pointing_device_auto_mouse.c
++++ b/quantum/pointing_device/pointing_device_auto_mouse.c
+@@ -307,6 +307,12 @@ void auto_mouse_reset_trigger(bool pressed) {
+     auto_mouse_context.timer.delay = timer_read();
+ }
+ 
++__attribute__((weak)) bool auto_mouse_should_reset_on_key(uint16_t keycode, keyrecord_t* record) {
++    (void)keycode;
++    (void)record;
++    return true;
++}
++
+ /**
+  * @brief handle key events processing for auto mouse
+  *
+@@ -408,7 +414,7 @@ bool process_auto_mouse(uint16_t keycode, keyrecord_t* record) {
+             // check if keyrecord is mousekey
+             if (is_mouse_record(keycode, record)) {
+                 auto_mouse_keyevent(record->event.pressed);
+-            } else if (!is_auto_mouse_active()) {
++            } else if (!is_auto_mouse_active() && auto_mouse_should_reset_on_key(keycode, record)) {
+                 // all non-mousekey presses restart delay timer and reset status
+                 auto_mouse_reset_trigger(record->event.pressed);
+             }
+diff --git a/quantum/pointing_device/pointing_device_auto_mouse.h b/quantum/pointing_device/pointing_device_auto_mouse.h
+index 2c0d4d10434f732832740f4c3ca2cc736e4b22d9..5bef57b55a7b7cbf6f31c36fd2403b99647febcd 100644
+--- a/quantum/pointing_device/pointing_device_auto_mouse.h
++++ b/quantum/pointing_device/pointing_device_auto_mouse.h
+@@ -99,6 +99,9 @@ bool get_auto_mouse_toggle(void);            // get toggle mouse layer flag valu
+ bool is_mouse_record_kb(uint16_t keycode, keyrecord_t* record);
+ bool is_mouse_record_user(uint16_t keycode, keyrecord_t* record);
+ 
++// Policy for the existing inactive, non-mouse key reset (both press and release); defaults true.
++bool auto_mouse_should_reset_on_key(uint16_t keycode, keyrecord_t* record);
++
+ /* ----------Core functions (only used in custom pointing devices or key processing)------------------------- */
+ void pointing_device_task_auto_mouse(report_mouse_t mouse_report); // add to pointing_device_task_*
+ bool process_auto_mouse(uint16_t keycode, keyrecord_t* record);    // add to process_record_*
+diff --git a/keyboards/ergohaven/src/json/settings_hpd_touchpad_select.json b/keyboards/ergohaven/src/json/settings_hpd_touchpad_select.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..669fd0abee7f4bf6a674c6905d27a2baf8bc6031
+--- /dev/null
++++ b/keyboards/ergohaven/src/json/settings_hpd_touchpad_select.json
+@@ -0,0 +1,21 @@
++{
++    "name": "Touchpad settings",
++    "fields": [
++        { "type": "select", "title": "DPI", "qsid": 120, "variants": ["100", "200", "300", "400", "500", "600", "700", "800", "900", "1000"] },
++        { "type": "integer", "title": "Sniper sens", "qsid": 121, "min": 1, "max": 255, "width": 1 },
++        { "type": "integer", "title": "Scroll sens", "qsid": 122, "min": 1, "max": 255, "width": 1 },
++        { "type": "integer", "title": "Text sens", "qsid": 123, "min": 1, "max": 255, "width": 1 },
++        { "type": "boolean", "title": "Touch gestures", "qsid": 327, "bit": 0 },
++        { "type": "boolean", "title": "Invert scroll vertical", "qsid": 124, "bit": 0 },
++        { "type": "boolean", "title": "Invert scroll horizontal", "qsid": 124, "bit": 4 },
++        { "type": "boolean", "title": "Invert text vertical", "qsid": 124, "bit": 3 },
++        { "type": "boolean", "title": "Invert text horizontal", "qsid": 124, "bit": 5 },
++        { "type": "boolean", "title": "Acceleration", "qsid": 124, "bit": 1 },
++        { "type": "boolean", "title": "Sticky mode", "qsid": 124, "bit": 2 },
++        { "type": "boolean", "title": "Auto layer enable", "qsid": 142, "bit": 0 },
++        { "type": "select", "title": "Auto layer", "qsid": 143, "variants": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"] },
++        { "type": "select", "title": "Auto layer timeout", "qsid": 324, "variants": ["50 ms", "100 ms", "150 ms", "200 ms", "250 ms", "300 ms", "350 ms", "400 ms", "450 ms", "500 ms", "750 ms", "1000 ms", "1250 ms", "1500 ms"] },
++        { "type": "integer", "title": "Auto layer threshold", "qsid": 374, "min": 1, "max": 127, "width": 1 },
++        { "type": "boolean", "title": "Auto layer deactivate on key", "qsid": 375, "bit": 0 }
++    ]
++}
+diff --git a/keyboards/ergohaven/src/json/settings_hpd_trackball_select.json b/keyboards/ergohaven/src/json/settings_hpd_trackball_select.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..d5da9746cbac3e80fe582244e43f8652b1c2d92f
+--- /dev/null
++++ b/keyboards/ergohaven/src/json/settings_hpd_trackball_select.json
+@@ -0,0 +1,20 @@
++{
++    "name": "Trackball settings",
++    "fields": [
++        { "type": "select", "title": "DPI", "qsid": 120, "variants": ["200", "400", "600", "800", "1000", "1200", "1400", "1600", "1800", "2000", "2200", "2400", "2600", "2800", "3000", "3200"] },
++        { "type": "integer", "title": "Sniper sens", "qsid": 121, "min": 1, "max": 255, "width": 1 },
++        { "type": "integer", "title": "Scroll sens", "qsid": 122, "min": 1, "max": 255, "width": 1 },
++        { "type": "integer", "title": "Text sens", "qsid": 123, "min": 1, "max": 255, "width": 1 },
++        { "type": "boolean", "title": "Invert scroll vertical", "qsid": 124, "bit": 0 },
++        { "type": "boolean", "title": "Invert scroll horizontal", "qsid": 124, "bit": 4 },
++        { "type": "boolean", "title": "Invert text vertical", "qsid": 124, "bit": 3 },
++        { "type": "boolean", "title": "Invert text horizontal", "qsid": 124, "bit": 5 },
++        { "type": "boolean", "title": "Acceleration", "qsid": 124, "bit": 1 },
++        { "type": "boolean", "title": "Sticky mode", "qsid": 124, "bit": 2 },
++        { "type": "boolean", "title": "Auto layer enable", "qsid": 142, "bit": 0 },
++        { "type": "select", "title": "Auto layer", "qsid": 143, "variants": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"] },
++        { "type": "select", "title": "Auto layer timeout", "qsid": 324, "variants": ["50 ms", "100 ms", "150 ms", "200 ms", "250 ms", "300 ms", "350 ms", "400 ms", "450 ms", "500 ms", "750 ms", "1000 ms", "1250 ms", "1500 ms"] },
++        { "type": "integer", "title": "Auto layer threshold", "qsid": 374, "min": 1, "max": 127, "width": 1 },
++        { "type": "boolean", "title": "Auto layer deactivate on key", "qsid": 375, "bit": 0 }
++    ]
++}

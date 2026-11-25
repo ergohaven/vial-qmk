@@ -1,0 +1,2300 @@
+{
+  "files": [
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/default/font_block.c",
+      "path": "archive/ergohaven/hpd/keymaps/default/font_block.c",
+      "sha256": "26d972cbb108904b652382ce6a1e95124b8ebb8a12d131dabdc54e17822c8e52",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/default/font_block.h",
+      "path": "archive/ergohaven/hpd/keymaps/default/font_block.h",
+      "sha256": "a487f696012a5b0c5675f2983003ea2fde8400474e80697097522dbb71ce8b3c",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/default/keymap.c",
+      "path": "archive/ergohaven/hpd/keymaps/default/keymap.c",
+      "sha256": "636ad3fa745610713d5f029a37e1d31779180c993cce30597d763eb926c4902c",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/default/layers.c",
+      "path": "archive/ergohaven/hpd/keymaps/default/layers.c",
+      "sha256": "686f10ac674eb8202b977e490f2f75a442061bd0e652dd7ec20b2b828694ce12",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/default/rules.mk",
+      "path": "archive/ergohaven/hpd/keymaps/default/rules.mk",
+      "sha256": "6fae51e091c899309e3a0e5f716dd4a415e07a73787bf56993db2f18ddde4d65",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/kissetfall/config.h",
+      "path": "archive/ergohaven/hpd/keymaps/kissetfall/config.h",
+      "sha256": "544b048e373a83356c17c6e28b905a173a9d082a4512e0b360592c2f7f765cdc",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/kissetfall/keymap.c",
+      "path": "archive/ergohaven/hpd/keymaps/kissetfall/keymap.c",
+      "sha256": "c47849edf7e36245713a596c39d4902150ac4ae158215888101e33d9074ff917",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/kissetfall/rules.mk",
+      "path": "archive/ergohaven/hpd/keymaps/kissetfall/rules.mk",
+      "sha256": "f0c4480ac5016ceef0b4201bf9f254f5ae37a04a947544cc225482a2db323add",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/kissetfall/vial.json",
+      "path": "archive/ergohaven/hpd/keymaps/kissetfall/vial.json",
+      "sha256": "a4303ced2fe5d73ef66ee1031ec443c5b68e3bb08c9a9b76220e38d482035d7d",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v1/config.h",
+      "path": "archive/ergohaven/hpd/keymaps/v1/config.h",
+      "sha256": "10d8c0bdd3db9d430aae6220f98908d40b784c94501f9b89742af08bfb34447e"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v1/keymap.c",
+      "path": "archive/ergohaven/hpd/keymaps/v1/keymap.c",
+      "sha256": "ca3fe4c5c5c2cecf91a8cd90ba64a899c11da46a306d87dacb3afb2c2f38f1ef"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v1/rules.mk",
+      "path": "archive/ergohaven/hpd/keymaps/v1/rules.mk",
+      "sha256": "a92262c24b24b555592bbf6b863fd202c4c4b511f06de50ef1f9c376d564aa09"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v1/vial.json",
+      "path": "archive/ergohaven/hpd/keymaps/v1/vial.json",
+      "sha256": "83b63ab2cc558ca84e73d22d3f2366a3cd9d1284dcdbcb72862e148265054a77"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2/config.h",
+      "path": "archive/ergohaven/hpd/keymaps/v2/config.h",
+      "sha256": "10d8c0bdd3db9d430aae6220f98908d40b784c94501f9b89742af08bfb34447e",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2/keymap.c",
+      "path": "archive/ergohaven/hpd/keymaps/v2/keymap.c",
+      "sha256": "42581b7d395040f6731c6e4e8307d4d47e3dc605c0415a92d6ec479e2c106611",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2/rules.mk",
+      "path": "archive/ergohaven/hpd/keymaps/v2/rules.mk",
+      "sha256": "faba8dfba710b0855ce86c26b861edc5375b39c04aca12afb3ca929e1730a3e7",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2/vial.json",
+      "path": "archive/ergohaven/hpd/keymaps/v2/vial.json",
+      "sha256": "24ca4bbb844570c0581fd7fdf792c1e547cbfa8a6ca105108f70aa2422640b3d",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_ball_enc/config.h",
+      "path": "archive/ergohaven/hpd/keymaps/v2_ball_enc/config.h",
+      "sha256": "2b619f44508ccfdbb4df6829460fd5ced68530f1b49c2371ddf00a96df361446",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_ball_enc/halconf.h",
+      "path": "archive/ergohaven/hpd/keymaps/v2_ball_enc/halconf.h",
+      "sha256": "6704d20be49700521ecda4caf39caf8d0070e13e1f9105523751eb55cf12abcd",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_ball_enc/keymap.c",
+      "path": "archive/ergohaven/hpd/keymaps/v2_ball_enc/keymap.c",
+      "sha256": "7e3110e2f95736dd759c0923c3b1dfb4ff5cd650505584c318c68d5e4ac455dd",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_ball_enc/mcuconf.h",
+      "path": "archive/ergohaven/hpd/keymaps/v2_ball_enc/mcuconf.h",
+      "sha256": "d32321506f6a7a876f2243af487e2d9984139165db739bb713b3466a24a2d896",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_ball_enc/rules.mk",
+      "path": "archive/ergohaven/hpd/keymaps/v2_ball_enc/rules.mk",
+      "sha256": "9da314b0c13f27cd5e6c336b98b19d47529c41bdeb4b707fc45982649ed76dec",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_ball_enc/vial.json",
+      "path": "archive/ergohaven/hpd/keymaps/v2_ball_enc/vial.json",
+      "sha256": "662f54fb10fd4563f23e3ebfc72752991d35cbba8bba7e697083cabb604d6a18",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_enc_ball/config.h",
+      "path": "archive/ergohaven/hpd/keymaps/v2_enc_ball/config.h",
+      "sha256": "7d880b542993b2f8a649ca562d0784a247eb873b5bdc8a502ede77ebdf5c1f7c",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_enc_ball/halconf.h",
+      "path": "archive/ergohaven/hpd/keymaps/v2_enc_ball/halconf.h",
+      "sha256": "6704d20be49700521ecda4caf39caf8d0070e13e1f9105523751eb55cf12abcd",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_enc_ball/keymap.c",
+      "path": "archive/ergohaven/hpd/keymaps/v2_enc_ball/keymap.c",
+      "sha256": "7e3110e2f95736dd759c0923c3b1dfb4ff5cd650505584c318c68d5e4ac455dd",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_enc_ball/mcuconf.h",
+      "path": "archive/ergohaven/hpd/keymaps/v2_enc_ball/mcuconf.h",
+      "sha256": "d32321506f6a7a876f2243af487e2d9984139165db739bb713b3466a24a2d896",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_enc_ball/rules.mk",
+      "path": "archive/ergohaven/hpd/keymaps/v2_enc_ball/rules.mk",
+      "sha256": "9da314b0c13f27cd5e6c336b98b19d47529c41bdeb4b707fc45982649ed76dec",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_enc_ball/vial.json",
+      "path": "archive/ergohaven/hpd/keymaps/v2_enc_ball/vial.json",
+      "sha256": "38458e056fba2a4501970be7dde066a5d60a919489696605f23a346fe38f3e1d",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_enc_enc/config.h",
+      "path": "archive/ergohaven/hpd/keymaps/v2_enc_enc/config.h",
+      "sha256": "81b2b221fda2f2a8f92ebda42928969425b982e1d119ef6e9d088bf85738015d",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_enc_enc/keymap.c",
+      "path": "archive/ergohaven/hpd/keymaps/v2_enc_enc/keymap.c",
+      "sha256": "5a020b8f9248f262349cbbaf8b640b8f941a696de4bc80008ccbccfefc23d7df",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_enc_enc/rules.mk",
+      "path": "archive/ergohaven/hpd/keymaps/v2_enc_enc/rules.mk",
+      "sha256": "2789448dc07ba81f68fbd8e7fb6da6fec340fa9de68373dcfabaf8c7d61852ca",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_enc_enc/vial.json",
+      "path": "archive/ergohaven/hpd/keymaps/v2_enc_enc/vial.json",
+      "sha256": "d5450e8872c37a29399f434bfbb02bdf20af95c26c4b5331dcde6cdfeb1cc44a",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_enc_joy/config.h",
+      "path": "archive/ergohaven/hpd/keymaps/v2_enc_joy/config.h",
+      "sha256": "15785ef06854c0757ed9032b321cffdb179c185c20f6fa8cacc3904951b8e742",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_enc_joy/halconf.h",
+      "path": "archive/ergohaven/hpd/keymaps/v2_enc_joy/halconf.h",
+      "sha256": "9a04cc8514df3cd7a16f9d601d914d732bf98dfc4a8418e7e0535059a2f228f5",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_enc_joy/keymap.c",
+      "path": "archive/ergohaven/hpd/keymaps/v2_enc_joy/keymap.c",
+      "sha256": "12096cb77121a34f6c34bd4e3fa277ba79262e3ad70a8ac930dccc7e7fda05e2",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_enc_joy/mcuconf.h",
+      "path": "archive/ergohaven/hpd/keymaps/v2_enc_joy/mcuconf.h",
+      "sha256": "12e9671710b3f78f0e56f8321a65cdce7175f49e5748668777d83248442f3abd",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_enc_joy/rules.mk",
+      "path": "archive/ergohaven/hpd/keymaps/v2_enc_joy/rules.mk",
+      "sha256": "66d62404ae510f8c27d1ad154e13530e771386586353890760622056f975863f",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_enc_joy/vial.json",
+      "path": "archive/ergohaven/hpd/keymaps/v2_enc_joy/vial.json",
+      "sha256": "d2059fa186d3815c4e216da7914ef5b89e4e0279cd3b1944c9909e966d6f70bc",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_enc_touch/config.h",
+      "path": "archive/ergohaven/hpd/keymaps/v2_enc_touch/config.h",
+      "sha256": "984c1a79daf93a229ca8c2d8be89323a6ccac6e67ec6154483cd31f74587ab6c",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_enc_touch/halconf.h",
+      "path": "archive/ergohaven/hpd/keymaps/v2_enc_touch/halconf.h",
+      "sha256": "afce065e7a87458c993d89246c0263c47ba4f84d374256d89f614b5e526e426c",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_enc_touch/keymap.c",
+      "path": "archive/ergohaven/hpd/keymaps/v2_enc_touch/keymap.c",
+      "sha256": "7e3110e2f95736dd759c0923c3b1dfb4ff5cd650505584c318c68d5e4ac455dd",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_enc_touch/mcuconf.h",
+      "path": "archive/ergohaven/hpd/keymaps/v2_enc_touch/mcuconf.h",
+      "sha256": "76c2548ed43797d35c4d548bf9f1d4e54300be7fac8904fa3768de50ff412374",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_enc_touch/rules.mk",
+      "path": "archive/ergohaven/hpd/keymaps/v2_enc_touch/rules.mk",
+      "sha256": "8bd9e79b5ef4ef941f78940734c10f42d68cc7273a0e851b33b76ac15245d6cd",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_enc_touch/vial.json",
+      "path": "archive/ergohaven/hpd/keymaps/v2_enc_touch/vial.json",
+      "sha256": "c06b1c35d4a726f9e5b3a823adfcf6d3a37f1704b24082a3c7de5db2be9ed9c3",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_lcd_ball/config.h",
+      "path": "archive/ergohaven/hpd/keymaps/v2_lcd_ball/config.h",
+      "sha256": "b0d21d3c40fb754d2fd71cc0a10f773d2bc4319981bd704865ef44377cb19aec",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_lcd_ball/display.h",
+      "path": "archive/ergohaven/hpd/keymaps/v2_lcd_ball/display.h",
+      "sha256": "a5e729154dfcf25544e16c74beea645350842ba50ae80d6c98856d57ca5f699a",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_lcd_ball/halconf.h",
+      "path": "archive/ergohaven/hpd/keymaps/v2_lcd_ball/halconf.h",
+      "sha256": "316ed464365a66c3e33675339af9f3062df65523236641d70f74006efd200caa",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_lcd_ball/keymap.c",
+      "path": "archive/ergohaven/hpd/keymaps/v2_lcd_ball/keymap.c",
+      "sha256": "53d0e977f3da43882daf8dfeb3c7a758820460753314dc1302c52da6481a55e2",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_lcd_ball/mcuconf.h",
+      "path": "archive/ergohaven/hpd/keymaps/v2_lcd_ball/mcuconf.h",
+      "sha256": "a472af7eb2688411f6e93d6018782a84d48badd229bdee28877bb12f2e8c64ed",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_lcd_ball/rules.mk",
+      "path": "archive/ergohaven/hpd/keymaps/v2_lcd_ball/rules.mk",
+      "sha256": "4b262310541480c431d421d5429ade7d8c1e531024916b134464d35530438040",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_lcd_ball/vial.json",
+      "path": "archive/ergohaven/hpd/keymaps/v2_lcd_ball/vial.json",
+      "sha256": "73d7decdab5af05d9cde14723a7a465a8045397177fdb198976daf4d45f0237a",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_touch_enc/config.h",
+      "path": "archive/ergohaven/hpd/keymaps/v2_touch_enc/config.h",
+      "sha256": "f329a403499053a0e0991ffaa2a9bc8a63f251dfffea7411845ed1e975bb08f5",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_touch_enc/halconf.h",
+      "path": "archive/ergohaven/hpd/keymaps/v2_touch_enc/halconf.h",
+      "sha256": "afce065e7a87458c993d89246c0263c47ba4f84d374256d89f614b5e526e426c",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_touch_enc/keymap.c",
+      "path": "archive/ergohaven/hpd/keymaps/v2_touch_enc/keymap.c",
+      "sha256": "7e3110e2f95736dd759c0923c3b1dfb4ff5cd650505584c318c68d5e4ac455dd",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_touch_enc/mcuconf.h",
+      "path": "archive/ergohaven/hpd/keymaps/v2_touch_enc/mcuconf.h",
+      "sha256": "76c2548ed43797d35c4d548bf9f1d4e54300be7fac8904fa3768de50ff412374",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_touch_enc/rules.mk",
+      "path": "archive/ergohaven/hpd/keymaps/v2_touch_enc/rules.mk",
+      "sha256": "8bd9e79b5ef4ef941f78940734c10f42d68cc7273a0e851b33b76ac15245d6cd",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/keymaps/v2_touch_enc/vial.json",
+      "path": "archive/ergohaven/hpd/keymaps/v2_touch_enc/vial.json",
+      "sha256": "dd234c2215cccf52ddc749d4fa9a85833905bfa22b9e5a3203aa0b82742c43cc",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/rev1/config.h",
+      "path": "archive/ergohaven/hpd/rev1/config.h",
+      "sha256": "18370ea8bf9a1e02fc23974bcd5076fc6c04fbe47ff555a9070f46be5c1af8aa"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/rev1/halconf.h",
+      "path": "archive/ergohaven/hpd/rev1/halconf.h",
+      "sha256": "afce065e7a87458c993d89246c0263c47ba4f84d374256d89f614b5e526e426c"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/rev1/keyboard.json",
+      "path": "archive/ergohaven/hpd/rev1/keyboard.json",
+      "sha256": "10efc74809c153ca4bafaf802d0d2448af3f0e758b33f535c475a6f7dbbea6e3"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/rev1/mcuconf.h",
+      "path": "archive/ergohaven/hpd/rev1/mcuconf.h",
+      "sha256": "76c2548ed43797d35c4d548bf9f1d4e54300be7fac8904fa3768de50ff412374"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/rev1/rev1.c",
+      "path": "archive/ergohaven/hpd/rev1/rev1.c",
+      "sha256": "fd851cb9d1be49fe1c96f853664fee9fa168f7288b7697c0507d209270cd9783"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/hpd/rev1/rev1.h",
+      "path": "archive/ergohaven/hpd/rev1/rev1.h",
+      "sha256": "781326759c3b675e9462d93feb5953cd4f1758b5917be69f8b6c7ffc9e38e9f3"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/rev1/rules.mk",
+      "path": "archive/ergohaven/hpd/rev1/rules.mk",
+      "sha256": "c7d6ef1a51484feb86556e01d8653bcf14d467ed0a7208b253b52e85d0f22acd"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/rev2/config.h",
+      "path": "archive/ergohaven/hpd/rev2/config.h",
+      "sha256": "5584e41fd181f0676fe8ad9e52a62e844217dc45bb0d01d6ac9a32a30ef6b860",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/rev2/keyboard.json",
+      "path": "archive/ergohaven/hpd/rev2/keyboard.json",
+      "sha256": "5f10d93d9f7d335b7641569036beb9bd9376e13ff723528db55940dbe72336c8",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/rev2/rev2.c",
+      "path": "archive/ergohaven/hpd/rev2/rev2.c",
+      "sha256": "fec941fe9ef915b652823756f558026fbd2c213af8747a3b3cc64a53f772e829",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/hpd/rev2/rev2.h",
+      "path": "archive/ergohaven/hpd/rev2/rev2.h",
+      "sha256": "781326759c3b675e9462d93feb5953cd4f1758b5917be69f8b6c7ffc9e38e9f3",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/hpd/rev2/rules.mk",
+      "path": "archive/ergohaven/hpd/rev2/rules.mk",
+      "sha256": "1ee32a778e0a144aea541de75d2fb3386c8ecf7425a40b3bb6c50e35338e1e98",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/config.h",
+      "path": "archive/ergohaven/imperial44/config.h",
+      "sha256": "568b631159d199f71e0945a53458deffb65f51f1ff985c3f132c4c3fe8718c50",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/halconf.h",
+      "path": "archive/ergohaven/imperial44/halconf.h",
+      "sha256": "afce065e7a87458c993d89246c0263c47ba4f84d374256d89f614b5e526e426c",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/imperial44.c",
+      "path": "archive/ergohaven/imperial44/imperial44.c",
+      "sha256": "27390aa975572c385d91584acb60ab531256591a1476ad856cf587379f32f754",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/keymaps/default/keymap.c",
+      "path": "archive/ergohaven/imperial44/keymaps/default/keymap.c",
+      "sha256": "90167591670c253c11cd8866d729a1985d663957e2185e042e0f419607d0555c",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/keymaps/default/rules.mk",
+      "path": "archive/ergohaven/imperial44/keymaps/default/rules.mk",
+      "sha256": "6fae51e091c899309e3a0e5f716dd4a415e07a73787bf56993db2f18ddde4d65",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/keymaps/kissetfall/config.h",
+      "path": "archive/ergohaven/imperial44/keymaps/kissetfall/config.h",
+      "sha256": "4e9007998cc05ce2927ed846b30652ef712458dde1cfc208b367d9fea0767c16",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/keymaps/kissetfall/keymap.c",
+      "path": "archive/ergohaven/imperial44/keymaps/kissetfall/keymap.c",
+      "sha256": "d864885b0ca4d0c613a5b6677d38ce850321b1ce6b64c1f6346a0a399d1ade63",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/keymaps/kissetfall/rules.mk",
+      "path": "archive/ergohaven/imperial44/keymaps/kissetfall/rules.mk",
+      "sha256": "dda98f87f5a7239490149d7dbca1cdda7cba1e2db5aa629d1bede959d32dbe6e",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/keymaps/kissetfall/vial.json",
+      "path": "archive/ergohaven/imperial44/keymaps/kissetfall/vial.json",
+      "sha256": "c8ccd70947a466c9fb42a069491a2fd86dc9cb90e6bae61128314d416450bfd7",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/keymaps/v1_v2/config.h",
+      "path": "archive/ergohaven/imperial44/keymaps/v1_v2/config.h",
+      "sha256": "a4c5aaf707380df1aa95ce89e39f24a0ef7c5658672d86f1b6341c2348e72eb5"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/keymaps/v1_v2/keymap.c",
+      "path": "archive/ergohaven/imperial44/keymaps/v1_v2/keymap.c",
+      "sha256": "81197fa37844e615a9d6a4bf368da8d87bbc8eb1b05422a6f59786cc91955f7f"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/keymaps/v1_v2/rules.mk",
+      "path": "archive/ergohaven/imperial44/keymaps/v1_v2/rules.mk",
+      "sha256": "51a4bba23e95b237a5ec92cf456c3099d97b8a809c8f98ca2131d3cbdb3394ab"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/keymaps/v1_v2/vial.json",
+      "path": "archive/ergohaven/imperial44/keymaps/v1_v2/vial.json",
+      "sha256": "1df32c139723e25e47aa0def70f801af968d59388a9f7925989c55f86cf45992"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/keymaps/v3_v4/config.h",
+      "path": "archive/ergohaven/imperial44/keymaps/v3_v4/config.h",
+      "sha256": "3430e0c0ff26afa00a22b6048f977049b10b740579eb490801bda4e37ad099a6",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/keymaps/v3_v4/keymap.c",
+      "path": "archive/ergohaven/imperial44/keymaps/v3_v4/keymap.c",
+      "sha256": "99340f36f74744f5ff42f8d658d599065056e14be5fcdb891af36c7377f58d27",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/keymaps/v3_v4/rules.mk",
+      "path": "archive/ergohaven/imperial44/keymaps/v3_v4/rules.mk",
+      "sha256": "ae50ef67afaaa37d010e15e8324a302ec34757858146e77afcfa33604a168c13",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/keymaps/v3_v4/vial.json",
+      "path": "archive/ergohaven/imperial44/keymaps/v3_v4/vial.json",
+      "sha256": "b146bf72bd362536ef90843f7eb97cd1864d2cafeceae011d3b60deb476fcb63",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/mcuconf.h",
+      "path": "archive/ergohaven/imperial44/mcuconf.h",
+      "sha256": "76c2548ed43797d35c4d548bf9f1d4e54300be7fac8904fa3768de50ff412374",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/oled/ergohaven_dark.c",
+      "path": "archive/ergohaven/imperial44/oled/ergohaven_dark.c",
+      "sha256": "a038fbddc4423f5b83dad655571256f2d26945fe479edff0d0a9b876db02478d",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/readme.md",
+      "path": "archive/ergohaven/imperial44/readme.md",
+      "sha256": "822b33d59a97cacd3b73088ab6391c71269e075e958973d9fac9b79846982871",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/rev1/keyboard.json",
+      "path": "archive/ergohaven/imperial44/rev1/keyboard.json",
+      "sha256": "e2aeebc2e9416fd1f87823e92342a8d148f284842b3b0284db4f37b07cd1b573"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/rev1/rules.mk",
+      "path": "archive/ergohaven/imperial44/rev1/rules.mk",
+      "sha256": "5b60623acb24f4ecd7253719bd397b09210a97517aa2249e55125e827739f17a"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/rev3/keyboard.json",
+      "path": "archive/ergohaven/imperial44/rev3/keyboard.json",
+      "sha256": "2e5cafd9596c402326ec9989a3cadd61595fd8c889709d4668e896d5bfea6de0",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/rev3/rules.mk",
+      "path": "archive/ergohaven/imperial44/rev3/rules.mk",
+      "sha256": "5b60623acb24f4ecd7253719bd397b09210a97517aa2249e55125e827739f17a",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/imperial44/rules.mk",
+      "path": "archive/ergohaven/imperial44/rules.mk",
+      "sha256": "81468e16526c176adebbd8bab4f636850e1b012a25940acd7585690e7c7ed6c7",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k02/config.h",
+      "path": "archive/ergohaven/k02/config.h",
+      "sha256": "7066bb0d9521c7ad304b4166d0cbccecf4e0115e406147a5c1dd4262386d57d8"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k02/game/drawing.c",
+      "path": "archive/ergohaven/k02/game/drawing.c",
+      "sha256": "1ef36d45a168f11a290b5d6f5838adf5ae77237d8f7c324fda47b6701e387375"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k02/game/drawing.h",
+      "path": "archive/ergohaven/k02/game/drawing.h",
+      "sha256": "1c186e68cacb1ea4f9305c51e92dfa5d3eb2cf3a52ca7c197ade2a036e32ebdf"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k02/game/game.c",
+      "path": "archive/ergohaven/k02/game/game.c",
+      "sha256": "4b61999f6ed16ce594c06e322fe92c9b1c594525e73c404c07d8fa822ade58a5"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k02/game/game.h",
+      "path": "archive/ergohaven/k02/game/game.h",
+      "sha256": "8f0be318e47425e159d47e2f144988e12a7e3fb05a14899f4247113d9dacf54c"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k02/game/init.h",
+      "path": "archive/ergohaven/k02/game/init.h",
+      "sha256": "9375dbe06db6c4248232fdf17fdf1766486239a091bf53669101f30f5555fa44"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k02/game/invader.c",
+      "path": "archive/ergohaven/k02/game/invader.c",
+      "sha256": "b7c9d055bf3c11f9b48613afee32a0424be6043fbd4ff57f40cef3750868a7b7"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k02/game/rndgen.c",
+      "path": "archive/ergohaven/k02/game/rndgen.c",
+      "sha256": "e66061ad1b1441b7da776228e836761fc715da743ae8f7b0476ee7ba9a76a306"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k02/game/rndgen.h",
+      "path": "archive/ergohaven/k02/game/rndgen.h",
+      "sha256": "3ffde45f3bdb17312c52f2eb38b6a856192943b59068de18def4cdfce8309f49"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k02/halconf.h",
+      "path": "archive/ergohaven/k02/halconf.h",
+      "sha256": "afce065e7a87458c993d89246c0263c47ba4f84d374256d89f614b5e526e426c"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k02/k02.c",
+      "path": "archive/ergohaven/k02/k02.c",
+      "sha256": "9727bf5bbe9ffebe021494d03f605f12ed5162847e2b9c409e74e0bfd7be93f2"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k02/k02.h",
+      "path": "archive/ergohaven/k02/k02.h",
+      "sha256": "781326759c3b675e9462d93feb5953cd4f1758b5917be69f8b6c7ffc9e38e9f3"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k02/keyboard.json",
+      "path": "archive/ergohaven/k02/keyboard.json",
+      "sha256": "0b2bc76d75bdcbec2495baa9ab356db8d67472c297a60de2d8646b1e619bc1a8"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k02/keymaps/default/font_block.c",
+      "path": "archive/ergohaven/k02/keymaps/default/font_block.c",
+      "sha256": "26d972cbb108904b652382ce6a1e95124b8ebb8a12d131dabdc54e17822c8e52"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k02/keymaps/default/font_block.h",
+      "path": "archive/ergohaven/k02/keymaps/default/font_block.h",
+      "sha256": "a487f696012a5b0c5675f2983003ea2fde8400474e80697097522dbb71ce8b3c"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k02/keymaps/default/keymap.c",
+      "path": "archive/ergohaven/k02/keymaps/default/keymap.c",
+      "sha256": "676c451e4badf3b6433fa18aafc4d4b8bcfaf4baa7ca905fd6110a2ff9ec51cf"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k02/keymaps/default/layers.c",
+      "path": "archive/ergohaven/k02/keymaps/default/layers.c",
+      "sha256": "686f10ac674eb8202b977e490f2f75a442061bd0e652dd7ec20b2b828694ce12"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k02/keymaps/default/rules.mk",
+      "path": "archive/ergohaven/k02/keymaps/default/rules.mk",
+      "sha256": "5ff4f0b985f361d2bb2b3fe5a0709e71b413478c3d707529eab32fd0eb61d209"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k02/keymaps/kissetfall/config.h",
+      "path": "archive/ergohaven/k02/keymaps/kissetfall/config.h",
+      "sha256": "e202dc81eb0b8058bfe99f721dbfe66c4b22bdebeeb6fbc17954820955e37078"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k02/keymaps/kissetfall/font_block.c",
+      "path": "archive/ergohaven/k02/keymaps/kissetfall/font_block.c",
+      "sha256": "26d972cbb108904b652382ce6a1e95124b8ebb8a12d131dabdc54e17822c8e52"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k02/keymaps/kissetfall/font_block.h",
+      "path": "archive/ergohaven/k02/keymaps/kissetfall/font_block.h",
+      "sha256": "a487f696012a5b0c5675f2983003ea2fde8400474e80697097522dbb71ce8b3c"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k02/keymaps/kissetfall/keymap.c",
+      "path": "archive/ergohaven/k02/keymaps/kissetfall/keymap.c",
+      "sha256": "a1e286be5ebb792676df1dc2154abcb67b511c483e02de6e13e2755d61ef2e4b"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k02/keymaps/kissetfall/layers.c",
+      "path": "archive/ergohaven/k02/keymaps/kissetfall/layers.c",
+      "sha256": "686f10ac674eb8202b977e490f2f75a442061bd0e652dd7ec20b2b828694ce12"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k02/keymaps/kissetfall/rules.mk",
+      "path": "archive/ergohaven/k02/keymaps/kissetfall/rules.mk",
+      "sha256": "ba1a8c625757ffb328a70c982e9cf23c01510bd7c7c6e38f641385df5577ca65"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k02/keymaps/kissetfall/vial.json",
+      "path": "archive/ergohaven/k02/keymaps/kissetfall/vial.json",
+      "sha256": "4401301f994ed354f861c7f3e2e8cfc0731481b147c12a4b4aeabfd8e5f6a1cb"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k02/keymaps/v1/config.h",
+      "path": "archive/ergohaven/k02/keymaps/v1/config.h",
+      "sha256": "5914fe280c6ba465524ee684a47a3c2b0528ba836fef8c2927c134a2fbc14107"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k02/keymaps/v1/keymap.c",
+      "path": "archive/ergohaven/k02/keymaps/v1/keymap.c",
+      "sha256": "ba09b5a0a6359f0fbb77cf637ac3f71baad0d379aed983f31ec6fdca2d3e90fa"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k02/keymaps/v1/rules.mk",
+      "path": "archive/ergohaven/k02/keymaps/v1/rules.mk",
+      "sha256": "12fb5c85a656935d9e9b1ee7542c9e18f5b5ba122e4141629aab325d6b78eda6"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k02/keymaps/v1/vial.json",
+      "path": "archive/ergohaven/k02/keymaps/v1/vial.json",
+      "sha256": "da38b7327f20ba18f9a3197230d85632395f7589402f68b9ba0d55bdd5c8aa95"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k02/mcuconf.h",
+      "path": "archive/ergohaven/k02/mcuconf.h",
+      "sha256": "76c2548ed43797d35c4d548bf9f1d4e54300be7fac8904fa3768de50ff412374"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k02/oled/bongocat.c",
+      "path": "archive/ergohaven/k02/oled/bongocat.c",
+      "sha256": "01cc4299cfa37869f273c9e403b671b0e337be7233f3a5b6b01cf59243f245f4"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k02/oled/ergohaven_dark.c",
+      "path": "archive/ergohaven/k02/oled/ergohaven_dark.c",
+      "sha256": "d76f0006be126eed833e7e497f4939cd0398f33ad8c95064e00d1ed7030f329c"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k02/oled/ergohaven_light.c",
+      "path": "archive/ergohaven/k02/oled/ergohaven_light.c",
+      "sha256": "28544f63cd35f5de744b1c1dfc308e314385376762d6643e06520246495736d7"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k02/oled/luna.c",
+      "path": "archive/ergohaven/k02/oled/luna.c",
+      "sha256": "45b706bd5a9fc0c7b2d42954cfafd27b694ac3d4d13ab4267462c2f50496d1d0"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k02/oled/rle.c",
+      "path": "archive/ergohaven/k02/oled/rle.c",
+      "sha256": "b3a62cc6bbe115040de5e5e4926297a2020e6d0efc3c7dac546062412d6c6cda"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k02/rules.mk",
+      "path": "archive/ergohaven/k02/rules.mk",
+      "sha256": "1edeadfc4f4ca8896968dad82dc1a510731cd29308d4a8626df4b99d53ed1a9b"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03/config.h",
+      "path": "archive/ergohaven/k03/config.h",
+      "sha256": "ba729e5cc82a0ede767e496a4c84f990961fdc4963504b67da837a706d81002a",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03/halconf.h",
+      "path": "archive/ergohaven/k03/halconf.h",
+      "sha256": "afce065e7a87458c993d89246c0263c47ba4f84d374256d89f614b5e526e426c",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03/k03.c",
+      "path": "archive/ergohaven/k03/k03.c",
+      "sha256": "acf261efbe441cf01f284d3baded3fb5d1f19d3458b89ffb8b1a3ba88e8d8d99",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03/keymaps/default/keymap.c",
+      "path": "archive/ergohaven/k03/keymaps/default/keymap.c",
+      "sha256": "636ad3fa745610713d5f029a37e1d31779180c993cce30597d763eb926c4902c",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03/keymaps/default/rules.mk",
+      "path": "archive/ergohaven/k03/keymaps/default/rules.mk",
+      "sha256": "6fae51e091c899309e3a0e5f716dd4a415e07a73787bf56993db2f18ddde4d65",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k03/keymaps/kissetfall/config.h",
+      "path": "archive/ergohaven/k03/keymaps/kissetfall/config.h",
+      "sha256": "91439dddbdcc57fb08c2a84b7b3ca57f15d82786d5a6c91228e4ac4fc215c7a8",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03/keymaps/kissetfall/keymap.c",
+      "path": "archive/ergohaven/k03/keymaps/kissetfall/keymap.c",
+      "sha256": "f23214b427c5730daf27ab07ecbc70ba74fe6c49f8b1fef30bae0d04ed2b2912",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03/keymaps/kissetfall/rules.mk",
+      "path": "archive/ergohaven/k03/keymaps/kissetfall/rules.mk",
+      "sha256": "2ff968de959cc2edd131996725b921e6e42cb22c1e5c5f03c8d2a40784e01038",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03/keymaps/kissetfall/vial.json",
+      "path": "archive/ergohaven/k03/keymaps/kissetfall/vial.json",
+      "sha256": "6bded6696d64112711306aba7ec43177dcf6bbc2a00bf1261c2a8f8a5b0a6ed6",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k03/keymaps/v1_v2/config.h",
+      "path": "archive/ergohaven/k03/keymaps/v1_v2/config.h",
+      "sha256": "8d2eec560c78b5383cec4741467649dd4cc1b8fbe498e510afe3e37751a5f922"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03/keymaps/v1_v2/keymap.c",
+      "path": "archive/ergohaven/k03/keymaps/v1_v2/keymap.c",
+      "sha256": "2e0b9fd0ef4caa7ad30ff3a4f803189c6e517b51d72c7728a5242098cf790b08"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03/keymaps/v1_v2/rules.mk",
+      "path": "archive/ergohaven/k03/keymaps/v1_v2/rules.mk",
+      "sha256": "51a4bba23e95b237a5ec92cf456c3099d97b8a809c8f98ca2131d3cbdb3394ab"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03/keymaps/v1_v2/vial.json",
+      "path": "archive/ergohaven/k03/keymaps/v1_v2/vial.json",
+      "sha256": "3e83f91b3fbfe6dd0d7d425afc35647a8a3889bb66a436d3ca38f121530237b1"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k03/keymaps/v3_v4/config.h",
+      "path": "archive/ergohaven/k03/keymaps/v3_v4/config.h",
+      "sha256": "5163c0ff9fc51cd84af86fde9dbda14e53ed8044f4225e231300a9803fe08f77",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03/keymaps/v3_v4/keymap.c",
+      "path": "archive/ergohaven/k03/keymaps/v3_v4/keymap.c",
+      "sha256": "6bdf3a744834e335dc21708e02f9fd2c3170dd0b31b4bd47c05b55bccd4d858b",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03/keymaps/v3_v4/rules.mk",
+      "path": "archive/ergohaven/k03/keymaps/v3_v4/rules.mk",
+      "sha256": "935c56d38a940476f3f340bc402bca1e6c289db9073a41b4ec7841b077a67eb5",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03/keymaps/v3_v4/vial.json",
+      "path": "archive/ergohaven/k03/keymaps/v3_v4/vial.json",
+      "sha256": "192e37059f557513c0634b7542a981917eceaeed60b035b04eef6c638c9774f6",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03/mcuconf.h",
+      "path": "archive/ergohaven/k03/mcuconf.h",
+      "sha256": "76c2548ed43797d35c4d548bf9f1d4e54300be7fac8904fa3768de50ff412374",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k03/oled/ergohaven_dark.c",
+      "path": "archive/ergohaven/k03/oled/ergohaven_dark.c",
+      "sha256": "a955ea1235905075a5c296e057e2e4bcc87b1ba0b28169474269a477e1c17175",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03/rev1/keyboard.json",
+      "path": "archive/ergohaven/k03/rev1/keyboard.json",
+      "sha256": "53e5c36bd4f0bd13cc4a66c0eaf796291ee19452e8694fd24d84515177683dc7"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k03/rev1/rules.mk",
+      "path": "archive/ergohaven/k03/rev1/rules.mk",
+      "sha256": "5b60623acb24f4ecd7253719bd397b09210a97517aa2249e55125e827739f17a"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03/rev3/keyboard.json",
+      "path": "archive/ergohaven/k03/rev3/keyboard.json",
+      "sha256": "26d9aca60630afe170f4615eb1c7fafaf13756f2c52f2f2277e4c1d969efa5d3",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k03/rev3/rules.mk",
+      "path": "archive/ergohaven/k03/rev3/rules.mk",
+      "sha256": "5b60623acb24f4ecd7253719bd397b09210a97517aa2249e55125e827739f17a",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03/rules.mk",
+      "path": "archive/ergohaven/k03/rules.mk",
+      "sha256": "81468e16526c176adebbd8bab4f636850e1b012a25940acd7585690e7c7ed6c7",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k03pro/display.h",
+      "path": "archive/ergohaven/k03pro/display.h",
+      "sha256": "a5e729154dfcf25544e16c74beea645350842ba50ae80d6c98856d57ca5f699a",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k03pro/halconf.h",
+      "path": "archive/ergohaven/k03pro/halconf.h",
+      "sha256": "3a9256efb67096685ab4c4a44453fd23cfd31da4bb59b94c5dbf84e8fe8e129a",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k03pro/k03pro.c",
+      "path": "archive/ergohaven/k03pro/k03pro.c",
+      "sha256": "b1412dea3e89622c653831b5d7d423d9236784c1b36ed8eb06169ad49f6e5ec0",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k03pro/k03pro.h",
+      "path": "archive/ergohaven/k03pro/k03pro.h",
+      "sha256": "1dea561db13d00d86e231f6fbfa7436ef90f66a00abbd7696af9f6e8e083be60",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k03pro/keymaps/v1/config.h",
+      "path": "archive/ergohaven/k03pro/keymaps/v1/config.h",
+      "sha256": "9cbfc5fe5605acaf92d5889dcbf6215d3b26ab076dad7193bde1280c4914ea12"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03pro/keymaps/v1/keymap.c",
+      "path": "archive/ergohaven/k03pro/keymaps/v1/keymap.c",
+      "sha256": "8d9dc6fbe4ba74581c46941ff61068123f08e3aaf2415b5fe2acd0ef1cb4a03e"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03pro/keymaps/v1/rules.mk",
+      "path": "archive/ergohaven/k03pro/keymaps/v1/rules.mk",
+      "sha256": "2ff968de959cc2edd131996725b921e6e42cb22c1e5c5f03c8d2a40784e01038"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03pro/keymaps/v1/vial.json",
+      "path": "archive/ergohaven/k03pro/keymaps/v1/vial.json",
+      "sha256": "d94c370dc931df5fc6fb720a93dff00bf0105846b3a5354277c774d4032b8adb"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k03pro/keymaps/v2_v3/config.h",
+      "path": "archive/ergohaven/k03pro/keymaps/v2_v3/config.h",
+      "sha256": "a02602ba06d5062f6c96069290f5470e0be65e002e79b97a5a11606b9d6337eb",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03pro/keymaps/v2_v3/keymap.c",
+      "path": "archive/ergohaven/k03pro/keymaps/v2_v3/keymap.c",
+      "sha256": "b86ab7179e736669ef97b6e3035081ce91f07d3666d951633a6ddbb8f74a7b45",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03pro/keymaps/v2_v3/rules.mk",
+      "path": "archive/ergohaven/k03pro/keymaps/v2_v3/rules.mk",
+      "sha256": "ae50ef67afaaa37d010e15e8324a302ec34757858146e77afcfa33604a168c13",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03pro/keymaps/v2_v3/vial.json",
+      "path": "archive/ergohaven/k03pro/keymaps/v2_v3/vial.json",
+      "sha256": "2b301799f1fc83fb405015acd0f0ead76474ce21c824cefd0f02a324be3a6923",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k03pro/rev1/43mm/config.h",
+      "path": "archive/ergohaven/k03pro/rev1/43mm/config.h",
+      "sha256": "a9738501598754ea709f27d2e31e09021c56582def780bc3eec0d350afa20f9e"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03pro/rev1/43mm/keyboard.json",
+      "path": "archive/ergohaven/k03pro/rev1/43mm/keyboard.json",
+      "sha256": "52ad392da97cd48b3d8498a459a6dd7e547f77a232b7e7f577ec092426a73206"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k03pro/rev1/43mm/rules.mk",
+      "path": "archive/ergohaven/k03pro/rev1/43mm/rules.mk",
+      "sha256": "5b60623acb24f4ecd7253719bd397b09210a97517aa2249e55125e827739f17a"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k03pro/rev1/65mm/config.h",
+      "path": "archive/ergohaven/k03pro/rev1/65mm/config.h",
+      "sha256": "d4ea0d3ca8c7f52b04141a6a64c8db1c698f4a3a56befe69b2aed312cefa013d"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03pro/rev1/65mm/keyboard.json",
+      "path": "archive/ergohaven/k03pro/rev1/65mm/keyboard.json",
+      "sha256": "8aed0d5ea29c58a29ce1b9b11ce36a4e4a28ab296d76c36ad6f3591371bbdc90"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k03pro/rev1/65mm/rules.mk",
+      "path": "archive/ergohaven/k03pro/rev1/65mm/rules.mk",
+      "sha256": "5b60623acb24f4ecd7253719bd397b09210a97517aa2249e55125e827739f17a"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k03pro/rev1/config.h",
+      "path": "archive/ergohaven/k03pro/rev1/config.h",
+      "sha256": "24c6e4bc06bfde23b918e647747de0202f33ff9e444e4efa6cdd80d78ac8ba5c"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k03pro/rev1/mcuconf.h",
+      "path": "archive/ergohaven/k03pro/rev1/mcuconf.h",
+      "sha256": "0629039bad527972335ae22ab01e0d11220447e8c39782c7fc18c2b78d9be426"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k03pro/rev2/config.h",
+      "path": "archive/ergohaven/k03pro/rev2/config.h",
+      "sha256": "3a956246808c53f821b5475501375ea8dd69852ff7512c41870c0ae38afa85f0",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/k03pro/rev2/keyboard.json",
+      "path": "archive/ergohaven/k03pro/rev2/keyboard.json",
+      "sha256": "5df5f3a62af6e190440846bce0b2920aa963925fb5a0ae2bfcbec6082d124784",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k03pro/rev2/mcuconf.h",
+      "path": "archive/ergohaven/k03pro/rev2/mcuconf.h",
+      "sha256": "2227feb564aebff6a19423c647f5353dd1c2f10a170d433a1c583853ee32e14e",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k03pro/rev2/rules.mk",
+      "path": "archive/ergohaven/k03pro/rev2/rules.mk",
+      "sha256": "5b60623acb24f4ecd7253719bd397b09210a97517aa2249e55125e827739f17a",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/k03pro/rules.mk",
+      "path": "archive/ergohaven/k03pro/rules.mk",
+      "sha256": "df219348bc021e0ccbf68b176f88b3968be82d61d6fe1bb75fbed2565fc691a9",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/macropad/keymaps/v1/config.h",
+      "path": "archive/ergohaven/macropad/keymaps/v1/config.h",
+      "sha256": "1104c4d8fdf53710ff59275d456835fd17f5c455f6926b236971d3ed3fdcf146"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/macropad/keymaps/v1/keymap.c",
+      "path": "archive/ergohaven/macropad/keymaps/v1/keymap.c",
+      "sha256": "8a2c7979af3788ef6c90df0649f46b31b0835b1b768bf70992a0e85e0ccaca9f"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/macropad/keymaps/v1/rules.mk",
+      "path": "archive/ergohaven/macropad/keymaps/v1/rules.mk",
+      "sha256": "0b0a8ca5269c39f9f12546098a88525fbb9cecaf3362c87f3c20805407bc36cc"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/macropad/keymaps/v1/vial.json",
+      "path": "archive/ergohaven/macropad/keymaps/v1/vial.json",
+      "sha256": "1b8dfd5ceeae73e68aa73297dc1401795426622eee1acd96197015cad8d560d6"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/macropad/rev1/config.h",
+      "path": "archive/ergohaven/macropad/rev1/config.h",
+      "sha256": "78c7cd47dde26fa87c0d161fe9d8495543ffd9b55304b3fabc2c219f2f061f87"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/macropad/rev1/halconf.h",
+      "path": "archive/ergohaven/macropad/rev1/halconf.h",
+      "sha256": "ed0e917cfc6c56f83063a2883c24051aebf8eed9c8269158e6a400de04cd5a68"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/macropad/rev1/keyboard.json",
+      "path": "archive/ergohaven/macropad/rev1/keyboard.json",
+      "sha256": "f5f2557ed6a417b392532cc13820ce57fda030f5a56f1804826ef3d52d6dee72"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/macropad/rev1/mcuconf.h",
+      "path": "archive/ergohaven/macropad/rev1/mcuconf.h",
+      "sha256": "76c2548ed43797d35c4d548bf9f1d4e54300be7fac8904fa3768de50ff412374"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/macropad/rev1/rev1.c",
+      "path": "archive/ergohaven/macropad/rev1/rev1.c",
+      "sha256": "2736e4491514eac7b067bd36ec2176e7a06282eb1b5705e1fe2a08c235b1fc36"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/macropad/rev1/rules.mk",
+      "path": "archive/ergohaven/macropad/rev1/rules.mk",
+      "sha256": "b9b38f26a6b8cd83bff080d14f81fe3a3702ddcd5d7c89d5081580108f415849"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/planeta/config.h",
+      "path": "archive/ergohaven/planeta/config.h",
+      "sha256": "1a9b3ffb5173a6c153e59e46c80b2aa740a019b71af257f518af517ffeb191a1"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/planeta/keymaps/default/keymap.c",
+      "path": "archive/ergohaven/planeta/keymaps/default/keymap.c",
+      "sha256": "bc2e704974216a5c404dc189a11b503709cdd82d01dd74b72a5711664185f898"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/planeta/keymaps/kissetfall/config.h",
+      "path": "archive/ergohaven/planeta/keymaps/kissetfall/config.h",
+      "sha256": "7ad4fad2f73bc069b97c176e0d896c9c4259df565644ae3ca52d55efe5088111"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/planeta/keymaps/kissetfall/keymap.c",
+      "path": "archive/ergohaven/planeta/keymaps/kissetfall/keymap.c",
+      "sha256": "9af93642652144bf730c661b0cc2b5b8fa0f1081e9906b5a430a22b1dbda0aaa"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/planeta/keymaps/kissetfall/rules.mk",
+      "path": "archive/ergohaven/planeta/keymaps/kissetfall/rules.mk",
+      "sha256": "2ff968de959cc2edd131996725b921e6e42cb22c1e5c5f03c8d2a40784e01038"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/planeta/keymaps/kissetfall/vial.json",
+      "path": "archive/ergohaven/planeta/keymaps/kissetfall/vial.json",
+      "sha256": "3da0808106115d4abdac048712be6ebfdb73d2d44f6c0db7c7cadfebed6810ee"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/planeta/keymaps/v1/config.h",
+      "path": "archive/ergohaven/planeta/keymaps/v1/config.h",
+      "sha256": "944736b99cf3232f7b09ae26c1b95a494a8c5329b7af0909149bca0af1a02065"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/planeta/keymaps/v1/keymap.c",
+      "path": "archive/ergohaven/planeta/keymaps/v1/keymap.c",
+      "sha256": "98b0a175743d988b58dd045b9a097f581d9b03669479d565c39f036ed9935517"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/planeta/keymaps/v1/rules.mk",
+      "path": "archive/ergohaven/planeta/keymaps/v1/rules.mk",
+      "sha256": "2ff968de959cc2edd131996725b921e6e42cb22c1e5c5f03c8d2a40784e01038"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/planeta/keymaps/v1/vial.json",
+      "path": "archive/ergohaven/planeta/keymaps/v1/vial.json",
+      "sha256": "6857558961cd694d6218647477b5c76a8c78ec4e751deb2ae237b98da3bb1968"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/planeta/keymaps/v2/config.h",
+      "path": "archive/ergohaven/planeta/keymaps/v2/config.h",
+      "sha256": "944736b99cf3232f7b09ae26c1b95a494a8c5329b7af0909149bca0af1a02065"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/planeta/keymaps/v2/keymap.c",
+      "path": "archive/ergohaven/planeta/keymaps/v2/keymap.c",
+      "sha256": "242ecffccb913df6099f755508b7f76ccbf3fb1dfd0208a546bd6492fc195df6"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/planeta/keymaps/v2/rules.mk",
+      "path": "archive/ergohaven/planeta/keymaps/v2/rules.mk",
+      "sha256": "2ff968de959cc2edd131996725b921e6e42cb22c1e5c5f03c8d2a40784e01038"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/planeta/keymaps/v2/vial.json",
+      "path": "archive/ergohaven/planeta/keymaps/v2/vial.json",
+      "sha256": "1e96d1c77bfe1f6d242e2e4bdf6f7b68c1861e482be8d60eb56307405b9a881d"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/planeta/rev1/config.h",
+      "path": "archive/ergohaven/planeta/rev1/config.h",
+      "sha256": "a3d16b2199dddbb35b4a464c191a690db4d8db00509b4745e36aa1dc497fecd9"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/planeta/rev1/halconf.h",
+      "path": "archive/ergohaven/planeta/rev1/halconf.h",
+      "sha256": "d7296a8a83fb9e44eebf31f03a6206d616c4cf7b8e3a96c5b9cf6f195401f0d3"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/planeta/rev1/keyboard.json",
+      "path": "archive/ergohaven/planeta/rev1/keyboard.json",
+      "sha256": "01ee976dc874b363514a99e0bf41a89347ca96f4758caab1f1f94a3ebcf55582"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/planeta/rev1/mcuconf.h",
+      "path": "archive/ergohaven/planeta/rev1/mcuconf.h",
+      "sha256": "207eeb65dc6d5b981d6e0abf9832fa5a4fa7b4aed3f4831af452a55d773f2ed6"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/planeta/rev1/rev1.c",
+      "path": "archive/ergohaven/planeta/rev1/rev1.c",
+      "sha256": "88ad7f3d67e9cc8c8becef42fa2570df38a1bda81f9860a9f2ffdcff117972c7"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/planeta/rev1/rules.mk",
+      "path": "archive/ergohaven/planeta/rev1/rules.mk",
+      "sha256": "c511c3c91bf7a1f4975858c9e5d74a3fabf390a999afb0b4557425d3a1a747ad"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/planeta/rev2/config.h",
+      "path": "archive/ergohaven/planeta/rev2/config.h",
+      "sha256": "f8ff91b25d6a5e1cf5bfb49bb99a6c5c1901909a58a96eea0f0139523effa874"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/planeta/rev2/display.h",
+      "path": "archive/ergohaven/planeta/rev2/display.h",
+      "sha256": "a5e729154dfcf25544e16c74beea645350842ba50ae80d6c98856d57ca5f699a"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/planeta/rev2/halconf.h",
+      "path": "archive/ergohaven/planeta/rev2/halconf.h",
+      "sha256": "316ed464365a66c3e33675339af9f3062df65523236641d70f74006efd200caa"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/planeta/rev2/keyboard.json",
+      "path": "archive/ergohaven/planeta/rev2/keyboard.json",
+      "sha256": "db6504d0571bd5046788feefb87c1d031723feb001143632232cc61305cf1352"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/planeta/rev2/mcuconf.h",
+      "path": "archive/ergohaven/planeta/rev2/mcuconf.h",
+      "sha256": "953de3586ee09f5488945e9970373c8cd1b4522a4c6b17f7a2e1bc797fe3c12d"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/planeta/rev2/rev2.c",
+      "path": "archive/ergohaven/planeta/rev2/rev2.c",
+      "sha256": "923df07441ab296b0ad3b6abbdb252df889f876160cd4f0e3d57bb4b8d03d20b"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/planeta/rev2/rules.mk",
+      "path": "archive/ergohaven/planeta/rev2/rules.mk",
+      "sha256": "952820e9858293cc82935cee75b3630adde76109b477f1be3872456cbe7d50d3"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/planeta/rules.mk",
+      "path": "archive/ergohaven/planeta/rules.mk",
+      "sha256": "ccbbd4d7385ebf67c3d6f26240c9a485598cbf7505b1e05b40839f7ff34705ee"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/remnant/config.h",
+      "path": "archive/ergohaven/remnant/config.h",
+      "sha256": "c6eb86e0454d3e6e759a0adf1aedea5cec7ef55882adf43a2edc2632b27b06e9"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/remnant/keyboard.json",
+      "path": "archive/ergohaven/remnant/keyboard.json",
+      "sha256": "e6eb9ff46b6d66d7df1b281278df34221fab520266492e9745db2fba0ab0e989"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/remnant/keymaps/default/keymap.c",
+      "path": "archive/ergohaven/remnant/keymaps/default/keymap.c",
+      "sha256": "4a22a5b7277767b420f2bbb8de9c0e896e6b2d5495614ebac99a24404c1a10b1"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/remnant/keymaps/kissetfall/config.h",
+      "path": "archive/ergohaven/remnant/keymaps/kissetfall/config.h",
+      "sha256": "383cec11d950c4986df46bbbf01f1c51c1c3cec086714620c822eabc9bf20598"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/remnant/keymaps/kissetfall/keymap.c",
+      "path": "archive/ergohaven/remnant/keymaps/kissetfall/keymap.c",
+      "sha256": "0f8843e466ad38b27d8e03caf0d135fcee4b784775d94a61c6392f9b7de18091"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/remnant/keymaps/kissetfall/rules.mk",
+      "path": "archive/ergohaven/remnant/keymaps/kissetfall/rules.mk",
+      "sha256": "94f77c7e8a6714ab0f68c5134d594d5d07a7ab83bda84c07bd1aaf939fe3d2d7"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/remnant/keymaps/kissetfall/vial.json",
+      "path": "archive/ergohaven/remnant/keymaps/kissetfall/vial.json",
+      "sha256": "dee0d3e3aacdd4c2fb4a0bd4537b19dccd9cb629aa6dbd3b41c20f4bb50f4db3"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/remnant/keymaps/v1/config.h",
+      "path": "archive/ergohaven/remnant/keymaps/v1/config.h",
+      "sha256": "713eeae4c8eb9d58fe3101a40f5df9c60e322e4da2e0c9c1f5f3274ff8b8e6c5"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/remnant/keymaps/v1/keymap.c",
+      "path": "archive/ergohaven/remnant/keymaps/v1/keymap.c",
+      "sha256": "e02a89bc1b2dcbbc47f304b2e7e72b40f42c628a619cc1c94dd875a88cd1ca61"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/remnant/keymaps/v1/rules.mk",
+      "path": "archive/ergohaven/remnant/keymaps/v1/rules.mk",
+      "sha256": "2ff968de959cc2edd131996725b921e6e42cb22c1e5c5f03c8d2a40784e01038"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/remnant/keymaps/v1/vial.json",
+      "path": "archive/ergohaven/remnant/keymaps/v1/vial.json",
+      "sha256": "ac1cf0473d9482e55348d0b2ac4c508d92ae1886087aa9250da9d60fcc666155"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/remnant/remnant.c",
+      "path": "archive/ergohaven/remnant/remnant.c",
+      "sha256": "41fae7b4e3e9e10720bebb39cb0499dedbb9b43938d23ad08a3c63dc04414420"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/remnant/remnant.h",
+      "path": "archive/ergohaven/remnant/remnant.h",
+      "sha256": "298fd9112e89fcda43a8c6257ac261f13a8a0a02117dc9272136d59cf8d0516a"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/remnant/rules.mk",
+      "path": "archive/ergohaven/remnant/rules.mk",
+      "sha256": "4348dcf87d7fd3b1a1378f5fe60b130e486b99bfefaff1b86ee8e5dc539c2a20"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/sm30/anim.c",
+      "path": "archive/ergohaven/sm30/anim.c",
+      "sha256": "d8a692c7ddcd3091668260f9843010eb508b0cc2e803b17cdd47f4cce98fbefa",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/sm30/config.h",
+      "path": "archive/ergohaven/sm30/config.h",
+      "sha256": "efe34e70e2e6aeccaaa23bc7bc5cbad6179bc7af37bfb1714eea92c6e3913250",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/sm30/display.h",
+      "path": "archive/ergohaven/sm30/display.h",
+      "sha256": "a5e729154dfcf25544e16c74beea645350842ba50ae80d6c98856d57ca5f699a",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/sm30/display_modes.c",
+      "path": "archive/ergohaven/sm30/display_modes.c",
+      "sha256": "3ce26f73f645d35c86121dd59d6cfa610375ed486f71276de5f5d912df1cbc4a",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/sm30/halconf.h",
+      "path": "archive/ergohaven/sm30/halconf.h",
+      "sha256": "316ed464365a66c3e33675339af9f3062df65523236641d70f74006efd200caa",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/sm30/keyboard.json",
+      "path": "archive/ergohaven/sm30/keyboard.json",
+      "sha256": "1b7695804d280a96589bba95c5e5b0fed57e6bcfe767978ad9a36d27bc4deea0",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/sm30/keymaps/v1/config.h",
+      "path": "archive/ergohaven/sm30/keymaps/v1/config.h",
+      "sha256": "754bca3d26baa6d7acd87a9f5f92725667dffa3770e55fadfd983ee4e4ee0234",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/sm30/keymaps/v1/keymap.c",
+      "path": "archive/ergohaven/sm30/keymaps/v1/keymap.c",
+      "sha256": "fdddc6a938e02b1d1e065cda2dbe496fab5700b5d357a310c1f8f46209e9abac",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/sm30/keymaps/v1/rules.mk",
+      "path": "archive/ergohaven/sm30/keymaps/v1/rules.mk",
+      "sha256": "504f99579d4c6e593db0e917f5e2c87e663cf56cb2a3996e8d7e8975ff0a4861",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/sm30/keymaps/v1/vial.json",
+      "path": "archive/ergohaven/sm30/keymaps/v1/vial.json",
+      "sha256": "4b11fa88ae7809abf939d468c9d2af745dc83087c06b7522086a7e1ee545dc59",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/sm30/mcuconf.h",
+      "path": "archive/ergohaven/sm30/mcuconf.h",
+      "sha256": "a3aea87dd00aa249d4b61c1ead97a462864541e6885a1918eb616c8fd8298a1e",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/sm30/rules.mk",
+      "path": "archive/ergohaven/sm30/rules.mk",
+      "sha256": "dc5556d2a5de399e8ffc2720f4bbdd6dc8aeee915295868fb42dfc0cefe6189a",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/sm30/screen_anim.c",
+      "path": "archive/ergohaven/sm30/screen_anim.c",
+      "sha256": "b9e2c1a56131c78d3145fa61b12ba1a217acc3a61ead561ff8f92898d5bcd317",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/sm30/screen_layout.c",
+      "path": "archive/ergohaven/sm30/screen_layout.c",
+      "sha256": "5f1abab64a1c2be26c2e4285978b38b1a005956f93804b1f25f3fd8c34d0ba11",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/sm30/sm30.c",
+      "path": "archive/ergohaven/sm30/sm30.c",
+      "sha256": "7852d62e9ebbe1b2d1c11ca0a9a50155874bc291008efb4d144af20633812adf",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/src/json/settings_hpd_touchpad_select.json",
+      "path": "archive/ergohaven/src/json/settings_hpd_touchpad_select.json",
+      "sha256": "453b85803ab4fe973a3eb2e3417fa259c5e0b0bfb044c71ed8a6f01cb8567e31",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/src/json/settings_hpd_trackball_select.json",
+      "path": "archive/ergohaven/src/json/settings_hpd_trackball_select.json",
+      "sha256": "67cf2028bfbd8fa5b23e869ba137485ebcb1febfc792c7ea9fb7bc0b098a2eeb",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/config.h",
+      "path": "archive/ergohaven/trackball/config.h",
+      "sha256": "96b360b7aa5725a178425aa567c40b9242e64abf2f76628830146af80a2f8e33",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/halconf.h",
+      "path": "archive/ergohaven/trackball/halconf.h",
+      "sha256": "550f12a7a205b9bbce0c9408005c279ef7b970affebaef12cd151de4fc1c9c0f",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/keyboard.json",
+      "path": "archive/ergohaven/trackball/keyboard.json",
+      "sha256": "4770ef39453cd948cd8bb00db3970c5f1ad8ca18857c1fb7c7aa7f0b3540687e",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/keymaps/default/keymap.c",
+      "path": "archive/ergohaven/trackball/keymaps/default/keymap.c",
+      "sha256": "eb146964c3bd308c7e155d860cd47d880070cbae4c8f74986f8d71ad1ff213c2",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/keymaps/default/rules.mk",
+      "path": "archive/ergohaven/trackball/keymaps/default/rules.mk",
+      "sha256": "78104126928e79635abef2ab3c6138d9ca704a401564e98212cafd8b02fa30f8",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/keymaps/v1/config.h",
+      "path": "archive/ergohaven/trackball/keymaps/v1/config.h",
+      "sha256": "71033c000645efe7cf5c4059898a02665aa188fd405166eaf92fa48b1e92d7da",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/keymaps/v1/keymap.c",
+      "path": "archive/ergohaven/trackball/keymaps/v1/keymap.c",
+      "sha256": "4dafb28b568103059a04eb6a1ef00c38b44ade625392ab7f4c0bea7c79aa38de",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/keymaps/v1/rules.mk",
+      "path": "archive/ergohaven/trackball/keymaps/v1/rules.mk",
+      "sha256": "56cd3ee358b3b03e39b494de7d3a7f46712b60cc4678db31e65fb869fb98fa0e",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/keymaps/v1/vial.json",
+      "path": "archive/ergohaven/trackball/keymaps/v1/vial.json",
+      "sha256": "f31c357fd9bc1671c1f54bc2678007b214c9b81c34a7c53665195711f64a1b77",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/keymaps/v2/config.h",
+      "path": "archive/ergohaven/trackball/keymaps/v2/config.h",
+      "sha256": "587c84f906ed2be9ee9b67efb60377a9a7f82e9e30691d78696444e2eed987f2",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/keymaps/v2/keymap.c",
+      "path": "archive/ergohaven/trackball/keymaps/v2/keymap.c",
+      "sha256": "c5ec6fec866e146089f584cf88fb93e2ffe8f578087c8760d348678eacca3568",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/keymaps/v2/rules.mk",
+      "path": "archive/ergohaven/trackball/keymaps/v2/rules.mk",
+      "sha256": "113399e08cce16247dfa4bb0577f67491f230ae1469f009026f5254bff9dcffb",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/keymaps/v2/vial.json",
+      "path": "archive/ergohaven/trackball/keymaps/v2/vial.json",
+      "sha256": "39d7b4713bfa079090064b207ea7b59b22059ac52c1bf22d0243b44b625355f8",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/mcuconf.h",
+      "path": "archive/ergohaven/trackball/mcuconf.h",
+      "sha256": "d32321506f6a7a876f2243af487e2d9984139165db739bb713b3466a24a2d896",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/readme.md",
+      "path": "archive/ergohaven/trackball/readme.md",
+      "sha256": "6f96f574696275f30e592c4533aa02e28d954a59c04ac57444b0cdbcf173ba86",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/rules.mk",
+      "path": "archive/ergohaven/trackball/rules.mk",
+      "sha256": "4347502025a4081c08adea128de21246bef94e84ae41497f9b4e7831b9cb2764",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/trackball/trackball.c",
+      "path": "archive/ergohaven/trackball/trackball.c",
+      "sha256": "842755440180128b765c298d4102ce8dfe4edc2d4755e72f8d1a53f229c07491",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/velvet/config.h",
+      "path": "archive/ergohaven/velvet/config.h",
+      "sha256": "aaaf3d47ad7126e0f6813c7406f841243d4a2b9e7ac3e750fb2daf8d2ae5c968",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/keymaps/default/keymap.c",
+      "path": "archive/ergohaven/velvet/keymaps/default/keymap.c",
+      "sha256": "5a63a3038bc8b811fa3182a5782341d4d2636be00ce59fc3a90a2fcb26468c84",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/velvet/keymaps/v1/config.h",
+      "path": "archive/ergohaven/velvet/keymaps/v1/config.h",
+      "sha256": "e861663eb8022163f1ce61ca0d3a3af4bd5838d44ce804ecee0fb0e8cae93fcf"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/keymaps/v1/keymap.c",
+      "path": "archive/ergohaven/velvet/keymaps/v1/keymap.c",
+      "sha256": "4a0e92a254856b4eec03b0dab4ab249b055a0188366a0855890a0a41ac0703af"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/keymaps/v1/rules.mk",
+      "path": "archive/ergohaven/velvet/keymaps/v1/rules.mk",
+      "sha256": "2ff968de959cc2edd131996725b921e6e42cb22c1e5c5f03c8d2a40784e01038"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/keymaps/v1/vial.json",
+      "path": "archive/ergohaven/velvet/keymaps/v1/vial.json",
+      "sha256": "62fba5b877feb5604ddf4ac7dbe24f4db89859b0711df5c4ccafdddfbcc7c42d"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/velvet/keymaps/v2/config.h",
+      "path": "archive/ergohaven/velvet/keymaps/v2/config.h",
+      "sha256": "c97dfd42d60b5fd22e7c28a77679ed20efebeb74e71804a8f4a47d1ba79e8c9e",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/keymaps/v2/keymap.c",
+      "path": "archive/ergohaven/velvet/keymaps/v2/keymap.c",
+      "sha256": "b50df1dd380d7d9c582d8a37496c582eb1200d6ed8b5a7b5f05e7ffaf1ab4012",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/keymaps/v2/rules.mk",
+      "path": "archive/ergohaven/velvet/keymaps/v2/rules.mk",
+      "sha256": "2ff968de959cc2edd131996725b921e6e42cb22c1e5c5f03c8d2a40784e01038",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/keymaps/v2/vial.json",
+      "path": "archive/ergohaven/velvet/keymaps/v2/vial.json",
+      "sha256": "30963bb036bff89566f33409422fb6738098080b08d47ca7fbbfbaecb45bb0a1",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/velvet/keymaps/v3/config.h",
+      "path": "archive/ergohaven/velvet/keymaps/v3/config.h",
+      "sha256": "71d21f3b3c89c2e10f0b00f5c9b341861695fddba28d1e5ca49690ac13ecccc2",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/keymaps/v3/keymap.c",
+      "path": "archive/ergohaven/velvet/keymaps/v3/keymap.c",
+      "sha256": "3a081a2661289e2efadb77e1d631dfdfc6430126f7229168a50958c60d7e4bd7",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/keymaps/v3/rules.mk",
+      "path": "archive/ergohaven/velvet/keymaps/v3/rules.mk",
+      "sha256": "a92262c24b24b555592bbf6b863fd202c4c4b511f06de50ef1f9c376d564aa09",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/keymaps/v3/vial.json",
+      "path": "archive/ergohaven/velvet/keymaps/v3/vial.json",
+      "sha256": "9704e250632fef4a27fd0a764a97921e6be1c39e3087d12c47c40255696f13ce",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/rev1/config.h",
+      "path": "archive/ergohaven/velvet/rev1/config.h",
+      "sha256": "ad00e56c231dd5f366f72722619d9424c18b7c36740f3ad1bca69e05d0ed2395"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/rev1/keyboard.json",
+      "path": "archive/ergohaven/velvet/rev1/keyboard.json",
+      "sha256": "d46d47de5e779c1d58c1319809fe4058be395375d62ec96f67becfe2e42ad30e"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/velvet/rev1/rev1.c",
+      "path": "archive/ergohaven/velvet/rev1/rev1.c",
+      "sha256": "3ad2ffd5621f33e82fa5122f2645272edb6d770720b8cc55b947a417b02cb72a"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/rev1/rules.mk",
+      "path": "archive/ergohaven/velvet/rev1/rules.mk",
+      "sha256": "68b73bd24e4663722aaeaffce1dc7ad536bd59bc9948954dee3e468a73270e6e"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/rev2/config.h",
+      "path": "archive/ergohaven/velvet/rev2/config.h",
+      "sha256": "1f9f0c0015c7761085b6ae6191203a1b96b2d49e7da00e3a19dccdb3ceb57a06",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/rev2/halconf.h",
+      "path": "archive/ergohaven/velvet/rev2/halconf.h",
+      "sha256": "afce065e7a87458c993d89246c0263c47ba4f84d374256d89f614b5e526e426c",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/rev2/keyboard.json",
+      "path": "archive/ergohaven/velvet/rev2/keyboard.json",
+      "sha256": "eaf03df1f27b6b1696e674c196231dcde58544e7a2353d11d56e94612fa62cbd",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/rev2/mcuconf.h",
+      "path": "archive/ergohaven/velvet/rev2/mcuconf.h",
+      "sha256": "ad1bd8b8524dc086d2f7f82e5c919dea0969e7f52a98fd5659a154e48c529171",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/velvet/rev2/rev2.c",
+      "path": "archive/ergohaven/velvet/rev2/rev2.c",
+      "sha256": "f4b1390cc9bdf2b69fce3373c43e894f45adbb45e88f7b2e2d8e0e5d3409bfca",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/velvet/rev2/rev2.h",
+      "path": "archive/ergohaven/velvet/rev2/rev2.h",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/rev2/rules.mk",
+      "path": "archive/ergohaven/velvet/rev2/rules.mk",
+      "sha256": "68b73bd24e4663722aaeaffce1dc7ad536bd59bc9948954dee3e468a73270e6e",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/rev3/config.h",
+      "path": "archive/ergohaven/velvet/rev3/config.h",
+      "sha256": "1f9f0c0015c7761085b6ae6191203a1b96b2d49e7da00e3a19dccdb3ceb57a06",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/rev3/halconf.h",
+      "path": "archive/ergohaven/velvet/rev3/halconf.h",
+      "sha256": "afce065e7a87458c993d89246c0263c47ba4f84d374256d89f614b5e526e426c",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/rev3/keyboard.json",
+      "path": "archive/ergohaven/velvet/rev3/keyboard.json",
+      "sha256": "f28fcb252ee5704e62157a8c63d1f4b614ec22be498a36dc241bf1d73ad6a337",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/rev3/mcuconf.h",
+      "path": "archive/ergohaven/velvet/rev3/mcuconf.h",
+      "sha256": "ad1bd8b8524dc086d2f7f82e5c919dea0969e7f52a98fd5659a154e48c529171",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/velvet/rev3/rev3.c",
+      "path": "archive/ergohaven/velvet/rev3/rev3.c",
+      "sha256": "71c6e9bb9d337afb87b571a46eb48edb1f6543a3da7638fe7536d5fb181ea3a2",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100644",
+      "original_path": "keyboards/ergohaven/velvet/rev3/rev3.h",
+      "path": "archive/ergohaven/velvet/rev3/rev3.h",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/rev3/rules.mk",
+      "path": "archive/ergohaven/velvet/rev3/rules.mk",
+      "sha256": "68b73bd24e4663722aaeaffce1dc7ad536bd59bc9948954dee3e468a73270e6e",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "mode": "100755",
+      "original_path": "keyboards/ergohaven/velvet/rules.mk",
+      "path": "archive/ergohaven/velvet/rules.mk",
+      "sha256": "93173c72e1582385ecd8ee3db3879a34185320b5900bb4135e060bad34ca0735",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    }
+  ],
+  "schema": 1,
+  "snapshot_commit": "8bd528239a8ae1bc0747af53a6f0ba5a32f63fbc",
+  "source_snapshots": [
+    {
+      "base_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "id": "hpd-v2-20261125",
+      "mode": "100644",
+      "path": "archive/ergohaven/hpd/source-snapshots/1abe7b2ef89b.patch",
+      "sha256": "1abe7b2ef89b9962a6d60e6365df8ca96a443179764e8aa4bad49021d81eb523"
+    },
+    {
+      "base_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "id": "velvet-20261125",
+      "mode": "100644",
+      "path": "archive/ergohaven/velvet/source-snapshots/143113588dee.patch",
+      "sha256": "143113588deea9dad1f43c92399d2e75adb7ae94ad86d198f06c6f9a98b5c4f4"
+    },
+    {
+      "base_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "id": "k03-imperial44-20261125",
+      "mode": "100644",
+      "path": "archive/ergohaven/k03/source-snapshots/3ed963c6b77d.patch",
+      "sha256": "3ed963c6b77d0e9fd0eb8d776b25d93d6a05eb50ad7956240b5294072b7535dd"
+    }
+  ],
+  "targets": [
+    {
+      "definition": "archive/ergohaven/hpd/keymaps/v1/vial.json",
+      "keyboard": "ergohaven/hpd/rev1",
+      "keymap": "v1"
+    },
+    {
+      "definition": "archive/ergohaven/hpd/keymaps/kissetfall/vial.json",
+      "keyboard": "ergohaven/hpd/rev2",
+      "keymap": "kissetfall",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "definition": "archive/ergohaven/hpd/keymaps/v2/vial.json",
+      "keyboard": "ergohaven/hpd/rev2",
+      "keymap": "v2",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "definition": "archive/ergohaven/hpd/keymaps/v2_ball_enc/vial.json",
+      "keyboard": "ergohaven/hpd/rev2",
+      "keymap": "v2_ball_enc",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "definition": "archive/ergohaven/hpd/keymaps/v2_enc_ball/vial.json",
+      "keyboard": "ergohaven/hpd/rev2",
+      "keymap": "v2_enc_ball",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "definition": "archive/ergohaven/hpd/keymaps/v2_enc_enc/vial.json",
+      "keyboard": "ergohaven/hpd/rev2",
+      "keymap": "v2_enc_enc",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "definition": "archive/ergohaven/hpd/keymaps/v2_enc_joy/vial.json",
+      "keyboard": "ergohaven/hpd/rev2",
+      "keymap": "v2_enc_joy",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "definition": "archive/ergohaven/hpd/keymaps/v2_enc_touch/vial.json",
+      "keyboard": "ergohaven/hpd/rev2",
+      "keymap": "v2_enc_touch",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "definition": "archive/ergohaven/hpd/keymaps/v2_lcd_ball/vial.json",
+      "keyboard": "ergohaven/hpd/rev2",
+      "keymap": "v2_lcd_ball",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "definition": "archive/ergohaven/hpd/keymaps/v2_touch_enc/vial.json",
+      "keyboard": "ergohaven/hpd/rev2",
+      "keymap": "v2_touch_enc",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "hpd-v2-20261125"
+    },
+    {
+      "definition": "archive/ergohaven/imperial44/keymaps/v1_v2/vial.json",
+      "keyboard": "ergohaven/imperial44/rev1",
+      "keymap": "v1_v2"
+    },
+    {
+      "definition": "archive/ergohaven/imperial44/keymaps/kissetfall/vial.json",
+      "keyboard": "ergohaven/imperial44/rev3",
+      "keymap": "kissetfall",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "definition": "archive/ergohaven/imperial44/keymaps/v3_v4/vial.json",
+      "keyboard": "ergohaven/imperial44/rev3",
+      "keymap": "v3_v4",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "definition": "archive/ergohaven/k02/keymaps/v1/vial.json",
+      "keyboard": "ergohaven/k02",
+      "keymap": "v1"
+    },
+    {
+      "definition": "archive/ergohaven/k03/keymaps/v1_v2/vial.json",
+      "keyboard": "ergohaven/k03/rev1",
+      "keymap": "v1_v2"
+    },
+    {
+      "definition": "archive/ergohaven/k03/keymaps/kissetfall/vial.json",
+      "keyboard": "ergohaven/k03/rev3",
+      "keymap": "kissetfall",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "definition": "archive/ergohaven/k03/keymaps/v3_v4/vial.json",
+      "keyboard": "ergohaven/k03/rev3",
+      "keymap": "v3_v4",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "k03-imperial44-20261125"
+    },
+    {
+      "definition": "archive/ergohaven/k03pro/keymaps/v1/vial.json",
+      "keyboard": "ergohaven/k03pro/rev1/43mm",
+      "keymap": "v1"
+    },
+    {
+      "definition": "archive/ergohaven/k03pro/keymaps/v1/vial.json",
+      "keyboard": "ergohaven/k03pro/rev1/65mm",
+      "keymap": "v1"
+    },
+    {
+      "definition": "archive/ergohaven/k03pro/keymaps/v2_v3/vial.json",
+      "keyboard": "ergohaven/k03pro/rev2",
+      "keymap": "v2_v3",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "definition": "archive/ergohaven/macropad/keymaps/v1/vial.json",
+      "keyboard": "ergohaven/macropad/rev1",
+      "keymap": "v1"
+    },
+    {
+      "definition": "archive/ergohaven/planeta/keymaps/v1/vial.json",
+      "keyboard": "ergohaven/planeta/rev1",
+      "keymap": "v1"
+    },
+    {
+      "definition": "archive/ergohaven/planeta/keymaps/v2/vial.json",
+      "keyboard": "ergohaven/planeta/rev2",
+      "keymap": "v2"
+    },
+    {
+      "definition": "archive/ergohaven/remnant/keymaps/v1/vial.json",
+      "keyboard": "ergohaven/remnant",
+      "keymap": "v1"
+    },
+    {
+      "definition": "archive/ergohaven/sm30/keymaps/v1/vial.json",
+      "keyboard": "ergohaven/sm30",
+      "keymap": "v1",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba"
+    },
+    {
+      "definition": "archive/ergohaven/trackball/keymaps/v1/vial.json",
+      "keyboard": "ergohaven/trackball",
+      "keymap": "v1",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "definition": "archive/ergohaven/trackball/keymaps/v2/vial.json",
+      "keyboard": "ergohaven/trackball",
+      "keymap": "v2",
+      "snapshot_commit": "65e965c27694a3f15c1e7bf7574f39865ca45893"
+    },
+    {
+      "definition": "archive/ergohaven/velvet/keymaps/v1/vial.json",
+      "keyboard": "ergohaven/velvet/rev1",
+      "keymap": "v1"
+    },
+    {
+      "definition": "archive/ergohaven/velvet/keymaps/v2/vial.json",
+      "keyboard": "ergohaven/velvet/rev2",
+      "keymap": "v2",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    },
+    {
+      "definition": "archive/ergohaven/velvet/keymaps/v3/vial.json",
+      "keyboard": "ergohaven/velvet/rev3",
+      "keymap": "v3",
+      "snapshot_commit": "7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba",
+      "source_snapshot": "velvet-20261125"
+    }
+  ]
+}

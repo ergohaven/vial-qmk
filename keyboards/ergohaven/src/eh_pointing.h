@@ -73,7 +73,9 @@ typedef struct {
     uint8_t invert_text_h[SPLIT_POINTING_SIDE_COUNT];
 #    endif
     uint8_t auto_mouse_timeout_idx;
+    // Low nibble: interval index; bits 4..6: encoder steps minus one.
     uint8_t encoder_interval_idx[SPLIT_POINTING_SIDE_COUNT];
+    // Bit 0: gestures; left bits 1..7: threshold minus one; right bit 1: no key reset.
     uint8_t touch_gestures[SPLIT_POINTING_SIDE_COUNT];
 #endif
 } kb_settings_split_pointing_t;
@@ -117,6 +119,13 @@ uint8_t get_sniper_sens(void);
 void    set_text_sens(uint8_t sens);
 uint8_t get_text_sens(void);
 
+#ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
+uint8_t get_hpd_auto_mouse_threshold(void);
+void    set_hpd_auto_mouse_threshold(uint8_t threshold);
+bool    get_hpd_auto_mouse_off_on_key(void);
+void    set_hpd_auto_mouse_off_on_key(bool enabled);
+#endif
+
 void set_invert_scroll(bool invert);
 bool get_invert_scroll(void);
 void set_invert_scroll_h(bool invert);
@@ -142,6 +151,10 @@ uint8_t get_split_pointing_auto_mouse_layer(void);
 void    set_split_pointing_auto_mouse_layer(uint8_t layer);
 uint8_t get_split_pointing_auto_mouse_timeout_idx(void);
 void    set_split_pointing_auto_mouse_timeout_idx(uint8_t idx);
+
+// Settings-editor category only; module hardware remains automatically detected.
+uint8_t get_split_pointing_side_settings_module(split_pointing_side_t side);
+void    set_split_pointing_side_settings_module(split_pointing_side_t side, uint8_t module);
 void    set_pointing_auto_mouse_override(bool enabled, bool active);
 
 void          set_orientation(orientation_t orientation);
@@ -197,6 +210,13 @@ void                       set_split_pointing_side_auto_mouse_layer(split_pointi
 uint8_t                    get_split_pointing_side_encoder_interval_idx(split_pointing_side_t side);
 void                       set_split_pointing_side_encoder_interval_idx(split_pointing_side_t side, uint8_t idx);
 uint8_t                    get_split_pointing_side_encoder_interval_ms(split_pointing_side_t side);
+uint8_t                    get_split_pointing_side_encoder_steps(split_pointing_side_t side);
+void                       set_split_pointing_side_encoder_steps(split_pointing_side_t side, uint8_t steps);
+uint8_t                    get_split_pointing_auto_mouse_threshold(void);
+void                       set_split_pointing_auto_mouse_threshold(uint8_t threshold);
+bool                       get_split_pointing_auto_mouse_off_on_key(void);
+void                       set_split_pointing_auto_mouse_off_on_key(bool enabled);
+bool                       split_pointing_auto_mouse_report_active(report_mouse_t report);
 bool                       get_split_pointing_side_touch_gestures(split_pointing_side_t side);
 void                       set_split_pointing_side_touch_gestures(split_pointing_side_t side, bool enabled);
 bool                       get_split_pointing_auto_mouse_mode_enabled(pointing_mode_t mode);

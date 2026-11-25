@@ -1,0 +1,7 @@
+{
+    "name": "Encoders",
+    "fields": [
+        { "type": "select", "title": "Encoder interval", "qsid": 325, "variants": ["0 ms", "5 ms", "10 ms", "15 ms", "20 ms", "30 ms", "40 ms", "60 ms", "80 ms", "100 ms"] },
+        { "type": "select", "title": "Encoder steps", "qsid": 332, "variants": ["1", "2", "3", "4", "5", "6", "7", "8"] }
+    ]
+}

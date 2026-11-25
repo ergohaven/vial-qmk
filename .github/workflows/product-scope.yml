@@ -1,0 +1,24 @@
+name: Ergohaven product source scope
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qmk-product-scope-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  product-scope:
+    name: Verify Ergohaven-only sources
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify product namespace, frozen archive and release inventory
+        run: python3 -B util/ci_ergohaven_release_scope.py
+      - name: Verify active Vial UIDs
+        run: python3 -B util/ci_vial_verify_uid.py

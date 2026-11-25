@@ -99,6 +99,9 @@ bool get_auto_mouse_toggle(void);            // get toggle mouse layer flag valu
 bool is_mouse_record_kb(uint16_t keycode, keyrecord_t* record);
 bool is_mouse_record_user(uint16_t keycode, keyrecord_t* record);
 
+// Policy for the existing inactive, non-mouse key reset (both press and release); defaults true.
+bool auto_mouse_should_reset_on_key(uint16_t keycode, keyrecord_t* record);
+
 /* ----------Core functions (only used in custom pointing devices or key processing)------------------------- */
 void pointing_device_task_auto_mouse(report_mouse_t mouse_report); // add to pointing_device_task_*
 bool process_auto_mouse(uint16_t keycode, keyrecord_t* record);    // add to process_record_*

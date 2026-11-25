@@ -20,6 +20,11 @@ __attribute__((weak)) uint8_t encoder_map_key_delay(uint8_t index) {
 }
 
 static encoder_events_t encoder_events;
+__attribute__((weak)) uint8_t encoder_map_steps(uint8_t index) {
+    (void)index;
+    return 1;
+}
+
 static bool             signal_queue_drain = false;
 
 void encoder_init(void) {
@@ -41,14 +46,17 @@ static bool encoder_handle_queue(void) {
 
         // The delays below cater for Windows and its wonderful requirements.
         uint8_t key_delay = encoder_map_key_delay(index);
-        action_exec(clockwise ? MAKE_ENCODER_CW_EVENT(index, true) : MAKE_ENCODER_CCW_EVENT(index, true));
-        if (key_delay > 0) {
-            wait_ms(key_delay);
-        }
+        uint8_t steps = encoder_map_steps(index);
+        for (uint8_t step = 0; step < steps; ++step) {
+            action_exec(clockwise ? MAKE_ENCODER_CW_EVENT(index, true) : MAKE_ENCODER_CCW_EVENT(index, true));
+            if (key_delay > 0) {
+                wait_ms(key_delay);
+            }
 
-        action_exec(clockwise ? MAKE_ENCODER_CW_EVENT(index, false) : MAKE_ENCODER_CCW_EVENT(index, false));
-        if (key_delay > 0) {
-            wait_ms(key_delay);
+            action_exec(clockwise ? MAKE_ENCODER_CW_EVENT(index, false) : MAKE_ENCODER_CCW_EVENT(index, false));
+            if (key_delay > 0) {
+                wait_ms(key_delay);
+            }
         }
 
 #else // ENCODER_MAP_ENABLE

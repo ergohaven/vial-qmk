@@ -155,15 +155,17 @@ void dynamic_keymap_reset(void) {
 
     // Reset the keymaps in EEPROM to what is in flash.
     for (int layer = 0; layer < DYNAMIC_KEYMAP_LAYER_COUNT; layer++) {
+        // An unused layer blocks input instead of inheriting the layers below it.
+        bool assigned = keymap_layer_has_assignments_raw(layer);
         for (int row = 0; row < MATRIX_ROWS; row++) {
             for (int column = 0; column < MATRIX_COLS; column++) {
-                dynamic_keymap_set_keycode(layer, row, column, keycode_at_keymap_location_raw(layer, row, column));
+                dynamic_keymap_set_keycode(layer, row, column, assigned ? keycode_at_keymap_location_raw(layer, row, column) : KC_NO);
             }
         }
 #ifdef ENCODER_MAP_ENABLE
         for (int encoder = 0; encoder < NUM_ENCODERS; encoder++) {
-            dynamic_keymap_set_encoder(layer, encoder, true, keycode_at_encodermap_location_raw(layer, encoder, true));
-            dynamic_keymap_set_encoder(layer, encoder, false, keycode_at_encodermap_location_raw(layer, encoder, false));
+            dynamic_keymap_set_encoder(layer, encoder, true, assigned ? keycode_at_encodermap_location_raw(layer, encoder, true) : KC_NO);
+            dynamic_keymap_set_encoder(layer, encoder, false, assigned ? keycode_at_encodermap_location_raw(layer, encoder, false) : KC_NO);
         }
 #endif // ENCODER_MAP_ENABLE
     }

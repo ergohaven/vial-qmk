@@ -19,7 +19,7 @@ The runner includes the actual flash translation units. For Vial command/task,
 LCD/reset and home-indicator paths, it extracts complete current function bodies
 and supplies only peripheral/dependency mocks. Static assertions check that the
 matrix/reset/shared-consumer hooks still invoke those owners. Assertions describe
-correct behavior, unlike the initial PR review's defect-reproduction probes.
+the expected behavior.
 
 Coverage:
 
@@ -72,30 +72,27 @@ rendering, physical scan/encoder cadence, watchdog timing or flash endurance.
 ## Complete CI wave
 
 `build-ergohaven.yml` is the ordinary manual firmware build. It compiles the
-existing 32 official targets natively on Ubuntu, uploads UF2 files and merges
-successful output into `ergohaven_fw`. It does not run Docker, the native
-regression campaign or policy/proof reuse. Its target matrix comes from the
-existing release-scope validator; there is no second manually maintained list.
-The native build uses the checksummed QMK GCC 15.2.0 toolchain that compiled the
-same firmware inputs in the successful container build, rather than Ubuntu's
-older ARM compiler. Keep the release URL, SHA-256 and compiler-version check
-aligned when deliberately updating it; qualify the new toolchain with one
-ordinary firmware matrix before accepting the update. Firmware features and
-flash/storage reservations are not changed to accommodate a compiler downgrade.
+official targets natively on Ubuntu, uploads UF2 files and merges successful
+output into `ergohaven_fw`. It does not run Docker, the native regression wave
+or policy/proof reuse. The matrix comes from
+`util/ci_ergohaven_release_scope.py --matrix`; do not maintain a second target list.
+Use the checksummed ARM toolchain pinned by that workflow. Keep its release URL,
+SHA-256 and compiler-version check aligned when updating it; do not change
+firmware features or flash/storage reservations to accommodate a compiler change.
 
-Production pushes and PRs run the inexpensive UID and workflow contracts in
-`ci.yml`. Release and pre-release callers use `release-validation.yml`, which
-retains the original complete container firmware matrix, pinned-LVGL native
+Pull requests and pushes to `main` or `ci/source-check` run the lightweight UID
+and workflow contracts in `ci.yml`. `util/publish_ergohaven.py` stages an accepted
+commit on `ci/source-check`, waits for its required checks, then promotes that
+same commit to `main`. This path does not dispatch a firmware or native build.
+
+Tagged releases and manually requested pre-releases use `release-validation.yml`.
+It requires the complete official container firmware matrix, pinned-LVGL native
 wave, required-result gate and source-bound proof uploads. Both release profiles
-are unconditional: reusable workflows inherit the caller's event, so no event
-name or previous PR proof can turn a release into partial qualification. Only
-the reusable workflow path changed in the publishing jobs; their dependency,
-permissions, draft/publication behavior and artifact naming remain unchanged.
-The upstream-compatibility mass-compilation workflow is reusable and release-only
-as well; its former weekly/manual triggers are removed, not its build coverage.
-A final fail-closed release gate waits for both the complete Ergohaven profiles
-and upstream compatibility. This makes release qualification deliberately more
-expensive while keeping all ordinary test builds small.
+are unconditional; caller events and previous PR proofs cannot turn a release
+into partial qualification. `product-scope.yml` verifies the Ergohaven-only
+namespace, frozen archive, release inventory and active Vial UIDs. The final
+release gate requires both complete product qualification and product-scope
+success. Foreign-keyboard mass compilation is not part of this product-only fork.
 
 To run the same serial native wave locally, read
 [the focused Macropad CLI contract](README.macropad.md), then use external output
@@ -106,9 +103,9 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/ergohaven -p tes
 PYTHONDONTWRITEBYTECODE=1 python3 tests/ergohaven/run_ci.py /absolute/scratch/ci-native --lvgl /path/to/pinned/lvgl
 ```
 
-The wave executes **47 serial commands**; the original 11 commands remain in the
-same order, including received split RGB-layer reconciliation. SM62 production
-qualification follows in this same runner, not a second CI job or parallel runner:
+The wave runs serially, including shared and split RGB-layer regressions. SM62
+production qualification uses the same runner, not a second CI job or parallel
+runner. It covers
 application-layout/legacy/cached/delta/RLE split, defaults, flash reservation and
 backend guards, peer backlight/power/rejoin/RPC, startup/FIFO/Default storage,
 post-init preservation, real base-LVGL keymap/player, resident100, compact USB,
