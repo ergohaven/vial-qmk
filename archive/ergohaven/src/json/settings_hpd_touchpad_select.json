@@ -1,0 +1,21 @@
+{
+    "name": "Touchpad settings",
+    "fields": [
+        { "type": "select", "title": "DPI", "qsid": 120, "variants": ["100", "200", "300", "400", "500", "600", "700", "800", "900", "1000"] },
+        { "type": "integer", "title": "Sniper sens", "qsid": 121, "min": 1, "max": 255, "width": 1 },
+        { "type": "integer", "title": "Scroll sens", "qsid": 122, "min": 1, "max": 255, "width": 1 },
+        { "type": "integer", "title": "Text sens", "qsid": 123, "min": 1, "max": 255, "width": 1 },
+        { "type": "boolean", "title": "Touch gestures", "qsid": 327, "bit": 0 },
+        { "type": "boolean", "title": "Invert scroll vertical", "qsid": 124, "bit": 0 },
+        { "type": "boolean", "title": "Invert scroll horizontal", "qsid": 124, "bit": 4 },
+        { "type": "boolean", "title": "Invert text vertical", "qsid": 124, "bit": 3 },
+        { "type": "boolean", "title": "Invert text horizontal", "qsid": 124, "bit": 5 },
+        { "type": "boolean", "title": "Acceleration", "qsid": 124, "bit": 1 },
+        { "type": "boolean", "title": "Sticky mode", "qsid": 124, "bit": 2 },
+        { "type": "boolean", "title": "Auto layer enable", "qsid": 142, "bit": 0 },
+        { "type": "select", "title": "Auto layer", "qsid": 143, "variants": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"] },
+        { "type": "select", "title": "Auto layer timeout", "qsid": 324, "variants": ["50 ms", "100 ms", "150 ms", "200 ms", "250 ms", "300 ms", "350 ms", "400 ms", "450 ms", "500 ms", "750 ms", "1000 ms", "1250 ms", "1500 ms"] },
+        { "type": "integer", "title": "Auto layer threshold", "qsid": 374, "min": 1, "max": 127, "width": 1 },
+        { "type": "boolean", "title": "Auto layer deactivate on key", "qsid": 375, "bit": 0 }
+    ]
+}

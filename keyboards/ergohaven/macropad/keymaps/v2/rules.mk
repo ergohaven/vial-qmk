@@ -1,3 +1,1 @@
-ENCODER_MAP_ENABLE=yes
-VIAL_ENABLE=yes
-AUTO_SHIFT_ENABLE = yes
+include keyboards/ergohaven/macropad/keymaps/common.mk

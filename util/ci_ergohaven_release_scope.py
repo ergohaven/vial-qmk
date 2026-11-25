@@ -17,62 +17,61 @@ MATRIX_ENTRY = re.compile(r"^\s*-\s*\{\s*kb:\s*([^,]+),\s*km:\s*([^}]+)\}\s*$")
 # Maintainer keymaps and excluded variants of supported devices stay active.
 # Retired device sources are frozen separately, outside QMK discovery.
 EXCLUDED_KEYMAPS = {
-    ERGOHAVEN_ROOT / "hpd/keymaps/v2_lcd_ball/vial.json",
     ERGOHAVEN_ROOT / "macropad/keymaps/v2_ccw/vial.json",
-    ERGOHAVEN_ROOT / "hpd/keymaps/kissetfall/vial.json",
-    ERGOHAVEN_ROOT / "imperial44/keymaps/kissetfall/vial.json",
-    ERGOHAVEN_ROOT / "k03/keymaps/kissetfall/vial.json",
 }
 
 # Permanently retired generations must stay outside live keyboard discovery.
 RETIRED_RELEASE_TARGETS = {
     ("ergohaven/k03pro/rev1/43mm", "v1"),
     ("ergohaven/k03pro/rev1/65mm", "v1"),
+    ("ergohaven/k03pro/rev2", "v2_v3"),
     ("ergohaven/hpd/rev1", "v1"),
-    ("ergohaven/imperial44/rev1", "v1_v2"),
-    ("ergohaven/k02", "v1"),
-    ("ergohaven/k03/rev1", "v1_v2"),
-    ("ergohaven/macropad/rev1", "v1"),
-    ("ergohaven/planeta/rev1", "v1"),
-    ("ergohaven/planeta/rev2", "v2"),
-    ("ergohaven/remnant", "v1"),
-    ("ergohaven/trackball", "v1"),
-    ("ergohaven/trackball", "v2"),
-    ("ergohaven/velvet/rev1", "v1"),
-}
-
-# This is the complete official release matrix. Keeping it independent from
-# the workflow makes accidental target removal a CI failure rather than a
-# silently smaller release.
-REQUIRED_RELEASE_TARGETS = {
+    ("ergohaven/hpd/rev2", "kissetfall"),
     ("ergohaven/hpd/rev2", "v2"),
     ("ergohaven/hpd/rev2", "v2_ball_enc"),
     ("ergohaven/hpd/rev2", "v2_enc_ball"),
     ("ergohaven/hpd/rev2", "v2_enc_enc"),
     ("ergohaven/hpd/rev2", "v2_enc_joy"),
     ("ergohaven/hpd/rev2", "v2_enc_touch"),
-
+    ("ergohaven/hpd/rev2", "v2_lcd_ball"),
     ("ergohaven/hpd/rev2", "v2_touch_enc"),
+    ("ergohaven/imperial44/rev1", "v1_v2"),
+    ("ergohaven/imperial44/rev3", "kissetfall"),
     ("ergohaven/imperial44/rev3", "v3_v4"),
+    ("ergohaven/k02", "v1"),
+    ("ergohaven/k03/rev1", "v1_v2"),
+    ("ergohaven/k03/rev3", "kissetfall"),
     ("ergohaven/k03/rev3", "v3_v4"),
-    ("ergohaven/k03pro/rev2", "v2_v3"),
+    ("ergohaven/macropad/rev1", "v1"),
+    ("ergohaven/planeta/rev1", "v1"),
+    ("ergohaven/planeta/rev2", "v2"),
+    ("ergohaven/remnant", "v1"),
+    ("ergohaven/sm30", "v1"),
+    ("ergohaven/trackball", "v1"),
+    ("ergohaven/trackball", "v2"),
+    ("ergohaven/velvet/rev1", "v1"),
+    ("ergohaven/velvet/rev2", "v2"),
+    ("ergohaven/velvet/rev3", "v3"),
+}
+
+# This is the complete official release matrix. Keeping it independent from
+# the workflow makes accidental target removal a CI failure rather than a
+# silently smaller release.
+REQUIRED_RELEASE_TARGETS = {
     ("ergohaven/macropad/rev2", "v2"),
 
     ("ergohaven/macropad/rev3", "v3"),
     ("ergohaven/phenom/rev1", "v1"),
     ("ergohaven/phenom_micro/rev1", "v1"),
     ("ergohaven/phenom_mini/rev1", "v1"),
-    ("ergohaven/sm30", "v1"),
     ("ergohaven/sm62", "v1"),
-    ("ergohaven/velvet/rev2", "v2"),
-    ("ergohaven/velvet/rev3", "v3"),
 }
 
 
 ARCHIVE_ROOT = Path("archive/ergohaven")
 ARCHIVE_MANIFEST = ARCHIVE_ROOT / "manifest.json"
 # Intentional archive additions require review; never refresh this pin to hide a mismatch.
-ARCHIVE_MANIFEST_SHA256 = "e2ccff6c0425efa30b9b46dbaf90ffba546f30a9bc44d5d6babfad7369f1ef25"
+ARCHIVE_MANIFEST_SHA256 = "259443b49ce8040a3159b3b88bd54ea165b4251f155525a74ef04f96a415da8b"
 
 
 def _archive_manifest():
@@ -96,6 +95,19 @@ def verify_archived_sources():
         raise ValueError("Frozen archive target inventory changed")
     expected = set()
     originals = set()
+    snapshots = {}
+    for snapshot in manifest.get("source_snapshots", []):
+        path = Path(snapshot["path"])
+        path.relative_to(ARCHIVE_ROOT)
+        if (".." in path.parts or path in expected or snapshot["id"] in snapshots
+                or not re.fullmatch(r"[0-9a-f]{40}", snapshot["base_commit"])
+                or snapshot["mode"] != "100644" or path.is_symlink() or not path.is_file()):
+            raise ValueError("Unsafe or duplicated archive source snapshot")
+        if (hashlib.sha256(path.read_bytes()).hexdigest() != snapshot["sha256"]
+                or path.stat().st_mode & 0o111):
+            raise ValueError("Frozen archive source snapshot changed: " + str(path))
+        expected.add(path)
+        snapshots[snapshot["id"]] = snapshot
     for record in manifest["files"]:
         path = Path(record["path"])
         original = Path(record["original_path"])
@@ -114,12 +126,21 @@ def verify_archived_sources():
             raise ValueError("Frozen source mode changed: " + str(path))
         if original.exists():
             raise ValueError("Retired source restored into active tree: " + str(original))
+        if "source_snapshot" in record:
+            snapshot = snapshots.get(record["source_snapshot"])
+            if snapshot is None or record.get("snapshot_commit") != snapshot["base_commit"]:
+                raise ValueError("Missing or inconsistent archive source snapshot")
     metadata = {ARCHIVE_MANIFEST, ARCHIVE_ROOT / "README.md", ARCHIVE_ROOT / "AGENTS.md"}
     actual = {path for path in ARCHIVE_ROOT.rglob("*") if path.is_file() or path.is_symlink()} - metadata
     if actual != expected:
         raise ValueError("Frozen archive file inventory changed")
     if any(Path(row["definition"]) not in expected for row in manifest["targets"]):
         raise ValueError("Retired target missing its archived definition")
+    for target in manifest["targets"]:
+        if "source_snapshot" in target:
+            snapshot = snapshots.get(target["source_snapshot"])
+            if snapshot is None or target.get("snapshot_commit") != snapshot["base_commit"]:
+                raise ValueError("Retired target has an inconsistent source snapshot")
     return manifest
 
 

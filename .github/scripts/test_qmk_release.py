@@ -37,9 +37,9 @@ def publisher_before_packaging(text, path):
         if text.count(checkout) != 1:
             raise AssertionError('Expected exactly one credential-free packager checkout')
         text = text.replace(checkout, '', 1)
-    files = '            release_assets/*.uf2\n            release_assets/*.zip'
+    files = '            release_assets/*.uf2'
     if text.count(files) != 1:
-        raise AssertionError('Expected only the reviewed UF2/ZIP release globs')
+        raise AssertionError('Expected only the reviewed supported-UF2 release glob')
     return text.replace(files, '            ergohaven_fw/**/*.uf2', 1)
 
 
@@ -51,34 +51,74 @@ class ReleaseScope(unittest.TestCase):
                    for line in text.splitlines() if (match := scope.MATRIX_ENTRY.match(line))]
         self.assertIn(('ergohaven/sm62', 'v1'), scope.REQUIRED_RELEASE_TARGETS)
         self.assertEqual(set(targets), scope.REQUIRED_RELEASE_TARGETS)
-        self.assertEqual(len(targets), 19)
-        self.assertEqual(len(set(targets)), 19)
+        self.assertEqual(len(targets), 6)
+        self.assertEqual(len(set(targets)), 6)
         names = [kb.replace('/', '_') + '_' + km + '.uf2' for kb, km in targets]
-        self.assertEqual(len(set(names)), 19)
-        for target in [('ergohaven/hpd/rev2', 'v2_lcd_ball'), ('ergohaven/macropad/rev2', 'v2_ccw')]:
+        self.assertEqual(len(set(names)), 6)
+        for target in [('ergohaven/macropad/rev2', 'v2_ccw')]:
             self.assertNotIn(target, targets)
             self.assertIn(scope.find_vial_definition(*target), scope.EXCLUDED_KEYMAPS)
-        self.assertEqual(len(scope.EXCLUDED_KEYMAPS), 5)
+        self.assertEqual(len(scope.EXCLUDED_KEYMAPS), 1)
         retired = {
             ("ergohaven/k03pro/rev1/43mm", "v1"),
             ("ergohaven/k03pro/rev1/65mm", "v1"),
+            ("ergohaven/k03pro/rev2", "v2_v3"),
             ("ergohaven/hpd/rev1", "v1"),
+            ("ergohaven/hpd/rev2", "kissetfall"),
+            ("ergohaven/hpd/rev2", "v2"),
+            ("ergohaven/hpd/rev2", "v2_ball_enc"),
+            ("ergohaven/hpd/rev2", "v2_enc_ball"),
+            ("ergohaven/hpd/rev2", "v2_enc_enc"),
+            ("ergohaven/hpd/rev2", "v2_enc_joy"),
+            ("ergohaven/hpd/rev2", "v2_enc_touch"),
+            ("ergohaven/hpd/rev2", "v2_lcd_ball"),
+            ("ergohaven/hpd/rev2", "v2_touch_enc"),
             ("ergohaven/imperial44/rev1", "v1_v2"),
+            ("ergohaven/imperial44/rev3", "kissetfall"),
+            ("ergohaven/imperial44/rev3", "v3_v4"),
             ("ergohaven/k02", "v1"),
             ("ergohaven/k03/rev1", "v1_v2"),
+            ("ergohaven/k03/rev3", "kissetfall"),
+            ("ergohaven/k03/rev3", "v3_v4"),
             ("ergohaven/macropad/rev1", "v1"),
             ("ergohaven/planeta/rev1", "v1"),
             ("ergohaven/planeta/rev2", "v2"),
             ("ergohaven/remnant", "v1"),
+            ("ergohaven/sm30", "v1"),
             ("ergohaven/trackball", "v1"),
             ("ergohaven/trackball", "v2"),
             ("ergohaven/velvet/rev1", "v1"),
+            ("ergohaven/velvet/rev2", "v2"),
+            ("ergohaven/velvet/rev3", "v3"),
         }
         self.assertEqual(scope.RETIRED_RELEASE_TARGETS, retired)
         self.assertTrue(retired.isdisjoint(targets))
         archive = scope.verify_archived_sources()
         self.assertEqual(archive['snapshot_commit'], "8bd528239a8ae1bc0747af53a6f0ba5a32f63fbc")
-        self.assertEqual(len(archive['files']), 148)
+        self.assertEqual(len(archive['files']), 299)
+        self.assertFalse((ROOT / 'keyboards/ergohaven/k03').exists())
+        self.assertFalse((ROOT / 'keyboards/ergohaven/imperial44').exists())
+        fixed_encoder_files = [row for row in archive['files']
+                               if row.get('source_snapshot') == 'k03-imperial44-20261125']
+        self.assertEqual(len(fixed_encoder_files), 37)
+        self.assertFalse((ROOT / 'keyboards/ergohaven/k03pro').exists())
+        self.assertFalse((ROOT / 'keyboards/ergohaven/sm30').exists())
+        animation = ROOT / 'keyboards/ergohaven/src/display/space_mission_anim.c'
+        self.assertEqual(animation.read_bytes(),
+                         (ROOT / 'archive/ergohaven/sm30/anim.c').read_bytes())
+        self.assertIn('SRC += keyboards/ergohaven/src/display/space_mission_anim.c',
+                      (ROOT / 'keyboards/ergohaven/sm62/rules.mk').read_text())
+        velvet_files = [row for row in archive['files']
+                        if row.get('source_snapshot') == 'velvet-20261125']
+        self.assertEqual(len(velvet_files), 25)
+        self.assertFalse((ROOT / 'keyboards/ergohaven/velvet').exists())
+        hpd_files = [row for row in archive['files']
+                     if row.get('source_snapshot') == 'hpd-v2-20261125']
+        self.assertEqual(len(hpd_files), 61)
+        self.assertFalse((ROOT / 'keyboards/ergohaven/hpd').exists())
+        self.assertEqual(len(archive['source_snapshots']), 3)
+        self.assertEqual(archive['source_snapshots'][0]['base_commit'],
+                         '7c2ac25ef68285d386c1e2d143b0ffa9ed3a46ba')
         trackball_files = [row for row in archive['files']
                            if row['path'].startswith('archive/ergohaven/trackball/')]
         self.assertEqual(len(trackball_files), 17)
@@ -98,7 +138,7 @@ class ReleaseIdentity(unittest.TestCase):
         self.assertRegex((root / 'config.h').read_text(), r'#define EH_FIRMWARE_VERSION 0x00010000\b')
         self.assertIn('#define EH_VERSION_STR "1.0"', (root / 'ergohaven.h').read_text())
         definitions = sorted(root.glob('**/vial.json'))
-        self.assertEqual(len(definitions), 24)
+        self.assertEqual(len(definitions), 7)
         # Keep strings (including comment-like text) intact while stripping comments.
         token = re.compile(r'"(?:\\.|[^"\\])*"|//[^\n]*|/\*.*?\*/', re.S)
         for path in definitions:
@@ -116,7 +156,7 @@ class ReleaseIdentity(unittest.TestCase):
                 usb.append(path)
                 with self.subTest(owner=path.relative_to(ROOT)):
                     self.assertEqual(versions, ['1.0'])
-        self.assertEqual(len(usb), 13)
+        self.assertEqual(len(usb), 6)
 
     def test_two_component_usb_versions_use_the_real_config_generator(self):
         path = ROOT / 'lib/python/qmk/cli/generate/config_h.py'

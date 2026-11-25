@@ -195,7 +195,7 @@ void set_displayed_volume(void *p,int32_t n){(void)p;shown_volume=n;}
 void lv_anim_del(void *p,void (*cb)(void *,int32_t)){(void)p;(void)cb;}
 void lv_scr_load(void *p){current=p;}
 '''
-for path,name in [('keyboards/ergohaven/macropad/rev3/rev3.c','get_split_lcd_brightness'),('keyboards/ergohaven/src/display/eh_display.c','display_apply_brightness'),('keyboards/ergohaven/src/display/eh_display.c','display_turn_on'),('keyboards/ergohaven/src/display/eh_screen_volume.c','screen_volume_load')]:
+for path,name in [('keyboards/ergohaven/macropad/macropad.c','get_split_lcd_brightness'),('keyboards/ergohaven/src/display/eh_display.c','display_apply_brightness'),('keyboards/ergohaven/src/display/eh_display.c','display_turn_on'),('keyboards/ergohaven/src/display/eh_screen_volume.c','screen_volume_load')]:
  brightness+='\n'+function(path,name)+'\n'
 brightness+=r'''
 int main(void){
@@ -224,12 +224,12 @@ void kb_settings_ruen_reset(void){} void kb_settings_layer_labels_reset(void){} 
 void kb_settings_extra_reset(void){}
 void kb_settings_init(void){kb_settings_lcd_init();}
 '''
-# Keep the actual reset body and type/constant definitions from rev3, without unrelated getters.
-rev3=(ROOT/'keyboards/ergohaven/macropad/rev3/rev3.c').read_text()
-reset+='\n'+rev3[rev3.index('#define MACROPAD_RGB_TIMEOUT_DEFAULT_MINS'):rev3.index('#ifndef EH_DISPLAY_SETTINGS_FLASH')]
+# Keep the actual shared reset body and type/constant definitions, without unrelated getters.
+macropad=(ROOT/'keyboards/ergohaven/macropad/macropad.c').read_text()
+reset+='\n'+macropad[macropad.index('#define MACROPAD_RGB_TIMEOUT_DEFAULT_MINS'):macropad.index('#ifndef EH_DISPLAY_SETTINGS_FLASH')]
 reset+='\nstatic macropad_display_settings_t display_settings;\n'
 for name in ['persist_display_settings','lcd_timeout_mins_is_valid','set_clock_info_defaults','set_clock_background_defaults','set_clock_element_defaults','set_clock_defaults','clock_color_is_accent','infer_custom_clock_colors','color_is_old_beige','normalize_legacy_clock_color','migrate_display_settings','kb_settings_lcd_init','kb_settings_lcd_reset']:
- reset+='\n'+function('keyboards/ergohaven/macropad/rev3/rev3.c',name)+'\n'
+ reset+='\n'+function('keyboards/ergohaven/macropad/macropad.c',name)+'\n'
 reset+='\n'+function('keyboards/ergohaven/src/eh_settings.c','kb_settings_reset')
 reset+=r'''
 int main(void){memset(mock_flash,0xa5,sizeof(mock_flash));memset(mock_flash+EXTRA_BASE,255,2*FLASH_SECTOR_SIZE);assert(eh_date_set(0,1));assert(eh_date_set(9,0));assert(eh_date_set(10,0));mock_now+=350;eh_extra_settings_housekeep();kb_settings_reset();assert(!dirty);initialized=false;dirty=false;newest=-1;sequence=0;assert(eh_date_get(0)==0 && eh_date_get(9)==7 && eh_date_get(10)==100);for(unsigned i=0;i<15;i++)assert(eh_date_get(i)==defaults[i]);for(unsigned i=0;i<sizeof(mock_flash);i++)if(i<EXTRA_BASE||i>=EXTRA_BASE+2*FLASH_SECTOR_SIZE)assert(mock_flash[i]==0xa5);puts("keyboard-settings reset immediately persists all 15 date/standby defaults; reboot and all external assets/EEPROM preserved: PASS");}
@@ -348,8 +348,8 @@ out.append(run('home_modifiers',home))
 home_source=(ROOT/home_path).read_text()
 assert '#ifndef EH_HOME_HIDE_MODIFIERS\n    screen_home_update_modifiers();\n#endif' in home_source
 assert '#ifndef EH_HOME_HIDE_MODIFIERS\n    screen_home_mods = lv_obj_create(content);' in home_source
+assert '#define EH_HOME_HIDE_MODIFIERS' in (ROOT/'keyboards/ergohaven/macropad/config.h').read_text()
 for rev in ['rev2','rev3']:
- assert '#define EH_HOME_HIDE_MODIFIERS' in (ROOT/f'keyboards/ergohaven/macropad/{rev}/config.h').read_text()
-for consumer in ['k03pro/rules.mk','planeta/rev2/rules.mk','hpd/keymaps/v2_lcd_ball/rules.mk']:
- assert 'SRC += '+home_path in (ROOT/'keyboards/ergohaven'/consumer).read_text()
+ assert 'include keyboards/ergohaven/macropad/common.mk' in (ROOT/f'keyboards/ergohaven/macropad/{rev}/rules.mk').read_text()
+assert 'SRC += '+home_path in (ROOT/'keyboards/ergohaven/macropad/common.mk').read_text()
 (P/'results.txt').write_text(''.join(out))

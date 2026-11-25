@@ -287,10 +287,14 @@ uint16_t azoteq_iqs5xx_get_cpi(void) {
 
 uint16_t azoteq_iqs5xx_get_product(void) {
     pd_dprintf("AZOTEQ get_product: start, address=0x%02X\n", AZOTEQ_IQS5XX_ADDRESS);
-    i2c_status_t status = i2c_read_register16(AZOTEQ_IQS5XX_ADDRESS, AZOTEQ_IQS5XX_REG_PRODUCT_NUMBER, (uint8_t *)&azoteq_iqs5xx_product_number, sizeof(uint16_t), AZOTEQ_IQS5XX_TIMEOUT_MS);
+    uint16_t product = AZOTEQ_IQS5XX_UNKNOWN;
+    i2c_status_t status = i2c_read_register16(AZOTEQ_IQS5XX_ADDRESS, AZOTEQ_IQS5XX_REG_PRODUCT_NUMBER, (uint8_t *)&product, sizeof(product), AZOTEQ_IQS5XX_TIMEOUT_MS);
     pd_dprintf("AZOTEQ get_product: status=%d\n", status);
     if (status == I2C_STATUS_SUCCESS) {
-        azoteq_iqs5xx_product_number = AZOTEQ_IQS5XX_SWAP_H_L_BYTES(azoteq_iqs5xx_product_number);
+        azoteq_iqs5xx_product_number = AZOTEQ_IQS5XX_SWAP_H_L_BYTES(product);
+    } else {
+        // A cached product is configuration context, not evidence of current presence.
+        return AZOTEQ_IQS5XX_UNKNOWN;
     }
     pd_dprintf("AZOTEQ: Product number %u\n", azoteq_iqs5xx_product_number);
     return azoteq_iqs5xx_product_number;
@@ -327,7 +331,12 @@ void azoteq_iqs5xx_setup_resolution(void) {
 
 static i2c_status_t azoteq_iqs5xx_init_status = 1;
 
+bool azoteq_iqs5xx_is_initialized(void) {
+    return azoteq_iqs5xx_init_status == I2C_STATUS_SUCCESS;
+}
+
 void azoteq_iqs5xx_init(void) {
+    azoteq_iqs5xx_init_status = I2C_STATUS_ERROR;
     pd_dprintf("AZOTEQ init: start\n");
     i2c_init();
     pd_dprintf("AZOTEQ init: i2c_init done\n");

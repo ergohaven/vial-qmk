@@ -60,4 +60,3 @@ jobs:
           body_path: release_notes.md
           files: |
             release_assets/*.uf2
-            release_assets/*.zip

@@ -322,6 +322,8 @@ void kb_settings_layer_labels_init(void) {
          * bleed into the next row/render snapshot. Sanitize RAM only. */
         layer_names[i][LAYER_LABEL_SIZE - 1] = '\0';
     }
+#if !defined(KEYBOARD_ergohaven_macropad)
+    // Macropad retains its specialized factory names, not the split-keyboard profile.
     static const char *const legacy[] = {
         "BASE",
 #if defined(KEYBOARD_ergohaven_sm62)
@@ -355,6 +357,7 @@ void kb_settings_layer_labels_init(void) {
             layer_name_updated = true;
         }
     }
+#endif
 }
 
 void kb_settings_reset(void) {
@@ -573,6 +576,7 @@ static split_pointing_side_t split_pointing_side_for_qsid(uint16_t qsid) {
         case 151:
         case 325:
         case 327:
+        case 376:
             return SPLIT_POINTING_SIDE_LEFT;
         case 127:
         case 128:
@@ -586,6 +590,7 @@ static split_pointing_side_t split_pointing_side_for_qsid(uint16_t qsid) {
         case 152:
         case 326:
         case 328:
+        case 377:
             return SPLIT_POINTING_SIDE_RIGHT;
         default:
             return SPLIT_POINTING_SIDE_LEFT;
@@ -769,6 +774,7 @@ static int modules_bool_get(const qmk_settings_proto_t *proto, void *setting, si
 #    endif
         case 327:
         case 328: value = get_split_pointing_side_touch_gestures(split_pointing_side_for_qsid(proto->qsid)); break;
+        case 375: value = get_split_pointing_auto_mouse_off_on_key(); break;
         default: return -1;
     }
 #else
@@ -777,6 +783,9 @@ static int modules_bool_get(const qmk_settings_proto_t *proto, void *setting, si
         case 128: value = get_acceleration(); break;
         case 136: value = get_invert_text(); break;
         case 327: value = get_pointing_touch_gestures(); break;
+#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
+        case 375: value = get_hpd_auto_mouse_off_on_key(); break;
+#    endif
         case 133:
         case 140: value = get_sticky_mode(); break;
         case 134:
@@ -816,6 +825,7 @@ static int modules_bool_set(const qmk_settings_proto_t *proto, const void *setti
 #    endif
         case 327:
         case 328: set_split_pointing_side_touch_gestures(split_pointing_side_for_qsid(proto->qsid), value); break;
+        case 375: set_split_pointing_auto_mouse_off_on_key(value); break;
         default: return -1;
     }
 #else
@@ -824,6 +834,9 @@ static int modules_bool_set(const qmk_settings_proto_t *proto, const void *setti
         case 128: set_acceleration(value); break;
         case 136: set_invert_text(value); break;
         case 327: set_pointing_touch_gestures(value); break;
+#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
+        case 375: set_hpd_auto_mouse_off_on_key(value); break;
+#    endif
         case 133:
         case 140: set_sticky_mode(value); break;
         case 134:
@@ -857,6 +870,16 @@ void set_split_pointing_side_settings_module(split_pointing_side_t side, uint8_t
 }
 #endif
 
+#ifndef EH_KEYBOARD_SPLIT_POINTING_V2
+#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
+static const uint16_t modules_auto_mouse_timeout_ms[] = {50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 750, 1000, 1250, 1500};
+#        define MODULES_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX 10
+#    else
+static const uint16_t modules_auto_mouse_timeout_ms[] = {250, 500, 750, 1000, 1250, 1500};
+#        define MODULES_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX 2
+#    endif
+#endif
+
 static int modules_select_get(const qmk_settings_proto_t *proto, void *setting, size_t maxsz) {
     uint8_t v = 0;
 #if defined(EH_KEYBOARD_SPLIT_POINTING_V2)
@@ -885,21 +908,27 @@ static int modules_select_get(const qmk_settings_proto_t *proto, void *setting, 
         case 326:
             v = get_split_pointing_side_encoder_interval_idx(split_pointing_side_for_qsid(proto->qsid));
             break;
+        case 374:
+            v = get_split_pointing_auto_mouse_threshold();
+            break;
+        case 376:
+        case 377:
+            v = get_split_pointing_side_encoder_steps(split_pointing_side_for_qsid(proto->qsid)) - 1;
+            break;
         default: return -1;
     }
 #else
     switch (proto->qsid) {
         case 324: {
-            static const uint16_t timeout_variants[] = {250, 500, 750, 1000, 1250, 1500};
-            uint16_t              timeout_ms         = 750;
+            uint16_t timeout_ms = 750;
 #    ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
             if (qmk_settings_get(32, &timeout_ms, sizeof(timeout_ms)) < 0) {
                 timeout_ms = 750;
             }
 #    endif
             uint16_t best_delta = UINT16_MAX;
-            for (uint8_t i = 0; i < ARRAY_SIZE(timeout_variants); ++i) {
-                uint16_t delta = timeout_variants[i] > timeout_ms ? timeout_variants[i] - timeout_ms : timeout_ms - timeout_variants[i];
+            for (uint8_t i = 0; i < ARRAY_SIZE(modules_auto_mouse_timeout_ms); ++i) {
+                uint16_t delta = modules_auto_mouse_timeout_ms[i] > timeout_ms ? modules_auto_mouse_timeout_ms[i] - timeout_ms : timeout_ms - modules_auto_mouse_timeout_ms[i];
                 if (delta < best_delta) {
                     best_delta = delta;
                     v          = i;
@@ -910,6 +939,11 @@ static int modules_select_get(const qmk_settings_proto_t *proto, void *setting, 
         case 325:
             v = get_pointing_encoder_interval_idx();
             break;
+#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
+        case 374:
+            v = get_hpd_auto_mouse_threshold();
+            break;
+#    endif
         case 129:
         case 130:
         case 131:
@@ -959,17 +993,25 @@ static int modules_select_set(const qmk_settings_proto_t *proto, const void *set
         case 326:
             set_split_pointing_side_encoder_interval_idx(split_pointing_side_for_qsid(proto->qsid), v);
             break;
+        case 374:
+            if (v < 1 || v > 127) return -1;
+            set_split_pointing_auto_mouse_threshold(v);
+            break;
+        case 376:
+        case 377:
+            if (v >= 8) return -1;
+            set_split_pointing_side_encoder_steps(split_pointing_side_for_qsid(proto->qsid), v + 1);
+            break;
         default: return -1;
     }
 #else
     switch (proto->qsid) {
         case 324: {
-            static const uint16_t timeout_variants[] = {250, 500, 750, 1000, 1250, 1500};
-            if (v >= ARRAY_SIZE(timeout_variants)) {
-                v = 2;
+            if (v >= ARRAY_SIZE(modules_auto_mouse_timeout_ms)) {
+                v = MODULES_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX;
             }
 #    ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
-            uint16_t timeout_ms = timeout_variants[v];
+            uint16_t timeout_ms = modules_auto_mouse_timeout_ms[v];
             if (qmk_settings_set(32, &timeout_ms, sizeof(timeout_ms)) < 0) {
                 return -1;
             }
@@ -979,6 +1021,12 @@ static int modules_select_set(const qmk_settings_proto_t *proto, const void *set
         case 325:
             set_pointing_encoder_interval_idx(v);
             break;
+#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
+        case 374:
+            if (v < 1 || v > 127) return -1;
+            set_hpd_auto_mouse_threshold(v);
+            break;
+#    endif
         case 129:
         case 130:
         case 131:
@@ -1852,6 +1900,10 @@ qmk_settings_proto_t kb_protos[KB_SETTINGS_NPROTOS] PROGMEM = {
     DECLARE_SETTING(326, modules_select_get, modules_select_set),
     DECLARE_SETTING(327, modules_bool_get, modules_bool_set),
     DECLARE_SETTING(328, modules_bool_get, modules_bool_set),
+    DECLARE_SETTING(374, modules_select_get, modules_select_set),
+    DECLARE_SETTING(375, modules_bool_get, modules_bool_set),
+    DECLARE_SETTING(376, modules_select_get, modules_select_set),
+    DECLARE_SETTING(377, modules_select_get, modules_select_set),
 #else
 #    ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
     DECLARE_SETTING(324, modules_select_get, modules_select_set),
@@ -1865,6 +1917,10 @@ qmk_settings_proto_t kb_protos[KB_SETTINGS_NPROTOS] PROGMEM = {
 #    endif
 #    ifdef POINTING_DEVICE_DRIVER_azoteq_iqs5xx
     DECLARE_SETTING(327, modules_bool_get, modules_bool_set),
+#    endif
+#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
+    DECLARE_SETTING(374, modules_select_get, modules_select_set),
+    DECLARE_SETTING(375, modules_bool_get, modules_bool_set),
 #    endif
 #endif
     // clang-format on

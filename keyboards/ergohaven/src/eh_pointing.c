@@ -35,10 +35,12 @@ static const uint16_t phenom_auto_mouse_timeout_ms[] = {50, 100, 150, 200, 250, 
 #define MODULE_ENCODER_INTERVAL_DEFAULT_IDX 4
 #ifdef EH_SPLIT_POINTING_INVERT_AXES
 #    define PHENOM_SPLIT_POINTING_PREVIOUS_VERSION 7
-#    define PHENOM_SPLIT_POINTING_SETTINGS_VERSION 8
+#    define PHENOM_SPLIT_POINTING_UNPACKED_VERSION 8
+#    define PHENOM_SPLIT_POINTING_SETTINGS_VERSION 9
 #else
 #    define PHENOM_SPLIT_POINTING_PREVIOUS_VERSION 6
-#    define PHENOM_SPLIT_POINTING_SETTINGS_VERSION 7
+#    define PHENOM_SPLIT_POINTING_UNPACKED_VERSION 7
+#    define PHENOM_SPLIT_POINTING_SETTINGS_VERSION 8
 #endif
 
 static const uint8_t phenom_encoder_interval_ms_table[PHENOM_ENCODER_INTERVAL_IDX_COUNT] = {0, 5, 10, 15, 20, 30, 40, 60, 80, 100};
@@ -76,13 +78,21 @@ static void apply_auto_mouse_settings(void) {
 }
 
 #if defined(EH_KEYBOARD_SPLIT_POINTING_V2) && defined(ENCODER_ENABLE) && defined(ENCODER_MAP_ENABLE)
-uint8_t encoder_map_key_delay(uint8_t index) {
+static split_pointing_side_t split_pointing_encoder_side(uint8_t index) {
 #    ifdef SPLIT_KEYBOARD
-    split_pointing_side_t side = index < NUM_ENCODERS_LEFT ? SPLIT_POINTING_SIDE_LEFT : SPLIT_POINTING_SIDE_RIGHT;
+    return index < NUM_ENCODERS_LEFT ? SPLIT_POINTING_SIDE_LEFT : SPLIT_POINTING_SIDE_RIGHT;
 #    else
-    split_pointing_side_t side = SPLIT_POINTING_SIDE_LEFT;
+    (void)index;
+    return SPLIT_POINTING_SIDE_LEFT;
 #    endif
-    return get_split_pointing_side_encoder_interval_ms(side);
+}
+
+uint8_t encoder_map_key_delay(uint8_t index) {
+    return get_split_pointing_side_encoder_interval_ms(split_pointing_encoder_side(index));
+}
+
+uint8_t encoder_map_steps(uint8_t index) {
+    return get_split_pointing_side_encoder_steps(split_pointing_encoder_side(index));
 }
 #elif defined(EH_ENCODER_INTERVAL_SETTINGS) && !defined(EH_ENCODER_SETTINGS) && defined(ENCODER_ENABLE) && defined(ENCODER_MAP_ENABLE)
 uint8_t encoder_map_key_delay(uint8_t index) {
@@ -160,6 +170,18 @@ static kb_settings_split_pointing_t kb_settings_split_pointing_sanitize(kb_setti
         return get_split_pointing_settings_default();
     }
 #ifdef EH_KEYBOARD_SPLIT_POINTING_V2
+    // Upgrade only the newly allocated bits; retain every previous setting.
+    if (config.version == PHENOM_SPLIT_POINTING_UNPACKED_VERSION || config.version == PHENOM_SPLIT_POINTING_PREVIOUS_VERSION) {
+        for (uint8_t side = 0; side < SPLIT_POINTING_SIDE_COUNT; ++side) {
+            if (config.encoder_interval_idx[side] >= PHENOM_ENCODER_INTERVAL_IDX_COUNT) {
+                config.encoder_interval_idx[side] = PHENOM_ENCODER_INTERVAL_DEFAULT_IDX;
+            }
+            config.touch_gestures[side] = config.touch_gestures[side] != 0;
+        }
+        if (config.version == PHENOM_SPLIT_POINTING_UNPACKED_VERSION) {
+            config.version = PHENOM_SPLIT_POINTING_SETTINGS_VERSION;
+        }
+    }
     // Keep the six legacy timeout values in milliseconds while expanding the UI index table.
     if (config.version == PHENOM_SPLIT_POINTING_PREVIOUS_VERSION) {
         uint16_t timeout_ms = config.auto_mouse_timeout_idx < 6 ? (config.auto_mouse_timeout_idx + 1) * 250 : 750;
@@ -229,10 +251,15 @@ static kb_settings_split_pointing_t kb_settings_split_pointing_sanitize(kb_setti
         if (config.side_auto_mouse_layer[side] >= DYNAMIC_KEYMAP_LAYER_COUNT) {
             config.side_auto_mouse_layer[side] = AUTO_MOUSE_DEFAULT_LAYER;
         }
-        if (config.encoder_interval_idx[side] >= PHENOM_ENCODER_INTERVAL_IDX_COUNT) {
-            config.encoder_interval_idx[side] = PHENOM_ENCODER_INTERVAL_DEFAULT_IDX;
+        config.encoder_interval_idx[side] &= 0x7f;
+        if ((config.encoder_interval_idx[side] & 0x0f) >= PHENOM_ENCODER_INTERVAL_IDX_COUNT) {
+            config.encoder_interval_idx[side] = (config.encoder_interval_idx[side] & 0x70) | PHENOM_ENCODER_INTERVAL_DEFAULT_IDX;
         }
-        config.touch_gestures[side] = config.touch_gestures[side] != 0;
+        if (side == SPLIT_POINTING_SIDE_RIGHT) {
+            config.touch_gestures[side] &= 0x03;
+        } else if ((config.touch_gestures[side] >> 1) == 127) {
+            config.touch_gestures[side] &= 1;
+        }
 #endif
     }
     if (config.auto_mouse_enable <= 1) {
@@ -684,7 +711,7 @@ uint8_t get_split_pointing_side_encoder_interval_idx(split_pointing_side_t side)
         return PHENOM_ENCODER_INTERVAL_DEFAULT_IDX;
     }
 #ifdef EH_KEYBOARD_SPLIT_POINTING_V2
-    uint8_t idx = kb_settings_phenom_devices.encoder_interval_idx[side];
+    uint8_t idx = kb_settings_phenom_devices.encoder_interval_idx[side] & 0x0f;
     return idx < PHENOM_ENCODER_INTERVAL_IDX_COUNT ? idx : PHENOM_ENCODER_INTERVAL_DEFAULT_IDX;
 #else
     return PHENOM_ENCODER_INTERVAL_DEFAULT_IDX;
@@ -700,7 +727,7 @@ void set_split_pointing_side_encoder_interval_idx(split_pointing_side_t side, ui
     }
 #ifdef EH_KEYBOARD_SPLIT_POINTING_V2
     kb_settings_split_pointing_t new_config = kb_settings_phenom_devices;
-    new_config.encoder_interval_idx[side]  = idx;
+    new_config.encoder_interval_idx[side]  = (new_config.encoder_interval_idx[side] & 0x70) | idx;
     kb_settings_split_pointing_update(new_config);
 #endif
 }
@@ -709,12 +736,66 @@ uint8_t get_split_pointing_side_encoder_interval_ms(split_pointing_side_t side) 
     return phenom_encoder_interval_ms_table[get_split_pointing_side_encoder_interval_idx(side)];
 }
 
+uint8_t get_split_pointing_side_encoder_steps(split_pointing_side_t side) {
+#ifdef EH_KEYBOARD_SPLIT_POINTING_V2
+    if (side < SPLIT_POINTING_SIDE_COUNT) return ((kb_settings_phenom_devices.encoder_interval_idx[side] >> 4) & 7) + 1;
+#endif
+    return 1;
+}
+
+void set_split_pointing_side_encoder_steps(split_pointing_side_t side, uint8_t steps) {
+#ifdef EH_KEYBOARD_SPLIT_POINTING_V2
+    if (side >= SPLIT_POINTING_SIDE_COUNT || steps < 1 || steps > 8) return;
+    kb_settings_split_pointing_t config = kb_settings_phenom_devices;
+    config.encoder_interval_idx[side] = (config.encoder_interval_idx[side] & 0x0f) | ((steps - 1) << 4);
+    kb_settings_split_pointing_update(config);
+#endif
+}
+
+uint8_t get_split_pointing_auto_mouse_threshold(void) {
+#ifdef EH_KEYBOARD_SPLIT_POINTING_V2
+    return (kb_settings_phenom_devices.touch_gestures[SPLIT_POINTING_SIDE_LEFT] >> 1) + 1;
+#else
+    return 1;
+#endif
+}
+
+void set_split_pointing_auto_mouse_threshold(uint8_t threshold) {
+#ifdef EH_KEYBOARD_SPLIT_POINTING_V2
+    if (threshold < 1 || threshold > 127) return;
+    kb_settings_split_pointing_t config = kb_settings_phenom_devices;
+    config.touch_gestures[SPLIT_POINTING_SIDE_LEFT] = (config.touch_gestures[SPLIT_POINTING_SIDE_LEFT] & 1) | ((threshold - 1) << 1);
+    kb_settings_split_pointing_update(config);
+#endif
+}
+
+bool get_split_pointing_auto_mouse_off_on_key(void) {
+#ifdef EH_KEYBOARD_SPLIT_POINTING_V2
+    return !(kb_settings_phenom_devices.touch_gestures[SPLIT_POINTING_SIDE_RIGHT] & 2);
+#else
+    return true;
+#endif
+}
+
+void set_split_pointing_auto_mouse_off_on_key(bool enabled) {
+#ifdef EH_KEYBOARD_SPLIT_POINTING_V2
+    kb_settings_split_pointing_t config = kb_settings_phenom_devices;
+    config.touch_gestures[SPLIT_POINTING_SIDE_RIGHT] = (config.touch_gestures[SPLIT_POINTING_SIDE_RIGHT] & 1) | (enabled ? 0 : 2);
+    kb_settings_split_pointing_update(config);
+#endif
+}
+
+bool split_pointing_auto_mouse_report_active(report_mouse_t report) {
+    uint8_t threshold = get_split_pointing_auto_mouse_threshold();
+    return abs(report.x) >= threshold || abs(report.y) >= threshold || abs(report.h) >= threshold || abs(report.v) >= threshold || report.buttons;
+}
+
 bool get_split_pointing_side_touch_gestures(split_pointing_side_t side) {
     if (side >= SPLIT_POINTING_SIDE_COUNT) {
         return PHENOM_TOUCH_GESTURES_DEFAULT;
     }
 #ifdef EH_KEYBOARD_SPLIT_POINTING_V2
-    return kb_settings_phenom_devices.touch_gestures[side] != 0;
+    return (kb_settings_phenom_devices.touch_gestures[side] & 1) != 0;
 #else
     return PHENOM_TOUCH_GESTURES_DEFAULT;
 #endif
@@ -726,7 +807,7 @@ void set_split_pointing_side_touch_gestures(split_pointing_side_t side, bool ena
     }
 #ifdef EH_KEYBOARD_SPLIT_POINTING_V2
     kb_settings_split_pointing_t new_config = kb_settings_phenom_devices;
-    new_config.touch_gestures[side]        = enabled;
+    new_config.touch_gestures[side]        = (new_config.touch_gestures[side] & 0xfe) | (enabled ? 1 : 0);
     kb_settings_split_pointing_update(new_config);
 #endif
 }
@@ -828,6 +909,35 @@ void set_text_sens(uint8_t s) {
 uint8_t get_text_sens(void) {
     return kb_settings_pointing.sens[POINTING_MODE_TEXT];
 }
+
+#ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
+// Reuse only HPD's unused sens[0]: low seven bits = threshold, high bit = no key reset.
+// The existing raw default 1 means threshold 1 and key reset enabled; legacy zero reads as 1.
+#    define HPD_AUTO_MOUSE_THRESHOLD_MASK 0x7Fu
+#    define HPD_AUTO_MOUSE_NO_KEY_RESET 0x80u
+
+uint8_t get_hpd_auto_mouse_threshold(void) {
+    uint8_t threshold = kb_settings_pointing.sens[POINTING_MODE_NORMAL] & HPD_AUTO_MOUSE_THRESHOLD_MASK;
+    return threshold ? threshold : 1;
+}
+
+void set_hpd_auto_mouse_threshold(uint8_t threshold) {
+    if (threshold < 1 || threshold > HPD_AUTO_MOUSE_THRESHOLD_MASK) return;
+    kb_settings_pointing_t new_config = kb_settings_pointing;
+    new_config.sens[POINTING_MODE_NORMAL] = (new_config.sens[POINTING_MODE_NORMAL] & HPD_AUTO_MOUSE_NO_KEY_RESET) | threshold;
+    kb_settings_pointing_update(new_config);
+}
+
+bool get_hpd_auto_mouse_off_on_key(void) {
+    return !(kb_settings_pointing.sens[POINTING_MODE_NORMAL] & HPD_AUTO_MOUSE_NO_KEY_RESET);
+}
+
+void set_hpd_auto_mouse_off_on_key(bool enabled) {
+    kb_settings_pointing_t new_config = kb_settings_pointing;
+    new_config.sens[POINTING_MODE_NORMAL] = get_hpd_auto_mouse_threshold() | (enabled ? 0 : HPD_AUTO_MOUSE_NO_KEY_RESET);
+    kb_settings_pointing_update(new_config);
+}
+#endif
 
 void set_invert_scroll(bool invert) {
     kb_settings_pointing_t new_config = kb_settings_pointing;
@@ -964,6 +1074,18 @@ void set_pointing_auto_mouse_override(bool enabled, bool active) {
 bool auto_mouse_activation(report_mouse_t mouse_report) {
     return is_mouse_active_override_enabled ? is_mouse_active_override : is_mouse_active;
 }
+
+#    if defined(EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS) || defined(EH_KEYBOARD_SPLIT_POINTING_V2)
+bool auto_mouse_should_reset_on_key(uint16_t keycode, keyrecord_t *record) {
+    (void)keycode;
+    (void)record;
+#        ifdef EH_KEYBOARD_SPLIT_POINTING_V2
+    return get_split_pointing_auto_mouse_off_on_key();
+#        else
+    return get_hpd_auto_mouse_off_on_key();
+#        endif
+}
+#    endif
 
 bool is_mouse_record_kb(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
@@ -1254,7 +1376,12 @@ bool process_record_pointing(uint16_t keycode, keyrecord_t *record) {
 report_mouse_t pointing_device_task_user(report_mouse_t mrpt) {
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
     if (!is_mouse_active_override_enabled) {
-        is_mouse_active = abs(mrpt.x) >= 1 || abs(mrpt.y) >= 1 || abs(mrpt.v) >= 1 || abs(mrpt.h) >= 1 || mrpt.buttons;
+#    ifdef EH_HPD_SIMPLE_AUTO_MOUSE_SETTINGS
+        uint8_t threshold = get_hpd_auto_mouse_threshold();
+#    else
+        uint8_t threshold = 1;
+#    endif
+        is_mouse_active = abs(mrpt.x) >= threshold || abs(mrpt.y) >= threshold || abs(mrpt.v) >= threshold || abs(mrpt.h) >= threshold || mrpt.buttons;
     }
 #endif
     pointing_mode_t pmode = pointing_mode;

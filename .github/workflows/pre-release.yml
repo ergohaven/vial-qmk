@@ -50,4 +50,3 @@ jobs:
           title: 'Latest Build'
           files: |
             release_assets/*.uf2
-            release_assets/*.zip

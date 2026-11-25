@@ -56,17 +56,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { kb: ergohaven/k03/rev3, km: v3_v4}
-          - { kb: ergohaven/imperial44/rev3, km: v3_v4}
-          - { kb: ergohaven/velvet/rev2, km: v2}
-          - { kb: ergohaven/velvet/rev3, km: v3}
-          - { kb: ergohaven/hpd/rev2, km: v2}
-          - { kb: ergohaven/hpd/rev2, km: v2_enc_ball}
-          - { kb: ergohaven/hpd/rev2, km: v2_enc_touch}
-          - { kb: ergohaven/hpd/rev2, km: v2_ball_enc}
-          - { kb: ergohaven/hpd/rev2, km: v2_touch_enc}
-          - { kb: ergohaven/hpd/rev2, km: v2_enc_enc}
-          - { kb: ergohaven/hpd/rev2, km: v2_enc_joy}
 
           - { kb: ergohaven/phenom/rev1, km: v1}
           - { kb: ergohaven/phenom_mini/rev1, km: v1}
@@ -74,8 +63,6 @@ jobs:
           - { kb: ergohaven/macropad/rev2, km: v2}
 
           - { kb: ergohaven/macropad/rev3, km: v3}
-          - { kb: ergohaven/k03pro/rev2, km: v2_v3}
-          - { kb: ergohaven/sm30, km: v1}
           - { kb: ergohaven/sm62, km: v1}
     steps:
       - name: (actions) Checkout Vial repo

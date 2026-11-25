@@ -218,9 +218,8 @@ static bool phenom_detect_touchpad(void) {
     pd_dprintf("phenom_detect_touchpad: start\n");
     azoteq_iqs5xx_init();
     wait_ms(50);
-    uint16_t product = azoteq_iqs5xx_get_product();
-    bool     ok      = product != AZOTEQ_IQS5XX_UNKNOWN;
-    pd_dprintf("phenom_detect_touchpad: product=%u ok=%d\n", product, ok);
+    bool ok = azoteq_iqs5xx_is_initialized() && phenom_probe_touchpad_present();
+    pd_dprintf("phenom_detect_touchpad: ok=%d\n", ok);
     return ok;
 }
 
@@ -257,16 +256,28 @@ static void phenom_commit_module_probe(bool touchpad_available, bool trackball_a
     phenom_applied_devices_valid  = false;
 }
 
-static void phenom_detect_modules(bool force) {
+static bool phenom_detect_modules(bool force) {
     if (!force && timer_elapsed32(phenom_last_probe_time) < PHENOM_MODULE_PROBE_INTERVAL_MS) {
-        return;
+        return false;
     }
 
     phenom_last_probe_time = timer_read32();
 
     bool          touchpad_available  = phenom_probe_touchpad_present();
     bool          trackball_available = phenom_probe_trackball_present();
-    phenom_module_t detected_module     = phenom_pick_module(touchpad_available, trackball_available);
+    // Debounce module selection, not the lifetime of an initialized physical device.
+    // A single observed gap must also recover a fast same-type replacement.
+    if ((!touchpad_available && phenom_touchpad_initialized) || (!trackball_available && phenom_trackball_initialized)) {
+        phenom_applied_raw           = UINT32_MAX;
+        phenom_applied_devices_valid = false;
+    }
+    if (!touchpad_available) {
+        phenom_touchpad_initialized = false;
+    }
+    if (!trackball_available) {
+        phenom_trackball_initialized = false;
+    }
+    phenom_module_t detected_module = phenom_pick_module(touchpad_available, trackball_available);
 
     pd_dprintf("phenom_detect_modules: force=%d probe module=%u touch=%d trackball=%d\n", force, detected_module, touchpad_available, trackball_available);
 
@@ -274,14 +285,14 @@ static void phenom_detect_modules(bool force) {
         phenom_last_probed_module = detected_module;
         phenom_probe_streak       = 0;
         phenom_commit_module_probe(touchpad_available, trackball_available, detected_module);
-        return;
+        return true;
     }
 
     if (detected_module != phenom_last_probed_module) {
         phenom_last_probed_module = detected_module;
         phenom_probe_streak       = 1;
         pd_dprintf("phenom_detect_modules: new candidate module=%u\n", detected_module);
-        return;
+        return false;
     }
 
     if (phenom_probe_streak < UINT8_MAX) {
@@ -292,29 +303,36 @@ static void phenom_detect_modules(bool force) {
     if (phenom_probe_streak >= PHENOM_MODULE_PROBE_STREAK_REQUIRED) {
         phenom_commit_module_probe(touchpad_available, trackball_available, detected_module);
         phenom_probe_streak = 0;
+        return true;
     }
+    return false;
 }
 
-static void phenom_ensure_selected_module_ready(void) {
-    phenom_detect_modules(false);
+static void phenom_ensure_selected_module_ready(bool force) {
+    // Only initialize after a due, accepted probe, never on every report/retry.
+    if (!phenom_detect_modules(force)) {
+        return;
+    }
 
     switch (phenom_get_active_module()) {
         case PHENOM_MODULE_TRACKBALL:
             if (phenom_trackball_available && !phenom_trackball_initialized) {
-                phenom_trackball_available   = phenom_detect_trackball();
-                phenom_trackball_initialized = phenom_trackball_available;
-                if (!phenom_trackball_available) {
-                    phenom_detect_modules(true);
-                }
+                phenom_trackball_initialized = phenom_detect_trackball();
+                // Init may reset sensor configuration even when selection did not change.
+                phenom_applied_raw           = UINT32_MAX;
+                phenom_applied_devices_valid = false;
+                // Start the retry interval after the blocking driver init has returned.
+                phenom_last_probe_time = timer_read32();
             }
             break;
         case PHENOM_MODULE_TOUCHPAD:
             if (phenom_touchpad_available && !phenom_touchpad_initialized) {
-                phenom_touchpad_available   = phenom_detect_touchpad();
-                phenom_touchpad_initialized = phenom_touchpad_available;
-                if (!phenom_touchpad_available) {
-                    phenom_detect_modules(true);
-                }
+                phenom_touchpad_initialized = phenom_detect_touchpad();
+                // Init may reset sensor configuration even when selection did not change.
+                phenom_applied_raw           = UINT32_MAX;
+                phenom_applied_devices_valid = false;
+                // Start the retry interval after the blocking driver init has returned.
+                phenom_last_probe_time = timer_read32();
             }
             break;
         default:
@@ -492,9 +510,8 @@ void housekeeping_task_user(void) {
 void pointing_device_driver_init(void) {
     pd_dprintf("pointing_device_driver_init: entry, is_keyboard_left()=%d, is_keyboard_master()=%d\n", is_keyboard_left(), is_keyboard_master());
     pd_dprintf("pointing_device_driver_init: both halves\n");
-    phenom_detect_modules(true);
+    phenom_ensure_selected_module_ready(true);
     pd_dprintf("  detected_module=%u, touchpad_avail=%d, trackball_avail=%d\n", (unsigned int)phenom_detected_module, phenom_touchpad_available, phenom_trackball_available);
-    phenom_ensure_selected_module_ready();
     phenom_apply_device_config();
     pointing_device_set_cpi(pointing_device_driver_get_cpi());
     pd_dprintf("pointing_device_driver_init: done\n");
@@ -508,7 +525,7 @@ report_mouse_t pointing_device_driver_get_report(report_mouse_t mouse_report) {
         last_log = timer_read32();
     }
 
-    phenom_ensure_selected_module_ready();
+    phenom_ensure_selected_module_ready(false);
     phenom_apply_device_config();
 
     switch (phenom_get_active_module()) {
@@ -533,7 +550,7 @@ report_mouse_t pointing_device_driver_get_report(report_mouse_t mouse_report) {
 }
 
 static bool phenom_report_has_motion(report_mouse_t report) {
-    return abs(report.x) >= 1 || abs(report.y) >= 1 || abs(report.h) >= 1 || abs(report.v) >= 1 || report.buttons;
+    return split_pointing_auto_mouse_report_active(report);
 }
 
 static report_mouse_t phenom_apply_side_mode(report_mouse_t mrpt, split_pointing_side_t side) {

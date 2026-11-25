@@ -307,6 +307,12 @@ void auto_mouse_reset_trigger(bool pressed) {
     auto_mouse_context.timer.delay = timer_read();
 }
 
+__attribute__((weak)) bool auto_mouse_should_reset_on_key(uint16_t keycode, keyrecord_t* record) {
+    (void)keycode;
+    (void)record;
+    return true;
+}
+
 /**
  * @brief handle key events processing for auto mouse
  *
@@ -408,7 +414,7 @@ bool process_auto_mouse(uint16_t keycode, keyrecord_t* record) {
             // check if keyrecord is mousekey
             if (is_mouse_record(keycode, record)) {
                 auto_mouse_keyevent(record->event.pressed);
-            } else if (!is_auto_mouse_active()) {
+            } else if (!is_auto_mouse_active() && auto_mouse_should_reset_on_key(keycode, record)) {
                 // all non-mousekey presses restart delay timer and reset status
                 auto_mouse_reset_trigger(record->event.pressed);
             }

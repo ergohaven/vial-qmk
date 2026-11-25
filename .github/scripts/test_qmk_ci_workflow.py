@@ -82,7 +82,10 @@ class QMKCIContract(unittest.TestCase):
                 removed.add(target)
             else:
                 retained.append(line)
-        self.assertEqual(removed, retired)
+        original_targets = {tuple(part.strip() for part in match.groups())
+                            for line in original_workers.splitlines()
+                            if (match := scope['MATRIX_ENTRY'].match(line.decode()))}
+        self.assertEqual(removed, retired & original_targets)
         self.assertEqual(WORKFLOW.read_bytes().split(b'\n  verify-release-scope:', 1)[1]
                          .split(b'\n  product-scope:', 1)[0], b''.join(retained))
 
@@ -134,8 +137,8 @@ class QMKCIContract(unittest.TestCase):
             key, value = output.read_text().strip().split('=', 1)
             self.assertEqual(key, 'matrix')
             rows = json.loads(value)['include']
-        self.assertEqual(len(rows), 19)
-        self.assertEqual(len({(row['kb'], row['km']) for row in rows}), 19)
+        self.assertEqual(len(rows), 6)
+        self.assertEqual(len({(row['kb'], row['km']) for row in rows}), 6)
         scope_text = WORKFLOW.read_text()
         expected = [tuple(part.strip() for part in match.groups())
                     for line in scope_text.splitlines()
@@ -167,6 +170,8 @@ class QMKCIContract(unittest.TestCase):
         original = subprocess.check_output([
             'git', 'show', 'df0666fba81afa036dde0f16f222e3f9225d5168:.github/workflows/pre-release.yml'], cwd=ROOT)
         expected = original.replace(b"on:\n  push:\n    branches: ['vial']\n", b'on:\n  workflow_dispatch:\n', 1)
+        self.assertEqual(expected.count(b'\n            release_assets/*.zip'), 1)
+        expected = expected.replace(b'\n            release_assets/*.zip', b'', 1)
         self.assertEqual(current, expected)
         self.assertIn(b'uses: ./.github/workflows/release-validation.yml', current)
 
