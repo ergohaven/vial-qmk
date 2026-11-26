@@ -75,7 +75,7 @@ OPT_DEFS += -fstack-usage
 SRC += flash_gate.c
 SRC += flash_guard.c
 
-# Dedicated 32KiB three-profile journal precedes unchanged extension/EEPROM.
+# Read-only legacy application-profile archive; no erase/program entrypoints.
 SRC += resident_cache_flash.c
 # One conservative code ceiling drives both production C and linker guards.
 SM62_CODE_FLASH_LIMIT := 0x1f2000

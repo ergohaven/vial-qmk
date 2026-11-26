@@ -12,6 +12,9 @@
 #endif
 #ifdef EH_APP_LAYOUT_ENABLE
 #    include "vial.h"
+#    ifdef EH_APP_LAYOUT_MATRIX_ENABLE
+#        include "encoder.h"
+#    endif
 #endif
 #ifdef EH_STANDBY_BACKGROUND_ENABLE
 #    include "src/display/eh_background.h"
@@ -43,6 +46,21 @@ __attribute__((weak)) void hid_app_layout_changed_kb(void) {}
 #        define EH_APP_LAYOUT_CONTROL_COUNT 62
 #        define EH_APP_LAYOUT_KEY_COUNT 62
 #        include "sm62/application_geometry.h"
+#    elif defined(EH_APP_LAYOUT_MATRIX_ENABLE)
+#        undef EH_APP_LAYOUT_PROTOCOL_VERSION
+#        undef EH_APP_LAYOUT_CONTROL_COUNT
+#        undef EH_APP_LAYOUT_KEY_COUNT
+#        define EH_APP_LAYOUT_PROTOCOL_VERSION 9
+#        define EH_APP_LAYOUT_KEY_COUNT (MATRIX_ROWS * MATRIX_COLS)
+#        define EH_APP_LAYOUT_CONTROL_COUNT (EH_APP_LAYOUT_KEY_COUNT + 2 * NUM_ENCODERS)
+_Static_assert(MATRIX_ROWS > 0 && MATRIX_COLS > 0 && NUM_ENCODERS > 0 && EH_APP_LAYOUT_CONTROL_COUNT <= 104, "application geometry exceeds wire/mask bounds");
+#    endif
+#    if defined(EH_APP_LAYOUT_MATRIX_ENABLE)
+#        define EH_APP_LAYOUT_KEY_SEGMENT_MASK ((1U << ((EH_APP_LAYOUT_CONTROL_COUNT + 12) / 13)) - 1U)
+#        define EH_APP_LAYOUT_VISUAL_SEGMENT_MASK ((1U << ((EH_APP_LAYOUT_CONTROL_COUNT + 26) / 27)) - 1U)
+#    else
+#        define EH_APP_LAYOUT_KEY_SEGMENT_MASK 0x1F
+#        define EH_APP_LAYOUT_VISUAL_SEGMENT_MASK 7
 #    endif
 #    define EH_APP_LAYOUT_LAYER_COUNT 16
 #    define EH_APP_LAYOUT_NAME_BYTES 22
@@ -71,7 +89,7 @@ typedef struct {
     uint32_t chunks;
     uint16_t layer_name_chunks;
     uint16_t visual_chunks;
-#    if defined(KEYBOARD_ergohaven_sm62)
+#    if defined(KEYBOARD_ergohaven_sm62) || defined(EH_APP_LAYOUT_MATRIX_ENABLE)
     uint8_t key_segments[16];
     uint8_t visual_segments[16];
 #    endif
@@ -89,7 +107,7 @@ typedef struct {
 } eh_app_layout_staging_t;
 
 static eh_app_layout_staging_t app_layout_staging;
-#if defined(KEYBOARD_ergohaven_sm62)
+#if defined(KEYBOARD_ergohaven_sm62) || defined(EH_APP_LAYOUT_MATRIX_ENABLE)
 static uint32_t app_layout_staging_time;
 #endif
 static bool                    app_layout_active;
@@ -250,6 +268,8 @@ void hid_app_layout_task(void) {
     app_layout_session_live();
 #if defined(KEYBOARD_ergohaven_sm62)
     app_compact_expire();
+#endif
+#if defined(KEYBOARD_ergohaven_sm62) || defined(EH_APP_LAYOUT_MATRIX_ENABLE)
     if (app_layout_staging.valid && timer_elapsed32(app_layout_staging_time) >= EH_APP_LAYOUT_TIMEOUT_MS) app_layout_staging.valid = false;
 #endif
 }
@@ -261,11 +281,11 @@ void hid_app_layout_task(void) {
  * versions, sizes and E6 subcommands retain the ordinary FIFO path. */
 bool hid_app_layout_packet_safe_during_refresh(const uint8_t *data, uint8_t length) {
     if (length==32 && data[0]==0xEF && data[1]==9)
-        return data[2]==0 || data[2]==2 || data[2]==3 || data[2]==5 || data[2]==6;
+        return data[2]==0 || data[2]==2 || data[2]==3 || data[2]==5 || data[2]==6 || data[2]==7;
     if (length != 32 || data[1] != EH_APP_LAYOUT_PROTOCOL_VERSION) return false;
     switch (data[0]) {
         case 0xEB:
-            return data[2] == 0xA5 && (data[3] == 1 || data[3] == 2);
+            return data[2] == 0xA5 && (data[3] == 1 || data[3] == 2 || data[3] == 3);
         case 0xEF:
             return data[2] == 0 || data[2] == 2; /* STORE must wait for flash/render quiescence. */
         case 0xEC:
@@ -299,7 +319,31 @@ bool hid_app_layout_process_packet(uint8_t *data, uint8_t length) {
          data[0] == EH_APP_LAYOUT_VISUALS || data[0] == EH_APP_LAYOUT_LAYER_NAME || data[0] == EH_APP_LAYOUT_ENCODER_STACK)) app_compact_reset();
 #endif
     if (length < 2 || data[1] != EH_APP_LAYOUT_PROTOCOL_VERSION) return false;
-#if defined(KEYBOARD_ergohaven_sm62)
+#if defined(EH_APP_LAYOUT_MATRIX_ENABLE)
+    // EBv9 is read-only and nonce-correlated. Malformed/legacy requests echo
+    // unchanged; they must never resemble a positive capability response.
+    if (data[0] == 0xEB) {
+        if (length != 32 || data[2] != 0xA5 || data[3] != 1) return true;
+        for (uint8_t i = 8; i < 32; i++) if (data[i] != 0) return true;
+        data[2] = 0x5A;
+        data[8] = EH_APP_LAYOUT_LAYER_COUNT;
+        data[9] = MATRIX_ROWS;
+        data[10] = MATRIX_COLS;
+        data[11] = NUM_ENCODERS;
+        data[12] = EH_APP_LAYOUT_KEY_COUNT;
+        data[13] = EH_APP_LAYOUT_CONTROL_COUNT;
+        data[14] = EH_APP_LAYOUT_NAME_BYTES;
+        data[15] = 1; // Host-managed RAM; no device presets/stacks/archive.
+        data[16] = 13;
+        data[17] = 27;
+        data[18] = EH_APP_LAYOUT_STACK_SLOTS;
+        data[19] = EH_APP_LAYOUT_STACK_NAME_BYTES;
+        data[20] = EH_APP_LAYOUT_TIMEOUT_MS & 0xFF;
+        data[21] = EH_APP_LAYOUT_TIMEOUT_MS >> 8;
+        return true;
+    }
+#endif
+#if defined(KEYBOARD_ergohaven_sm62) || defined(EH_APP_LAYOUT_MATRIX_ENABLE)
     if (app_layout_staging.valid && timer_elapsed32(app_layout_staging_time) >= EH_APP_LAYOUT_TIMEOUT_MS) app_layout_staging.valid = false;
 #endif
     switch (data[0]) {
@@ -313,7 +357,7 @@ bool hid_app_layout_process_packet(uint8_t *data, uint8_t length) {
             return true;
 
         case EH_APP_LAYOUT_BEGIN:
-#if defined(KEYBOARD_ergohaven_sm62)
+#if defined(KEYBOARD_ergohaven_sm62) || defined(EH_APP_LAYOUT_MATRIX_ENABLE)
             app_layout_staging.valid = false;
             app_layout_staging_time = timer_read32();
 #endif
@@ -334,7 +378,7 @@ bool hid_app_layout_process_packet(uint8_t *data, uint8_t length) {
             uint8_t layer    = data[2];
             uint8_t start    = data[3];
             uint8_t count    = data[4];
-#    if defined(KEYBOARD_ergohaven_sm62)
+#    if defined(KEYBOARD_ergohaven_sm62) || defined(EH_APP_LAYOUT_MATRIX_ENABLE)
             if (layer >= EH_APP_LAYOUT_LAYER_COUNT || start >= EH_APP_LAYOUT_CONTROL_COUNT || start % 13 != 0) return true;
             uint8_t expected = EH_APP_LAYOUT_CONTROL_COUNT - start;
             if (expected > 13) expected = 13;
@@ -349,9 +393,9 @@ bool hid_app_layout_process_packet(uint8_t *data, uint8_t length) {
                 uint8_t offset = 5 + index * 2;
                 app_layout_staging.keycodes[layer][start + index] = data[offset] | ((uint16_t)data[offset + 1] << 8);
             }
-#    if defined(KEYBOARD_ergohaven_sm62)
+#    if defined(KEYBOARD_ergohaven_sm62) || defined(EH_APP_LAYOUT_MATRIX_ENABLE)
             app_layout_staging.key_segments[layer] |= (uint8_t)1U << (start / 13);
-            if (app_layout_staging.key_segments[layer] == 0x1F) app_layout_staging.chunks |= (uint32_t)3U << (layer * 2);
+            if (app_layout_staging.key_segments[layer] == EH_APP_LAYOUT_KEY_SEGMENT_MASK) app_layout_staging.chunks |= (uint32_t)3U << (layer * 2);
 #    else
             uint8_t chunk = layer * 2 + (start == 0 ? 0 : 1);
             app_layout_staging.chunks |= (uint32_t)1U << chunk;
@@ -362,7 +406,7 @@ bool hid_app_layout_process_packet(uint8_t *data, uint8_t length) {
         case EH_APP_LAYOUT_VISUALS: {
             if (!app_layout_staging.valid || length < 4) return true;
             uint8_t layer = data[2];
-#    if defined(KEYBOARD_ergohaven_sm62)
+#    if defined(KEYBOARD_ergohaven_sm62) || defined(EH_APP_LAYOUT_MATRIX_ENABLE)
             if (length < 5) return true;
             uint8_t start = data[3], count = data[4];
             if (layer >= EH_APP_LAYOUT_LAYER_COUNT || start >= EH_APP_LAYOUT_CONTROL_COUNT || start % 27 != 0) return true;
@@ -371,7 +415,7 @@ bool hid_app_layout_process_packet(uint8_t *data, uint8_t length) {
             if (count != expected || length < (uint8_t)(5 + count)) return true;
             memcpy(app_layout_staging.visuals[layer] + start, data + 5, count);
             app_layout_staging.visual_segments[layer] |= (uint8_t)1U << (start / 27);
-            if (app_layout_staging.visual_segments[layer] == 7) app_layout_staging.visual_chunks |= (uint16_t)1U << layer;
+            if (app_layout_staging.visual_segments[layer] == EH_APP_LAYOUT_VISUAL_SEGMENT_MASK) app_layout_staging.visual_chunks |= (uint16_t)1U << layer;
 #    else
             uint8_t count = data[3];
             if (layer >= EH_APP_LAYOUT_LAYER_COUNT || count != EH_APP_LAYOUT_CONTROL_COUNT ||
@@ -400,6 +444,10 @@ bool hid_app_layout_process_packet(uint8_t *data, uint8_t length) {
         case EH_APP_LAYOUT_ENCODER_STACK: {
             if (!app_layout_staging.valid || length < 10) return true;
             uint8_t layer = data[2], slot = data[3], count = data[4], name_length = data[5];
+#if defined(EH_APP_LAYOUT_MATRIX_ENABLE)
+            // Retain the common CRC fields, but v9 has no encoder stacks.
+            if (count || name_length || data[6] || data[7] || data[8] || data[9]) return true;
+#endif
             if (layer >= EH_APP_LAYOUT_LAYER_COUNT || slot >= EH_APP_LAYOUT_STACK_SLOTS ||
                 (count != 0 && (count < 2 || count > EH_APP_LAYOUT_STACK_SLOTS)) ||
                 name_length > EH_APP_LAYOUT_STACK_NAME_BYTES || length < (uint8_t)(10 + name_length) ||
@@ -628,7 +676,17 @@ static bool app_layout_dispatch_control(uint8_t control, bool pressed, bool enco
 }
 
 static bool app_layout_control_for_position(uint8_t row, uint8_t col, uint8_t *control) {
-#    if defined(KEYBOARD_ergohaven_sm62)
+#    if defined(EH_APP_LAYOUT_MATRIX_ENABLE)
+    if (row < MATRIX_ROWS && col < MATRIX_COLS) {
+        *control = row * MATRIX_COLS + col;
+        return true;
+    }
+    if ((row == KEYLOC_ENCODER_CW || row == KEYLOC_ENCODER_CCW) && col < NUM_ENCODERS) {
+        *control = EH_APP_LAYOUT_KEY_COUNT + 2 * col + (row == KEYLOC_ENCODER_CW ? 1 : 0);
+        return true;
+    }
+    return false;
+#    elif defined(KEYBOARD_ergohaven_sm62)
     for (uint8_t i = 0; i < EH_APP_LAYOUT_KEY_COUNT; ++i) {
         if (sm62_application_positions[i][0] == row && sm62_application_positions[i][1] == col) {
             *control = i;
@@ -649,7 +707,7 @@ bool hid_app_layout_process_keyevent(uint8_t row, uint8_t col, bool pressed) {
     return app_layout_control_for_position(row, col, &control) && app_layout_dispatch_control(control, pressed, false);
 }
 
-#if defined(KEYBOARD_ergohaven_sm62)
+#if defined(KEYBOARD_ergohaven_sm62) || defined(EH_APP_LAYOUT_MATRIX_ENABLE)
 /* Combo's delayed replay bypasses pre_process_record_kb. The record already
  * owns its press-time keycode; only publish receipt here, then let the normal
  * QMK processors handle both edges (including Key Override and Tap Dance).
@@ -1239,6 +1297,8 @@ void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
     bool app_layout_event_poll = length > 0 && (data[0] == EH_APP_LAYOUT_EVENT_POLL
 #if defined(KEYBOARD_ergohaven_sm62)
         || data[0] == 0xEB || data[0] == 0xEF
+#elif defined(EH_APP_LAYOUT_MATRIX_ENABLE)
+        || data[0] == 0xEB
 #endif
     );
     if (hid_app_layout_process_packet(data, length)) {
@@ -1290,6 +1350,8 @@ void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
     bool app_layout_event_poll = length > 0 && (data[0] == EH_APP_LAYOUT_EVENT_POLL
 #if defined(KEYBOARD_ergohaven_sm62)
         || data[0] == 0xEB || data[0] == 0xEF
+#elif defined(EH_APP_LAYOUT_MATRIX_ENABLE)
+        || data[0] == 0xEB
 #endif
     );
     if (hid_app_layout_process_packet(data, length)) {

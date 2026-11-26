@@ -147,7 +147,7 @@ void vial_get_unlock_combo_coords(uint8_t *rows, uint8_t *cols, size_t count) {
 #endif
 
 bool pre_process_record_kb(uint16_t keycode, keyrecord_t* record) {
-#ifdef EH_HAS_DISPLAY
+#if defined(EH_HAS_DISPLAY) || defined(EH_APP_LAYOUT_ENABLE)
 #    if defined(ENCODER_ENABLE) && defined(ENCODER_MAP_ENABLE)
     if (IS_ENCODEREVENT(record->event) &&
         (record->event.key.row == KEYLOC_ENCODER_CW || record->event.key.row == KEYLOC_ENCODER_CCW)) {
@@ -155,8 +155,38 @@ bool pre_process_record_kb(uint16_t keycode, keyrecord_t* record) {
         bool app_layout_handled = false;
 #        endif
         if (record->event.pressed) {
+#        ifdef EH_HAS_DISPLAY
             display_process_encoder_event(record->event.key.col, record->event.key.row == KEYLOC_ENCODER_CW, keycode);
+#        endif
         }
+#        ifdef EH_APP_LAYOUT_MATRIX_ENABLE
+        // Use the encoder-map QMK record, never direct Vial tap injection.
+        // Like matrix presses, retain both the binding and its host receipt
+        // identity through Combo/tapping replay and a profile/lease change.
+        if (record->event.key.col < NUM_ENCODERS) {
+            static uint16_t encoder_keycodes[NUM_ENCODERS][2];
+            static uint32_t encoder_revisions[NUM_ENCODERS][2];
+            static uint8_t encoder_layers[NUM_ENCODERS][2];
+            uint8_t index = record->event.key.col;
+            uint8_t direction = record->event.key.row == KEYLOC_ENCODER_CW ? 1 : 0;
+            if (record->event.pressed) {
+                uint16_t app_keycode;
+                encoder_keycodes[index][direction] = 0;
+                if (hid_app_layout_get_combo_keycode(record->event.key.row, index, &app_keycode)) {
+                    encoder_keycodes[index][direction] = app_keycode == KC_NO ? UINT16_MAX : app_keycode;
+                    hid_app_layout_capture_identity(&encoder_revisions[index][direction], &encoder_layers[index][direction]);
+                }
+            }
+            uint16_t app_keycode = encoder_keycodes[index][direction];
+            if (!record->event.pressed) encoder_keycodes[index][direction] = 0;
+            if (app_keycode != 0) {
+                record->keycode = app_keycode;
+                record->app_layout_revision = encoder_revisions[index][direction];
+                record->app_layout_layer = encoder_layers[index][direction];
+                return true;
+            }
+        }
+#        endif
 #        ifdef EH_APP_LAYOUT_ENABLE
         app_layout_handled = hid_app_layout_process_encoder_event(record->event.key.col, record->event.key.row == KEYLOC_ENCODER_CW, record->event.pressed);
         if (app_layout_handled) return false;
@@ -164,10 +194,12 @@ bool pre_process_record_kb(uint16_t keycode, keyrecord_t* record) {
     } else
 #    endif
     {
+#ifdef EH_HAS_DISPLAY
 #if defined(KEYBOARD_ergohaven_sm62)
         if (IS_KEYEVENT(record->event) && record->event.key.row < MATRIX_ROWS && record->event.key.col < MATRIX_COLS)
 #endif
             display_process_keyevent(record->event.key.row, record->event.key.col, record->event.pressed);
+#endif
 #    ifdef EH_APP_LAYOUT_ENABLE
 #        ifdef COMBO_ENABLE
         if (IS_KEYEVENT(record->event) && record->event.key.row < MATRIX_ROWS && record->event.key.col < MATRIX_COLS) {
@@ -176,7 +208,7 @@ bool pre_process_record_kb(uint16_t keycode, keyrecord_t* record) {
             // Entropy replaces/disables its layout while the key is held. Zero
             // means the press used QMK's normal keymap/layer-cache path.
             static uint16_t combo_keycodes[MATRIX_ROWS][MATRIX_COLS];
-#if defined(KEYBOARD_ergohaven_sm62)
+#if defined(KEYBOARD_ergohaven_sm62) || defined(EH_APP_LAYOUT_MATRIX_ENABLE)
             static uint32_t combo_revisions[MATRIX_ROWS][MATRIX_COLS];
             static uint8_t combo_layers[MATRIX_ROWS][MATRIX_COLS];
             uint32_t *held_revision = &combo_revisions[record->event.key.row][record->event.key.col];
@@ -190,7 +222,7 @@ bool pre_process_record_kb(uint16_t keycode, keyrecord_t* record) {
                     // KC_NO needs a nonzero sentinel: get_record_keycode treats
                     // zero as "look up the Vial keymap".
                     *held_keycode = app_keycode == KC_NO ? UINT16_MAX : app_keycode;
-#if defined(KEYBOARD_ergohaven_sm62)
+#if defined(KEYBOARD_ergohaven_sm62) || defined(EH_APP_LAYOUT_MATRIX_ENABLE)
                     hid_app_layout_capture_identity(held_revision, held_layer);
 #endif
                 }
@@ -199,7 +231,7 @@ bool pre_process_record_kb(uint16_t keycode, keyrecord_t* record) {
             if (!record->event.pressed) *held_keycode = 0;
             if (app_keycode != 0) {
                 record->keycode = app_keycode;
-#if defined(KEYBOARD_ergohaven_sm62)
+#if defined(KEYBOARD_ergohaven_sm62) || defined(EH_APP_LAYOUT_MATRIX_ENABLE)
                 record->app_layout_revision = *held_revision;
                 record->app_layout_layer = *held_layer;
 #endif
@@ -226,11 +258,15 @@ bool encoder_update_kb(uint8_t index, bool clockwise) {
 #endif
 
 bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
-#if defined(EH_HAS_DISPLAY) && defined(EH_APP_LAYOUT_ENABLE) && defined(COMBO_ENABLE)
+#if defined(EH_APP_LAYOUT_ENABLE) && defined(COMBO_ENABLE)
     // Combo delays and replays candidate key events. Dispatch the Entropy
     // binding only after it has either rejected the combo or passed the key.
+#if defined(EH_APP_LAYOUT_MATRIX_ENABLE)
+    if ((IS_KEYEVENT(record->event) || IS_ENCODEREVENT(record->event)) &&
+#else
     if (IS_KEYEVENT(record->event) &&
-#if defined(KEYBOARD_ergohaven_sm62)
+#endif
+#if defined(KEYBOARD_ergohaven_sm62) || defined(EH_APP_LAYOUT_MATRIX_ENABLE)
         hid_app_layout_process_cached_keyevent(record->event.key.row, record->event.key.col, record->event.pressed, record->keycode, record->app_layout_revision, record->app_layout_layer)) return false;
 #else
         hid_app_layout_process_keyevent(record->event.key.row, record->event.key.col, record->event.pressed)) return false;

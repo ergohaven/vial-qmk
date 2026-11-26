@@ -31,7 +31,9 @@ LV_FONT_DECLARE(sm62_font_zen_medium_28);
 #define KEYMAP_ACTIVE_TEXT 0x070705
 #define KEYMAP_RELEASE_BG  KEYMAP_ACTIVE_BG
 
-#define KEYMAP_RELEASE_FADE_MS  96U
+#define KEYMAP_RELEASE_FADE_MS  50U
+/* Preserve the existing view lease independently of the shorter color fade. */
+#define KEYMAP_RELEASE_VIEW_MS  96U
 #if SM62_FAST_RETURN
 #    define KEYMAP_POST_FADE_HOLD_MS 70U
 #else
@@ -81,6 +83,7 @@ static uint8_t rendered_state[9];
 static uint8_t rendered_mix[9];
 static uint8_t first_row;
 static uint8_t first_visual_col;
+static bool focus_initialized;
 static uint8_t previous_layer = 0xFF;
 static bool previous_side_left;
 static bool force_refresh;
@@ -758,15 +761,22 @@ static void update_widget_content(key_widgets_t *widget, bool left, uint8_t laye
 static void reset_focus(bool left) {
     first_row = 1;
     first_visual_col = left ? 2 : 0; /* QWE / ASD / ZXC; YUI / HJK / NM, */
+    focus_initialized = false;
 }
 
-/* Center every real press, clamping to the physical span through that key.
- * Shifted outside switches and the short thumb row have their own edges;
- * the rectangular matrix bounds alone would leave empty rows/columns. */
+/* Keep the 3x3 window still while typing inside it. Only crossing an edge
+ * pans that axis, by the minimum distance needed to reveal the new key.
+ * A fresh/layer anchor starts around the press, with the QWERT row at the
+ * top to prefer letters below it over the number row. Physical-span clamps
+ * keep corners, shifted outside switches and the short thumb row inward. */
 static void focus_key(bool left, uint8_t row, uint8_t col) {
     if (!physical_key_exists(left, row, col)) return;
     uint8_t visual_row = visual_row_from_matrix(left, row, col);
     uint8_t visual_col = visual_col_from_matrix(left, col);
+    bool fresh = !focus_initialized || focus_next_press_after_layer_change;
+    if (!fresh && visual_row >= first_row && visual_row <= first_row + 2U &&
+        visual_col >= first_visual_col && visual_col <= first_visual_col + 2U) return;
+
     uint8_t min_row = visual_row, max_row = visual_row;
     uint8_t min_col = visual_col, max_col = visual_col;
     while (min_row > 0U && visual_key_exists(left, min_row - 1U, col)) --min_row;
@@ -774,28 +784,41 @@ static void focus_key(bool left, uint8_t row, uint8_t col) {
     while (min_col > 0U && visual_key_exists(left, visual_row, matrix_col_from_visual(left, min_col - 1U))) --min_col;
     while (max_col < 6U && visual_key_exists(left, visual_row, matrix_col_from_visual(left, max_col + 1U))) ++max_col;
 
-    first_row = visual_row > 0U ? visual_row - 1U : 0U;
-    first_visual_col = visual_col > 0U ? visual_col - 1U : 0U;
+    if (fresh) {
+        first_row = visual_row == 1U ? 1U : (visual_row > 0U ? visual_row - 1U : 0U);
+        first_visual_col = visual_col > 0U ? visual_col - 1U : 0U;
+    } else {
+        if (visual_row < first_row) first_row = visual_row;
+        else if (visual_row > first_row + 2U) first_row = visual_row - 2U;
+        if (visual_col < first_visual_col) first_visual_col = visual_col;
+        else if (visual_col > first_visual_col + 2U) first_visual_col = visual_col - 2U;
+    }
     if (first_row < min_row) first_row = min_row;
     if (first_row + 2U > max_row) first_row = max_row - 2U;
     if (first_visual_col < min_col) first_visual_col = min_col;
     if (first_visual_col + 2U > max_col) first_visual_col = max_col - 2U;
+    focus_initialized = true;
 }
 
-/* Stock layout hold is 200 ms, not the 96 ms color fade. Temporary views
- * use max(1, hold / (2 * 200)); permanent keymap remains unchanged.
- * Read the local setting live for painting and view lifetime alike.
- * uint32_t intermediates are safe across the uint16_t setting range. */
+/* Color response is fixed, not stretched by the user's view-hold setting. */
 static uint32_t keymap_release_fade_ms(void) {
+    return KEYMAP_RELEASE_FADE_MS;
+}
+
+/* Keep the previous release/view lifetime, including its hold-dependent
+ * scaling and post-fade tail. Faster color decay must not change when a
+ * temporary layout returns to the main screen. */
+static uint32_t keymap_release_view_ms(void) {
     uint32_t hold = sm62_local_keymap_hold_ms();
-    if (sm62_local_display_settings()->mode == 3 || hold <= 400U)
-        return KEYMAP_RELEASE_FADE_MS;
-    return (KEYMAP_RELEASE_FADE_MS * hold) / 400U;
+    uint32_t duration = KEYMAP_RELEASE_VIEW_MS;
+    if (sm62_local_display_settings()->mode != 3 && hold > 400U)
+        duration = (duration * hold) / 400U;
+    return duration + KEYMAP_POST_FADE_HOLD_MS;
 }
 
 static bool keymap_release_pending(uint8_t row, uint8_t col) {
     if (released_fading[row][col] &&
-        timer_elapsed32(released_at[row][col]) >= keymap_release_fade_ms() + KEYMAP_POST_FADE_HOLD_MS)
+        timer_elapsed32(released_at[row][col]) >= keymap_release_view_ms())
         released_fading[row][col] = false;
     return released_fading[row][col];
 }
@@ -809,12 +832,12 @@ static key_visual_state_t key_visual_state(uint8_t row, uint8_t col, uint8_t *re
     uint32_t elapsed = timer_elapsed32(released_at[row][col]);
     uint32_t fade = keymap_release_fade_ms();
     if (elapsed >= fade) {
-        /* Keep the layout visible for 70 ms after the release fade, while
-         * rendering the key in its normal resting state. */
+        /* The original view lease can outlive the color fade. */
         return KEY_VISUAL_REST;
     }
 
-    *release_mix = (uint8_t)(((fade - elapsed) * 255U) / fade);
+    uint32_t remaining = fade - elapsed;
+    *release_mix = (uint8_t)((remaining * remaining * 255U) / (fade * fade));
     return KEY_VISUAL_RELEASED;
 }
 
@@ -909,6 +932,21 @@ static void refresh_grid_lines(bool left) {
 }
 
 static void refresh_grid(bool left, uint8_t layer, bool content_refresh) {
+    bool window_changed = content_refresh;
+    for (uint8_t i = 0; i < ARRAY_SIZE(keys) && !window_changed; ++i) {
+        uint8_t col = matrix_col_from_visual(left, first_visual_col + i % 3U);
+        uint8_t row = matrix_row_from_visual(left, first_row + i / 3U, col);
+        window_changed = rendered_row[i] != row || rendered_col[i] != col;
+    }
+    if (window_changed) {
+        /* Seed one dirty region BEFORE changing the nine cells. LVGL then
+         * absorbs their child/style invalidations instead of overflowing its
+         * small dirty list into a whole-panel redraw. Include all fixed key,
+         * separator and junction bounds, but leave unchanged margins alone.
+         * This changes no flush buffer or input-service scheduling. */
+        const lv_area_t grid_area = {6, 26, 233, 252};
+        lv_obj_invalidate_area(screen_keymap, &grid_area);
+    }
     bool geometry_changed = false;
     for (uint8_t row = 0; row < 3; ++row) {
         for (uint8_t col = 0; col < 3; ++col) {
@@ -1198,6 +1236,7 @@ static void screen_keymap_housekeep(void) {
     if (layer != previous_layer) {
         uint8_t old_layer = previous_layer;
         previous_layer = layer;
+        focus_next_press_after_layer_change = old_layer != 0xFF;
         /* A simultaneous non-layer press can arrive in the same matrix scan. */
         if (old_layer != 0xFF && recent_press_valid) {
             uint16_t keycode = sm62_effective_keycode(old_layer, global_row(left, recent_press_row), recent_press_col);

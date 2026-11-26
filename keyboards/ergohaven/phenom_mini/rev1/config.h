@@ -1,6 +1,8 @@
 #pragma once
 
 #define EH_PHENOM_LAYER_NAMES
+#define EH_APP_LAYOUT_ENABLE
+#define EH_APP_LAYOUT_MATRIX_ENABLE
 
 #define EH_SHORT_PRODUCT_NAME "Phenom Mini"
 

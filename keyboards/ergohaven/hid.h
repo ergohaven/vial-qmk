@@ -60,7 +60,7 @@ void hid_app_layout_changed_kb(void);
 bool hid_app_layout_process_packet(uint8_t *data, uint8_t length);
 bool hid_app_layout_process_keyevent(uint8_t row, uint8_t col, bool pressed);
 bool hid_app_layout_get_combo_keycode(uint8_t row, uint8_t col, uint16_t *keycode);
-#if defined(KEYBOARD_ergohaven_sm62)
+#if defined(KEYBOARD_ergohaven_sm62) || defined(EH_APP_LAYOUT_MATRIX_ENABLE)
 bool hid_app_layout_process_cached_keyevent(uint8_t row, uint8_t col, bool pressed, uint16_t keycode, uint32_t revision, uint8_t layer);
 void hid_app_layout_capture_identity(uint32_t *revision, uint8_t *layer);
 #endif

@@ -4,7 +4,7 @@
 #define APP_COMPACT_LIMIT 4560
 static struct {
     bool valid;
-    uint8_t codec, mode;
+    uint8_t codec;
     uint16_t encoded, decoded, count, sequence, received;
     uint32_t transaction, decoded_crc, encoded_crc, started;
     uint8_t input[APP_COMPACT_LIMIT], output[APP_COMPACT_LIMIT];
@@ -25,11 +25,9 @@ static uint32_t app_compact_crc(const uint8_t *p, unsigned n) {
     return ~crc;
 }
 #include "resident_cache.h"
-static bool app_compact_last_valid;
-static unsigned app_compact_last_size;
-static void app_compact_reset(void) { app_compact.valid = false; app_compact_last_valid = false; }
+static void app_compact_reset(void) { app_compact.valid = false; }
 static void app_compact_expire(void) {
-    if ((app_compact.valid || app_compact_last_valid) && timer_elapsed32(app_compact.started) >= EH_APP_LAYOUT_TIMEOUT_MS) {
+    if (app_compact.valid && timer_elapsed32(app_compact.started) >= EH_APP_LAYOUT_TIMEOUT_MS) {
         app_compact_reset();
         app_layout_staging.valid = false;
     }
@@ -106,18 +104,17 @@ static bool app_compact_expand(uint8_t *b, unsigned size) {
     app_compact_replaying = false;
     return app_compact_validate_only ? app_compact_validated : app_layout_visual_generation != generation;
 }
-static bool app_compact_ready(const uint8_t *p) {
-    return app_compact_last_valid && app_compact.mode==2 && !app_compact.valid &&
-        timer_elapsed32(app_compact.started)<EH_APP_LAYOUT_TIMEOUT_MS &&
-        app_layout_read_u32(p+4)==app_compact.transaction && app_compact.output[2]==1 &&
-        app_compact.output[41]==0x57 && app_compact.output[42]==2 &&
-        !memcmp(p+8,app_compact.output+43,20) && app_layout_read_u32(p+28)==app_compact.decoded_crc;
-}
 static void app_resident_packet(uint8_t *p) {
     unsigned op=p[2],slot=p[3],status=2;
+    if(op==7) {
+        bool valid=!slot && app_compact_zero(p+8,24);
+        memset(p+8,0,24);
+        p[2]=0x87;p[3]=valid?cache_inventory(p+8):2;
+        return;
+    }
     if(op==6) {
         unsigned off=app_compact_u16(p+8),n=p[10],actual=0;
-        bool valid=slot<100 && n>=1 && n<=20 && !p[11] && app_compact_zero(p+12,20);
+        bool valid=slot<SM62_CACHE_SLOTS && n>=1 && n<=20 && !p[11] && app_compact_zero(p+12,20);
         const uint8_t *record=0;
         if(valid) {
             int r=cache_current(slot);record=r>=0?sm62_cache_flash_record(r):0;
@@ -134,40 +131,19 @@ static void app_resident_packet(uint8_t *p) {
         if(!status && actual) memcpy(p+12,record+256+off,actual);
         return;
     }
-    if(op==2) app_compact_reset();
-    if(slot<100 && op<=5) {
+    // The former journal is an immutable migration archive. Old clients must
+    // never STORE, SELECT, DELETE or stage a persistent profile on this firmware.
+    if(slot<SM62_CACHE_SLOTS && (op==0 || op==3)) {
         int r=cache_current(slot);
         const uint8_t *record=r>=0?sm62_cache_flash_record(r):0;
         bool present=record && record[6]==1;
-        bool match=present && !memcmp(record+20,p+8,20) && app_layout_read_u32(record+16)==app_layout_read_u32(p+28);
-        /* Confirm the current indexed payload, not only the CRC stored in its
-         * header. This is a bounded single-record command path, never a key path. */
-        if(op!=5 && !cache_scanned) status=3;
-        else if(op!=5 && record && !cache_record_integrity(r)) status=7;
-        else if(op==0) status=match?0:1;
-        else if(op==3) {
-            if(!app_compact_zero(p+8,24)) status=2;
-            else {
-                status=present?0:1;
-                if(present) {memcpy(p+8,record+20,20);memcpy(p+28,record+16,4);}
-            }
-        } else if(op==5) status=app_compact_ready(p)?0:3;
-        else if(op==1) {
-            if(!app_compact_ready(p)) status=3;
-            else if(present && memcmp(record+20,p+8,20)) status=6;
-            else if(cache_generation==UINT32_MAX && !match) status=8;
-            else status=cache_store(slot,p+8,app_layout_read_u32(p+28),app_compact.output,app_compact_last_size)?0:5;
-        } else if(op==4) {
-            if(!match) status=1;
-            else if(cache_generation==UINT32_MAX) status=8;
-            else status=cache_append(slot,p+8,app_layout_read_u32(p+28),0,0,true)?0:5;
-        } else if(op==2) {
-            if(!match) status=1;
-            else {
-                unsigned n=app_compact_u16(record+12);
-                memcpy(app_compact.output,record+256,n);
-                status=app_compact_expand(app_compact.output,n)?0:7;
-            }
+        if(!cache_scanned) status=3;
+        else if(record && !cache_record_integrity(r)) status=7;
+        else if(op==0) status=present && !memcmp(record+20,p+8,20)
+            && app_layout_read_u32(record+16)==app_layout_read_u32(p+28) ? 0 : 1;
+        else if(app_compact_zero(p+8,24)) {
+            status=present?0:1;
+            if(present) {memcpy(p+8,record+20,20);memcpy(p+28,record+16,4);}
         }
     }
     p[2]=op|0x80;p[3]=status;
@@ -186,23 +162,27 @@ static bool app_compact_packet(uint8_t *p, uint8_t length) {
         return true;
     }
     if (p[0] == 0xEB) {
-        if (length == 32 && p[1] == 8 && p[2] == 0xA5 && (p[3] == 1 || p[3] == 2) && app_compact_zero(p + 8, 24)) {
-            p[2] = 0x5A; p[8] = p[3]==2 ? 2 : 3; p[9] = p[3]==2 ? 100 : 0;
-            p[10] = APP_COMPACT_LIMIT & 255; p[11] = APP_COMPACT_LIMIT >> 8;
-            if(p[3]==2) {
-                p[12]=16;p[13]=62;p[14]=22;cache_put32(p+16,4194304);cache_put32(p+20,15);p[24]=2;
+        if (length == 32 && p[1] == 8 && p[2] == 0xA5 && (p[3] == 1 || p[3] == 3) && app_compact_zero(p + 8, 24)) {
+            p[2]=0x5A;p[8]=3;p[9]=0;
+            p[10]=APP_COMPACT_LIMIT & 255;p[11]=APP_COMPACT_LIMIT >> 8;
+            if(p[3]==3) {
+                p[12]=16;p[13]=62;p[14]=22;
+                cache_put32(p+16,4194304);cache_put32(p+20,1);
+                p[24]=2;p[25]=SM62_CACHE_SLOTS;p[26]=1;
             }
         }
+        // Exact EBv2 request echo is the existing correlated unsupported reply.
+        // Earlier Entropy falls back to EBv1 RAM streaming without touching flash.
         return true;
     }
     if (length != 32 || p[1] != 8) goto invalid;
     if (p[0] == 0xEC) {
         app_compact_reset(); app_layout_staging.valid = false;
         unsigned encoded = app_compact_u16(p + 8), decoded = app_compact_u16(p + 10), count = app_compact_u16(p + 12);
-        if ((p[2] != 1 && p[2] != 2) || p[3] > 1 || !encoded || encoded > APP_COMPACT_LIMIT || decoded < 3440 || decoded > APP_COMPACT_LIMIT ||
+        if (p[2] != 1 || p[3] > 1 || !encoded || encoded > APP_COMPACT_LIMIT || decoded < 3440 || decoded > APP_COMPACT_LIMIT ||
             count != (encoded + 23) / 24 || !app_compact_zero(p + 14, 2) || !app_compact_zero(p + 24, 8) ||
             (!p[3] && encoded != decoded) || (p[3] && encoded >= decoded)) goto invalid;
-        app_compact.mode = p[2]; app_compact.codec = p[3]; app_compact.transaction = app_layout_read_u32(p + 4);
+        app_compact.codec = p[3]; app_compact.transaction = app_layout_read_u32(p + 4);
         app_compact.encoded = encoded; app_compact.decoded = decoded; app_compact.count = count;
         app_compact.decoded_crc = app_layout_read_u32(p + 16); app_compact.encoded_crc = app_layout_read_u32(p + 20);
         app_compact.sequence = app_compact.received = 0; app_compact.started = timer_read32(); app_compact.valid = true;
@@ -232,11 +212,9 @@ static bool app_compact_packet(uint8_t *p, uint8_t length) {
     if (app_compact.codec) { if (!app_compact_decode()) goto invalid; }
     else memcpy(app_compact.output, app_compact.input, app_compact.decoded);
     if (app_compact_crc(app_compact.output, app_compact.decoded) != app_compact.decoded_crc) goto invalid;
-    if (app_compact.mode==2 && (app_compact.output[2]!=1 || app_compact.output[41]!=0x57 || app_compact.output[42]!=2)) goto invalid;
     app_compact.valid = false;
-    bool accepted = app_compact.mode==2 ? cache_payload_valid(app_compact.output,app_compact.decoded) : app_compact_expand(app_compact.output,app_compact.decoded);
+    bool accepted = app_compact_expand(app_compact.output,app_compact.decoded);
     if (!accepted) goto invalid;
-    app_compact_last_valid = true; app_compact_last_size = app_compact.decoded;
     app_compact.started = timer_read32();
     return true;
 invalid:
