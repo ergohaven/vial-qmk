@@ -105,18 +105,19 @@ static void defaults(void) {
     saved.marker = 0x62;
     saved.version = 5;
     /* Factory startup: left clock, right continuous ship; both show the
-     * local layout while keys are pressed. The idle timeout is irrelevant
-     * in ship mode, so keep the right side at zero to make that explicit. */
+     * local layout with English-only labels while keys are pressed.
+     * The idle timeout is irrelevant in ship mode, so keep the right side
+     * at zero to make that explicit. Existing saved settings are retained. */
     saved.side[0] = (sm62_side_settings_t){.mode = 0, .ship_enabled = 0,
                                          .ship_timeout_s = 20, .keymap_enabled = 1,
-                                         .cyrillic_enabled = 1};
+                                         .cyrillic_enabled = 0};
     saved.side[1] = (sm62_side_settings_t){.mode = 2, .ship_enabled = 1,
                                          .ship_timeout_s = 0, .keymap_enabled = 1,
-                                         .cyrillic_enabled = 1};
+                                         .cyrillic_enabled = 0};
     saved.date_enabled[0] = 1;
     saved.date_enabled[1] = 1;
-    saved.keymap_hold_ms[0] = 350;
-    saved.keymap_hold_ms[1] = 350;
+    saved.keymap_hold_ms[0] = 500;
+    saved.keymap_hold_ms[1] = 500;
 }
 
 static bool valid(const sm62_saved_settings_t *value) {
@@ -186,8 +187,8 @@ void kb_settings_extra_init(void) {
             saved.date_enabled[1] = 1;
         }
         if (saved.version < 3) {
-            saved.keymap_hold_ms[0] = 350;
-            saved.keymap_hold_ms[1] = 350;
+            saved.keymap_hold_ms[0] = 500;
+            saved.keymap_hold_ms[1] = 500;
         }
         saved.version = 5;
         persist();
