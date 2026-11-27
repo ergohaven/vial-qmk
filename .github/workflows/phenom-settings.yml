@@ -1,6 +1,7 @@
 name: Phenom settings regressions
 
 on:
+  workflow_dispatch:
   push:
     branches: ['**']
     paths:
