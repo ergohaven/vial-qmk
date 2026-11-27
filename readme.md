@@ -10,23 +10,30 @@ Use [Entropy](https://github.com/ergohaven/entropy) to edit your layout, encoder
 
 Before updating firmware, export your current layout to a file in Entropy so you can restore it if needed.
 
-HPD v2 release builds package the supported module variants in one ZIP, with instructions for selecting and flashing the correct variant.
+For split keyboards, update both halves with matching firmware. Macropad is a standalone device.
 
-## Current release targets
+## QMK 1.0
 
-- Phenom, Phenom Mini and Phenom Micro
-- K:03 v3/v4
-- K:03 Pro v2/v3
-- Imperial44 v3/v4
-- HPD v2
-- Velvet v2/v3
-- Macropad v2/v3
-- SM30 and SM62
-- Trackball v1/v2
+Starting with **1.0**, we are restarting QMK release numbering as we bring our QMK and RMK firmware toward feature parity. This is a new numbering series, not a rollback to older firmware. The two implementations retain their own device-specific features and update schedules.
+
+This release adds Entropy-managed application layouts across the Phenom family, Macropad and SM62, refines the SM62 keymap display, and improves pointing-mode controls and encoder behavior. See the [release notes](keyboards/ergohaven/changelog_ru.md#10) for details.
+
+Application layouts require Entropy running on the connected computer. Factory-layout and default-setting changes do not overwrite your saved configuration.
+
+## Release downloads
+
+The official release includes six model-specific UF2 files:
+
+- Phenom rev1 — `1.0_phenom_v1.uf2`
+- Phenom Mini rev1 — `1.0_phenom_mini_v1.uf2`
+- Phenom Micro rev1 — `1.0_phenom_micro_v1.uf2`
+- Macropad v2 — `1.0_macropad_v2.uf2`
+- Macropad v3 — `1.0_macropad_v3.uf2`
+- SM62 — `1.0_sm62_v1.uf2`
+
+Choose the file matching your model and hardware revision; the files are not interchangeable. Each split model uses the same image for its two halves. Use `SHA256SUMS.txt` from the release to verify your download.
 
 Device sources are in [keyboards/ergohaven](keyboards/ergohaven/). The [release-scope validator](util/ci_ergohaven_release_scope.py) defines the official build inventory.
-
-Retired models are preserved in [archive/ergohaven](archive/ergohaven/README.md) and excluded from current builds. Their historical firmware remains available in Releases. Archived sources are frozen snapshots, not build targets in the current tree.
 
 ## Building firmware
 

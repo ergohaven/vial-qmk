@@ -21,6 +21,13 @@ jobs:
       pull-requests: 'read'
 
     steps:
+      - name: Verify release publisher
+        env:
+          GH_TOKEN: ${{ secrets.ERGOHAVEN_RELEASE_TOKEN }}
+        run: |
+          test -n "$GH_TOKEN"
+          test "$(gh api user --jq .login)" = kissetfall
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -56,6 +63,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
+          token: ${{ secrets.ERGOHAVEN_RELEASE_TOKEN }}
           draft: true
           body_path: release_notes.md
           files: |

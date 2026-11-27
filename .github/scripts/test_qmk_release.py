@@ -21,6 +21,20 @@ def scope_module():
 
 def publisher_before_packaging(text, path):
     name = Path(path).name
+    if name == 'release.yml':
+        # Reverse only the owner-authorized publisher credential change.
+        guard = '''      - name: Verify release publisher
+        env:
+          GH_TOKEN: ${{ secrets.ERGOHAVEN_RELEASE_TOKEN }}
+        run: |
+          test -n "$GH_TOKEN"
+          test "$(gh api user --jq .login)" = kissetfall
+
+'''
+        token = '          token: ${{ secrets.ERGOHAVEN_RELEASE_TOKEN }}\n'
+        if text.count(guard) != 1 or text.count(token) != 1:
+            raise AssertionError('Expected the verified kissetfall release publisher')
+        text = text.replace(guard, '', 1).replace(token, '', 1)
     if name == 'pre-release.yml':
         # Reverse only the separately approved routing change for the historical payload comparison.
         trigger = 'on:\n  workflow_dispatch:\n'
@@ -197,9 +211,32 @@ class ReleaseIdentity(unittest.TestCase):
 
 
 class ReleasePublication(unittest.TestCase):
+    def test_10_notes_readme_and_downloads(self):
+        path = 'keyboards/ergohaven/changelog_ru.md'
+        text = (ROOT / path).read_text()
+        self.assertTrue(text.startswith('## 1.0\n'))
+        notes, history = text.split('## 4.2.0\n', 1)
+        original = subprocess.check_output(
+            ['git', 'show', 'e41deee209235232e81ac86a3e92e1626492ec0c:' + path], cwd=ROOT)
+        self.assertEqual(('## 4.2.0\n' + history).encode(), original)
+        readme = (ROOT / 'readme.md').read_text()
+        for body in (notes, readme):
+            self.assertIn('feature parity', body)
+            self.assertIn('RMK', body)
+            self.assertNotIn('retir', body.lower())
+        for term in ('auto layer', 'auto-layer', 'autolayer', 'автосло'):
+            self.assertNotIn(term, notes.lower())
+        self.assertIn('4.2.0...1.0', notes)
+        expected = {'1.0_' + re.sub(r'rev\d_', '', kb.replace('/', '_') + '_' + km, count=1).replace('ergohaven_', '', 1) + '.uf2'
+                    for kb, km in scope_module().REQUIRED_RELEASE_TARGETS}
+        self.assertEqual(set(re.findall(r'`(1\.0_[^`]+\.uf2)`', readme)), expected)
+        self.assertIn('SHA256SUMS.txt', readme)
+
     def test_420_notes_keep_rmk_sections_and_protected_history(self):
         path = 'keyboards/ergohaven/changelog_ru.md'
         text = (ROOT / path).read_text()
+        # Historical release guarantees apply to that entry, not the newest one.
+        text = '## 4.2.0\n' + text.split('## 4.2.0\n', 1)[1]
         self.assertTrue(text.startswith('## 4.2.0\n'))
         self.assertEqual(text.count('## 4.2.0\n'), 1)
         self.assertNotIn('## 4.2.1\n', text)

@@ -1,3 +1,25 @@
+## 1.0
+
+A new QMK release series as we bring our QMK and RMK firmware toward feature parity. **Numbering restarts at 1.0; this is not a rollback from 4.2.0.**
+
+### What's new
+
+- Entropy-managed application layouts for Phenom, Phenom Mini, Phenom Micro, Macropad and SM62.
+- A steadier SM62 3×3 keymap view that follows recent keypresses, with smoother transitions and less display redrawing.
+- SM62 defaults to English legends and a 500 ms temporary keymap view; Russian legends remain available in settings.
+- Persistent Sticky Mode controls and explicit Normal actions for Phenom pointing modules, together or separately for each half. Releasing an older, cancelled mode key no longer overrides a newer held mode.
+- Phenom encoder actions follow the configured step count without an additional interval delay.
+- Refreshed factory layouts and consistent layer names, with Macropad layer-navigation keys available on all 16 layers.
+- Correct Option-key glyphs in Macropad shortcut labels on macOS.
+
+### Before updating
+
+Export your layout and application profiles, and use the latest Entropy. Choose the UF2 matching your model and hardware revision. For split keyboards, update both halves with matching firmware. Application layouts require Entropy running on the connected computer. Factory-default changes do not overwrite saved layouts or display settings.
+
+Thanks to @IgorArkhipov and @D19ital.
+
+[Full changelog](https://github.com/ergohaven/vial-qmk/compare/4.2.0...1.0)
+
 ## 4.2.0
 
 QMK/Vial firmware for supported Ergohaven keyboards and pointing devices, combining Macropad display refinements and more reliable split-half settings/lighting synchronization with Space Mission 62 (SM62) production-PCB support. SM62 uses one RP2040/4 MiB image for both halves and the synchronous SINGLE/core0 renderer; this is not the old 2 MiB Pico prototype or an experimental DUAL/core1 build.
