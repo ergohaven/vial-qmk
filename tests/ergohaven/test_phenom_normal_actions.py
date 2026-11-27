@@ -61,6 +61,28 @@ int main(void) {
   for(unsigned s=0;s<2;s++) if(n==1 || n==s*2) CHECK(get_split_pointing_side_mode(s)==0);
   CHECK(writes==0);
  }
+ // A newer press must not reactivate a held key cancelled by Normal.
+ // Cover both/left/right mode groups, side-scoped cancellation, sticky taps
+ // versus holds, and either release order without writing saved settings.
+ const unsigned groups[3][3]={{EH_SNP,EH_SCR,EH_TXT},{EH_L_SNP,EH_L_SCR,EH_L_TXT},{EH_USR1,EH_USR2,EH_USR3}};
+ for(unsigned group=0;group<3;group++) for(unsigned old=0;old<3;old++) for(unsigned newer=0;newer<3;newer++) {
+  if(old==newer) continue;
+  for(unsigned n=0;n<3;n++) for(unsigned sticky=0;sticky<2;sticky++) for(unsigned duration=0;duration<2;duration++) for(unsigned order=0;order<2;order++) {
+   reset(POINTING_MODE_TEXT,sticky);
+   key(groups[group][old],true); now+=300;
+   key(normals[n],true); key(normals[n],false);
+   key(groups[group][newer],true); now+=duration?300:10;
+   if(order) key(groups[group][newer],false);
+   key(groups[group][old],false);
+   for(unsigned s=0;s<2;s++) if((group==0 || group==s+1) && (n==1 || n==s*2)) {
+    unsigned expected=order?(sticky?(duration?POINTING_MODE_NORMAL:POINTING_MODE_SNIPER+newer):POINTING_MODE_TEXT):POINTING_MODE_SNIPER+newer;
+    CHECK(get_split_pointing_side_mode(s)==expected);
+   }
+   if(!order) key(groups[group][newer],false);
+   CHECK(writes==0);
+   CHECK(kb_settings_phenom_devices.mode[0]==POINTING_MODE_TEXT && kb_settings_phenom_devices.mode[1]==POINTING_MODE_TEXT);
+  }
+ }
  // Other side's held key must still release normally after a one-sided Normal.
  for(unsigned order=0;order<2;order++) {
   reset(3,false); key(EH_L_SCR,true); key(EH_USR1,true); key(0x7e49,true); key(0x7e49,false); now+=300;

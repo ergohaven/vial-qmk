@@ -389,6 +389,31 @@ static void toggle_split_pointing_side_sticky_override(split_pointing_side_t sid
         set_split_pointing_side_mode_override(side, mode);
     }
 }
+
+typedef struct {
+    uint32_t        normal_epoch;
+    uint16_t        press_timer;
+    bool            prev_override_active;
+    pointing_mode_t prev_override_mode;
+} split_pointing_mode_key_state_t;
+
+static void process_split_pointing_mode_key(uint16_t keycode, keyrecord_t *record, split_pointing_side_t side, pointing_mode_t mode, split_pointing_mode_key_state_t *state) {
+    if (record->event.pressed) {
+        state->normal_epoch         = split_pointing_normal_epoch[side];
+        state->prev_override_active = split_pointing_mode_override_active[side];
+        state->prev_override_mode   = split_pointing_mode_override[side];
+        state->press_timer          = timer_read();
+        set_split_pointing_side_mode_override(side, mode);
+    } else if (state->normal_epoch == split_pointing_normal_epoch[side]) {
+        // Explicit Normal cancels this key's restoration, even after another
+        // mode key is pressed. Each key owns its snapshot and tap timer.
+        bool tapped = timer_elapsed(state->press_timer) < get_tapping_term(keycode, record);
+        restore_split_pointing_side_mode_override(side, state->prev_override_active, state->prev_override_mode);
+        if (get_split_pointing_side_sticky_mode(side) && tapped) {
+            toggle_split_pointing_side_sticky_override(side, mode);
+        }
+    }
+}
 #endif
 
 pointing_mode_t get_split_pointing_side_mode(split_pointing_side_t side) {
@@ -1295,42 +1320,12 @@ bool process_record_pointing(uint16_t keycode, keyrecord_t *record) {
         case EH_SCR:
         case EH_TXT:
         case EH_SNP: {
-            static uint32_t epoch[2];
-            static uint16_t        press_timer                 = 0;
-            static bool            prev_override_active_left   = false;
-            static bool            prev_override_active_right  = false;
-            static pointing_mode_t prev_override_mode_left     = POINTING_MODE_NORMAL;
-            static pointing_mode_t prev_override_mode_right    = POINTING_MODE_NORMAL;
-            const pointing_mode_t  NEW_MODE                   = POINTING_MODE_SNIPER + (keycode - EH_SNP);
+            static split_pointing_mode_key_state_t state[3][SPLIT_POINTING_SIDE_COUNT];
+            const uint8_t mode_index = keycode - EH_SNP;
+            const pointing_mode_t mode = POINTING_MODE_SNIPER + mode_index;
 
-            if (record->event.pressed) {
-                epoch[0] = split_pointing_normal_epoch[0];
-                epoch[1] = split_pointing_normal_epoch[1];
-                prev_override_active_left  = split_pointing_mode_override_active[SPLIT_POINTING_SIDE_LEFT];
-                prev_override_active_right = split_pointing_mode_override_active[SPLIT_POINTING_SIDE_RIGHT];
-                prev_override_mode_left    = split_pointing_mode_override[SPLIT_POINTING_SIDE_LEFT];
-                prev_override_mode_right   = split_pointing_mode_override[SPLIT_POINTING_SIDE_RIGHT];
-                set_split_pointing_side_mode_override(SPLIT_POINTING_SIDE_LEFT, NEW_MODE);
-                set_split_pointing_side_mode_override(SPLIT_POINTING_SIDE_RIGHT, NEW_MODE);
-                press_timer = timer_read();
-            } else {
-                bool tapped = timer_elapsed(press_timer) < get_tapping_term(keycode, record);
-                if (epoch[0] != split_pointing_normal_epoch[0]) {
-                    // A later explicit Normal supersedes this held key.
-                } else if (get_split_pointing_side_sticky_mode(SPLIT_POINTING_SIDE_LEFT) && tapped) {
-                    restore_split_pointing_side_mode_override(SPLIT_POINTING_SIDE_LEFT, prev_override_active_left, prev_override_mode_left);
-                    toggle_split_pointing_side_sticky_override(SPLIT_POINTING_SIDE_LEFT, NEW_MODE);
-                } else {
-                    restore_split_pointing_side_mode_override(SPLIT_POINTING_SIDE_LEFT, prev_override_active_left, prev_override_mode_left);
-                }
-                if (epoch[1] != split_pointing_normal_epoch[1]) {
-                    // A later explicit Normal supersedes this held key.
-                } else if (get_split_pointing_side_sticky_mode(SPLIT_POINTING_SIDE_RIGHT) && tapped) {
-                    restore_split_pointing_side_mode_override(SPLIT_POINTING_SIDE_RIGHT, prev_override_active_right, prev_override_mode_right);
-                    toggle_split_pointing_side_sticky_override(SPLIT_POINTING_SIDE_RIGHT, NEW_MODE);
-                } else {
-                    restore_split_pointing_side_mode_override(SPLIT_POINTING_SIDE_RIGHT, prev_override_active_right, prev_override_mode_right);
-                }
+            for (split_pointing_side_t side = SPLIT_POINTING_SIDE_LEFT; side < SPLIT_POINTING_SIDE_COUNT; side++) {
+                process_split_pointing_mode_key(keycode, record, side, mode, &state[mode_index][side]);
             }
             return false;
         }
@@ -1340,37 +1335,13 @@ bool process_record_pointing(uint16_t keycode, keyrecord_t *record) {
         case EH_USR1:
         case EH_USR2:
         case EH_USR3: {
-            static uint32_t epoch[2];
-            static uint16_t        press_timer_left             = 0;
-            static uint16_t        press_timer_right            = 0;
-            static bool            prev_override_active_left    = false;
-            static bool            prev_override_active_right   = false;
-            static pointing_mode_t prev_override_mode_left      = POINTING_MODE_NORMAL;
-            static pointing_mode_t prev_override_mode_right     = POINTING_MODE_NORMAL;
+            static split_pointing_mode_key_state_t state[SPLIT_POINTING_SIDE_COUNT][3];
+            const bool left_side = keycode == EH_L_SNP || keycode == EH_L_SCR || keycode == EH_L_TXT;
+            const split_pointing_side_t side = left_side ? SPLIT_POINTING_SIDE_LEFT : SPLIT_POINTING_SIDE_RIGHT;
+            const uint8_t mode_index = left_side ? (keycode - EH_L_SNP) : (keycode - EH_USR1);
+            const pointing_mode_t mode = POINTING_MODE_SNIPER + mode_index;
 
-            const bool left_side                    = keycode == EH_L_SNP || keycode == EH_L_SCR || keycode == EH_L_TXT;
-            const split_pointing_side_t side        = left_side ? SPLIT_POINTING_SIDE_LEFT : SPLIT_POINTING_SIDE_RIGHT;
-            uint16_t *const press_timer             = left_side ? &press_timer_left : &press_timer_right;
-            bool *const prev_override_active        = left_side ? &prev_override_active_left : &prev_override_active_right;
-            pointing_mode_t *const prev_override_mode = left_side ? &prev_override_mode_left : &prev_override_mode_right;
-            const pointing_mode_t NEW_MODE          = POINTING_MODE_SNIPER + (left_side ? (keycode - EH_L_SNP) : (keycode - EH_USR1));
-
-            if (record->event.pressed) {
-                epoch[side] = split_pointing_normal_epoch[side];
-                *prev_override_active = split_pointing_mode_override_active[side];
-                *prev_override_mode   = split_pointing_mode_override[side];
-                set_split_pointing_side_mode_override(side, NEW_MODE);
-                *press_timer = timer_read();
-            } else {
-                if (epoch[side] != split_pointing_normal_epoch[side]) {
-                    // A later explicit Normal supersedes this held key.
-                } else if (get_split_pointing_side_sticky_mode(side) && timer_elapsed(*press_timer) < get_tapping_term(keycode, record)) {
-                    restore_split_pointing_side_mode_override(side, *prev_override_active, *prev_override_mode);
-                    toggle_split_pointing_side_sticky_override(side, NEW_MODE);
-                } else {
-                    restore_split_pointing_side_mode_override(side, *prev_override_active, *prev_override_mode);
-                }
-            }
+            process_split_pointing_mode_key(keycode, record, side, mode, &state[side][mode_index]);
             return false;
         }
 #else
