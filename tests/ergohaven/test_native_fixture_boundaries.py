@@ -226,6 +226,20 @@ class NativeFixtureBoundaries(unittest.TestCase):
         self.assertIn('peer_capture_controls.json', script)
         self.assertIn('sha256', script)
 
+    def test_historical_resident_closure_is_offline_and_corruption_fails_closed(self):
+        from resident_legacy_source import SHA256, historical_source
+        with patch.object(subprocess, 'check_output', side_effect=AssertionError('no Git/history dependency')):
+            for name, expected in SHA256.items():
+                self.assertEqual(hashlib.sha256(historical_source(ROOT, name).encode()).hexdigest(), expected)
+            with tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                name = 'keyboards/ergohaven/hid.c'
+                target = root / 'tests/ergohaven/fixtures/resident_4_2_0' / name
+                target.parent.mkdir(parents=True)
+                target.write_text(historical_source(ROOT, name) + '\n/* corrupt control */\n')
+                with self.assertRaisesRegex(AssertionError, 'historical source digest'):
+                    historical_source(root, name)
+
     def test_peer_pin_corruption_rejected_before_compilation(self):
         original = Path.read_text
         def corrupted(path,*args,**kwargs):

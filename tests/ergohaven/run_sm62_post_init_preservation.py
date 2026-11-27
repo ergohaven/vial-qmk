@@ -3,6 +3,7 @@
 Hardware registration/timers are boundaries; persistence writes are recorded.
 """
 from pathlib import Path
+from native_layer_label_support import layer_label_source
 import argparse,re,subprocess
 ROOT=Path(__file__).resolve().parents[2]
 p=argparse.ArgumentParser();p.add_argument('output',type=Path);a=p.parse_args();a.output.mkdir(parents=True,exist_ok=True)
@@ -27,6 +28,7 @@ _Static_assert(SM62_RESERVED_TD_BYTES == 40U && VIAL_COMBO_ENTRIES == 32 && VIAL
 #undef SM62_PRESERVE_LEGACY_DEFAULT
 #define SM62_PRESERVE_LEGACY_DEFAULT
 #define DYNAMIC_KEYMAP_LAYER_COUNT 16
+#define KEYBOARD_ergohaven_sm62
 #define MATRIX_ROWS 10
 #define MATRIX_COLS 7
 #define LAYER_LABEL_SIZE 16
@@ -36,7 +38,7 @@ _Static_assert(SM62_RESERVED_TD_BYTES == 40U && VIAL_COMBO_ENTRIES == 32 && VIAL
 #define RPC_SM62_DIAG 1
 static uint8_t eeprom[1024];
 static uint16_t keys[16][10][7],factory[10][7];
-static char layer_names[16][16],factory_names[16][16];
+static char layer_names[16][16];
 static bool master,layer_name_updated,diag_started;
 static unsigned writes,cache_reads,display_init_calls;
 static uint32_t diag_epoch;
@@ -46,7 +48,7 @@ static uint16_t dynamic_keymap_get_keycode(unsigned l,unsigned r,unsigned c){ret
 static void dynamic_keymap_set_keycode(unsigned l,unsigned r,unsigned c,uint16_t k){keys[l][r][c]=k;writes++;}
 static uint16_t keycode_at_keymap_location_raw(unsigned l,unsigned r,unsigned c){(void)l;return factory[r][c];}
 static const char *layer_name(unsigned l){return layer_names[l];}
-static const char *default_layer_label(unsigned l){return factory_names[l];}
+
 static bool is_keyboard_master(void){return master;}
 static uint32_t timer_read32(void){return 42;}
 static void sm62_diag_stage(unsigned n){(void)n;}
@@ -55,11 +57,15 @@ static void sm62_diag_rpc(void){}
 static void transaction_register_rpc(unsigned id,void (*fn)(void)){(void)id;(void)fn;}
 static void sm62_settings_register_rpc(void){}
 static void hid_app_layout_split_init(void){}
-'''+function(ROOT/'keyboards/ergohaven/src/eh_settings.c','kb_settings_layer_labels_init')+function(board,'sm62_migrate_factory_defaults')+function(board,'keyboard_post_init_user')+r'''
-int main(void){unsigned checks=0;
- for(unsigned role=0;role<2;role++)for(unsigned pattern=0;pattern<4;pattern++)for(unsigned cached=0;cached<2;cached++){
+'''+layer_label_source(ROOT)+function(board,'sm62_migrate_factory_defaults')+function(board,'keyboard_post_init_user')+r'''
+int main(void){unsigned checks=0,generated_checks=0;
+ static const char *const expected[16]={"Base","Num + Nav","Symbols","Adjust","4","5","6","7","8","9","10","11","12","13","14","15"};
+ for(unsigned generated=0;generated<2;generated++)for(unsigned role=0;role<2;role++)for(unsigned pattern=0;pattern<4;pattern++)for(unsigned cached=0;cached<2;cached++){
   master=role;memset(eeprom,0xa5,sizeof(eeprom));
-  for(unsigned l=0;l<16;l++){char name[16]={0};snprintf(name,16,"LAYER %u",l);memcpy(eeprom+64+l*16,name,16);snprintf(factory_names[l],16,"Factory %u",l);}
+  for(unsigned l=0;l<16;l++){char name[16]={0};snprintf(name,16,"LAYER %u",l);memcpy(eeprom+64+l*16,name,16);}
+  // A saved custom label opts the profile out of the intentional generated-
+  // factory-label migration. Keep every legacy-like key signature below.
+  if(!generated)memcpy(eeprom+64,"My saved base",14);
   for(unsigned r=0;r<10;r++)for(unsigned c=0;c<7;c++)factory[r][c]=0x100+r*7+c;
   for(unsigned l=0;l<16;l++)memcpy(keys[l],factory,sizeof(factory));
   if(pattern==0){keys[0][5][6]=KC_NO;keys[0][6][6]=KC_EQL;keys[0][7][6]=KC_QUOT;keys[0][8][6]=KC_BSLS;}
@@ -70,14 +76,24 @@ int main(void){unsigned checks=0;
   for(unsigned boot=0;boot<2;boot++){
    if(cached)memcpy(layer_names,eeprom+64,sizeof(layer_names));else memset(layer_names,0,sizeof(layer_names));layer_name_updated=false;writes=cache_reads=display_init_calls=0;diag_started=false;
    keyboard_post_init_user();
-   if(writes)fprintf(stderr,"unexpected stored Default writes=%u role=%u pattern=%u boot=%u\n",writes,role,pattern,boot);
-   assert(writes==0);assert(memcmp(before,eeprom,sizeof(before))==0);assert(memcmp(oldkeys,keys,sizeof(keys))==0);
+   unsigned expected_writes=generated&&boot==0?16:0;
+   if(writes!=expected_writes)fprintf(stderr,"unexpected stored Default writes=%u role=%u pattern=%u boot=%u\n",writes,role,pattern,boot);
+   assert(writes==expected_writes);assert(memcmp(oldkeys,keys,sizeof(keys))==0);
+   if(!generated)assert(writes==0); // Custom saved profiles never migrate.
+   if(expected_writes){
+    // Only the intentional label-owner migration may persist. Keymaps and
+    // every EEPROM byte outside the native-name block remain untouched.
+    assert(memcmp(before,eeprom,64)==0&&memcmp(before+320,eeprom+320,sizeof(eeprom)-320)==0);
+    for(unsigned l=0;l<16;l++)assert(strcmp((char *)eeprom+64+l*16,expected[l])==0);
+    memcpy(before,eeprom,sizeof(before));
+   }else assert(memcmp(before,eeprom,sizeof(before))==0);
    assert(cache_reads>0&&layer_name_updated&&display_init_calls==1&&diag_started);
    for(unsigned l=0;l<16;l++)assert(memcmp(layer_names[l],eeprom+64+l*16,16)==0);
-   checks++;
+   if(generated)generated_checks++;else checks++;
   }
  }
  printf("PASS %u actual post-init boots: two roles, four legacy-like key signatures, warm/cold name cache, zero persistence writes; native names reloaded\n",checks);
+ printf("PASS %u generated-profile boots: same roles, signatures and caches; factory labels migrate once without rewriting keys or unrelated EEPROM\n",generated_checks);
 }
 '''
 src=a.output/'post_init.c';src.write_text(source);exe=a.output/'post_init'

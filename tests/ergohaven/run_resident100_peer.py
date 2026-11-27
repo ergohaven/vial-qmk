@@ -1,29 +1,16 @@
 #!/usr/bin/env python3
-"""Build real production HID/VIA/journal peer. No HID/device access.
-Usage: run_resident100_peer.py OUT; OUT/resident100_peer FLASH_IMAGE
-stdin: 64 hex characters/report. stdout: 64 hex response or '-' (no reply).
-TIME <ms>: advances modeled time and actual task; stdout OK.
-KEY <row> <col> <0|1>: actual production callback; stdout JSON.
-STATE: actual live state JSON. BUDGET <IOs> <torn-byte-count>: fault injection.
-All actual model flash mutations fflush+fsync before returning to parser.
-Restart same executable/image for fresh C RAM recovery. stderr diagnostics only.
+"""Build current read-only peer and explicitly historical 4.2.0 writer control.
+
+Both use actual source parsers/callbacks/VIA, modeled time/key sinks/NOR only.
+CLI: OUT/resident100_peer FLASH; lines: packet hex, TIME/KEY/STATE/BUDGET.
+The sibling historical-4.2.0 peer is not shipping qualification.
 """
 from pathlib import Path
-import subprocess,sys
+import hashlib,json,subprocess,sys
+from resident_legacy_source import PIN,historical_source,receipt
 R=Path(__file__).resolve().parents[2];O=Path(sys.argv[1]).resolve();O.mkdir(parents=True,exist_ok=True)
 base=(R/'tests/ergohaven/run_compact_usb.py').read_text()
-native=(R/'tests/ergohaven/resident100_native.c').read_text().split('static uint8_t raw[4560]')[0]
-native=native.replace('static uint8_t disk[101][8192];','''#include <unistd.h>
-static uint8_t disk[101][8192];
-static FILE *flash_file;
-static void persist(unsigned r,unsigned off,unsigned n) {
- assert(!fseek(flash_file,r*8192+off,SEEK_SET));
- assert(fwrite(disk[r]+off,1,n,flash_file)==n);assert(!fflush(flash_file));assert(!fsync(fileno(flash_file)));
-}''')
-native=native.replace('memset(disk[r],255,8192);return true;','memset(disk[r],255,8192);persist(r,0,8192);return true;')
-native=native.replace('if(tear>=0)for(int i=0;i<tear;i++)disk[r][off+i]&=page[i];return false;','if(tear>=0){for(int i=0;i<tear;i++)disk[r][off+i]&=page[i];persist(r,off,256);}return false;')
-native=native.replace('disk[r][off+i]&=page[i];return true;','disk[r][off+i]&=page[i];persist(r,off,256);return true;')
-native+=r'''
+MAIN=r'''
 int main(int argc,char **argv) {
  assert(argc==2);flash_file=fopen(argv[1],"r+b");
  if(!flash_file){flash_file=fopen(argv[1],"w+b");assert(flash_file);memset(disk,255,sizeof(disk));assert(fwrite(disk,1,sizeof(disk),flash_file)==sizeof(disk));assert(!fflush(flash_file));}
@@ -41,8 +28,33 @@ int main(int argc,char **argv) {
  assert(feof(stdin));assert(!fclose(flash_file));return 0;
 }
 '''
-script=base[:base.index("main=r'''")]+"main=r'''\n"+native+"'''\n"+base[base.index('text=prefix+prod'):base.index('# Baseline mode')]+"subprocess.run(cmd,check=True)\n"
-script=script.replace("R=Path(__file__).resolve().parents[2]",'R=Path('+repr(str(R))+')').replace("exe=O/'compact_receiver'","exe=O/'resident100_peer'")
-runner=O/'peer_build.py';runner.write_text(script)
-subprocess.run([sys.executable,str(runner),str(O)],check=True)
-print(O/'resident100_peer')
+def build(output,historical=False):
+ output.mkdir(parents=True,exist_ok=True)
+ native=(historical_source(R,'tests/ergohaven/resident100_native.c') if historical else (R/'tests/ergohaven/resident100_native.c').read_text()).split('static uint8_t raw[4560]')[0]
+ if historical:
+  native=native.replace('static uint8_t disk[101][8192];','''#include <unistd.h>
+static uint8_t disk[101][8192];
+static FILE *flash_file;
+static void persist(unsigned r,unsigned off,unsigned n) {
+ assert(!fseek(flash_file,r*8192+off,SEEK_SET));
+ assert(fwrite(disk[r]+off,1,n,flash_file)==n);assert(!fflush(flash_file));assert(!fsync(fileno(flash_file)));
+}''')
+  for before,after in [
+   ('memset(disk[r],255,8192);return true;','memset(disk[r],255,8192);persist(r,0,8192);return true;'),
+   ('if(tear>=0)for(int i=0;i<tear;i++)disk[r][off+i]&=page[i];return false;','if(tear>=0){for(int i=0;i<tear;i++)disk[r][off+i]&=page[i];persist(r,off,256);}return false;'),
+   ('disk[r][off+i]&=page[i];return true;','disk[r][off+i]&=page[i];persist(r,off,256);return true;')]:
+   assert before in native
+   native=native.replace(before,after)
+ else:
+  native='#include <unistd.h>\nstatic FILE *flash_file;static int budget=-1,tear=-1;\n'+native
+ native+=MAIN
+ script=base[:base.index("main=r'''")]+"main=r'''\n"+native+"'''\n"+base[base.index('text=prefix+prod'):base.index('# Baseline mode')]+"subprocess.run(cmd,check=True)\n"
+ script=script.replace("R=Path(__file__).resolve().parents[2]",'R=Path('+repr(str(R))+')').replace("exe=O/'compact_receiver'","exe=O/'resident100_peer'")
+ runner=output/'peer_build.py';runner.write_text(script)
+ subprocess.run([sys.executable,str(runner),str(output)]+(['--ref',PIN] if historical else []),check=True)
+ return str(output/'resident100_peer')
+current=build(O)
+legacy=build(O/'historical-4.2.0',True)
+receipt(O/'historical-source.json')
+(O/'build.json').write_text(json.dumps(dict(current=current,current_sha256=hashlib.sha256(Path(current).read_bytes()).hexdigest(),historical=legacy,historical_commit=PIN,historical_sha256=hashlib.sha256(Path(legacy).read_bytes()).hexdigest(),historical_not_shipping=True),indent=2)+'\n')
+print(current)

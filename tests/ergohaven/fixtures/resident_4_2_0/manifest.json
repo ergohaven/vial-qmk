@@ -1,0 +1,81 @@
+{
+  "origin_commit": "f6d3d4d50d4b78d18622ba345d5617d3f20e4e6a",
+  "classification": "historical-only compatibility/fault controls, not shipping production",
+  "files": [
+    {
+      "path": "keyboards/ergohaven/hid.c",
+      "sha256": "4cc2d57a27bc3d8f5b4519b56316cdc14ae097f28a8785abd022e6b596835f3b",
+      "bytes": 56375
+    },
+    {
+      "path": "quantum/via.c",
+      "sha256": "ba5ecb71b1abb040aae706d07e9fdf39d081d812f5a92d5597efd222c72fb130",
+      "bytes": 29526
+    },
+    {
+      "path": "quantum/vial.c",
+      "sha256": "8421256acc6ffa561dc5b6bf7fe4d7059ddac7904896658f4f6652593de783f9",
+      "bytes": 28584
+    },
+    {
+      "path": "quantum/vial.h",
+      "sha256": "60db52651f02d887714cf9ae2f1abb2abfdcd4fc76d0158b5c5b4610bd656cf7",
+      "bytes": 6666
+    },
+    {
+      "path": "quantum/keycodes.h",
+      "sha256": "0a4cf54e4d2bd33fdbc12492fca88446545769abce7ab38bbd790c4aa019f523",
+      "bytes": 57489
+    },
+    {
+      "path": "keyboards/ergohaven/sm62/compact_usb.h",
+      "sha256": "27d3e88a86d756066893a211b6c7b5bf61474d99072c67c4d14f5171e9ed8330",
+      "bytes": 12855
+    },
+    {
+      "path": "keyboards/ergohaven/sm62/resident_cache.h",
+      "sha256": "b807c900ebfebcd70fc9981fed8a630ac7430d57e29dd24083ee14033304b357",
+      "bytes": 6246
+    },
+    {
+      "path": "keyboards/ergohaven/sm62/resident_cache_flash.h",
+      "sha256": "e163b62ad0e9661fa732acfdd61b914f608db23b352fa7cd0b05ac9c11776172",
+      "bytes": 457
+    },
+    {
+      "path": "keyboards/ergohaven/sm62/application_geometry.h",
+      "sha256": "77f26c5a286db4f66589f921faa38680b53098e6d99fabc4f5408fc0b5f8522f",
+      "bytes": 821
+    },
+    {
+      "path": "tests/ergohaven/resident100_native.c",
+      "sha256": "f43d628433bcc15509af7fd9a15a9066f98930656a7ed149d7e83c106e724614",
+      "bytes": 20285
+    },
+    {
+      "path": "tests/ergohaven/test_resident100_restart.py",
+      "sha256": "7a62bc7c0fa667384770cb1ad4b9da4cea991e72b822bd7ca5412ccf80feca66",
+      "bytes": 3939
+    },
+    {
+      "path": "tests/ergohaven/sm62_locked_boot/cases.c",
+      "sha256": "0880a5702efd588d22b41b4965686835662844fc3e056eea234835fd824bfef0",
+      "bytes": 13292
+    },
+    {
+      "path": "quantum/nvm/eeprom/nvm_dynamic_keymap.c",
+      "sha256": "7431d6f9ceac4adefdd797e108c4324ee619a31724127a7c099d005d989c8798",
+      "bytes": 17446
+    },
+    {
+      "path": "quantum/dynamic_keymap.c",
+      "sha256": "2be8993b7d27c30881487c81b57590b05b9769267ee6b522668f625f0a5ed6e9",
+      "bytes": 13157
+    },
+    {
+      "path": "quantum/via.h",
+      "sha256": "5e2dcad39cb63b482a302131b679ff3a9d7e3492a5cfd9dce279fba6417e2696",
+      "bytes": 7213
+    }
+  ]
+}

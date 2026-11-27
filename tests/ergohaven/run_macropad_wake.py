@@ -43,7 +43,13 @@ screen += layout[layout.index('static bool     key_pressed'):layout.index('stati
 screen += layout[layout.index('static uint8_t prev_layer ='):layout.index('static uint8_t screen_layout_control_for_label')]
 for name in ['get_keycode','get_encoder_keycode','screen_layout_control_for_label','set_key_pressed','finish_key_press_animations','screen_layout_set_layer_name','screen_layout_header_name','screen_layout_builtin_key_icon','screen_layout_set_key_content','screen_layout_refresh_key_content','screen_layout_load','screen_layout_housekeep']:
     screen += function(layout,name)
-text = (ROOT/'tests/ergohaven/macropad_wake.c').read_text().replace('SCREEN_STATE',state).replace('HID_PRODUCTION',firewall_source(source,keycodes_included=True)+hid).replace('DISPLAY_PRODUCTION',bodies).replace('LAYOUT_PRODUCTION',screen)
+template = (ROOT/'tests/ergohaven/macropad_wake.c').read_text()
+# quantum.h now supplies report.h/util.h: prefer the actual QMK MAX over
+# the legacy harness-only fallback, without changing any wake assertions.
+max_stub = '#define MAX(a,b) ((a)>(b)?(a):(b))'
+assert max_stub in template
+template = template.replace(max_stub, '#ifndef MAX\n'+max_stub+'\n#endif')
+text = template.replace('SCREEN_STATE',state).replace('HID_PRODUCTION',firewall_source(source,keycodes_included=True)+hid).replace('DISPLAY_PRODUCTION',bodies).replace('LAYOUT_PRODUCTION',screen)
 src = a.output/'wake.c'
 src.write_text(text)
 exe = a.output/'wake'

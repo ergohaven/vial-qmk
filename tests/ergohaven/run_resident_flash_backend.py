@@ -28,18 +28,19 @@ void restore_interrupts(uint32_t s){assert(s==7);restores++;}
 void flash_range_erase(unsigned a,unsigned n){erases++;last=a;size=n;}
 void flash_range_program(unsigned a,const uint8_t*p,unsigned n){assert(p);programs++;last=a;size=n;}
 int main(void){
- uint8_t page[256]={0};
- assert(!sm62_cache_flash_record(101));assert(!sm62_cache_flash_erase(101));assert(!sm62_cache_flash_program(101,0,page));
- assert(!sm62_cache_flash_program(0,1,page));assert(!sm62_cache_flash_program(0,8192,page));assert(!sm62_cache_flash_program(0,~0u,page));assert(!begins);
- assert(!sm62_cache_flash_erase(0));assert(!sm62_cache_flash_program(0,0,page));assert(begins==2&&!erases&&!programs&&!locks&&!ends);
- permit=true;
- for(unsigned r=0;r<101;r++){
-  assert((uintptr_t)sm62_cache_flash_record(r)==0x10200000u+r*8192);
-  assert(sm62_cache_flash_erase(r));assert(last==0x200000u+r*8192&&size==8192);
-  assert(sm62_cache_flash_program(r,7936,page));assert(last==0x200000u+r*8192+7936&&size==256);
+ // The current production archive is read-only, including when flash writes
+ // would otherwise be permitted. Keep every record/boundary check and require
+ // no guard, interrupt or NOR operation while resolving archive addresses.
+ for(unsigned allowed=0;allowed<2;allowed++){
+  permit=allowed;
+  assert(!sm62_cache_flash_record(101));
+  assert(!sm62_cache_flash_record(102));
+  assert(!sm62_cache_flash_record(~0u));
+  for(unsigned r=0;r<101;r++)
+   assert((uintptr_t)sm62_cache_flash_record(r)==0x10200000u+r*8192);
  }
- assert(erases==101&&programs==101&&ends==202&&locks==202&&restores==202);
- puts("PASS production RP2040 backend: bounds, 101x8192 partition, failed guard no IO, successful guard/IRQ balanced");
+ assert(!begins&&!ends&&!locks&&!restores&&!erases&&!programs);
+ puts("PASS production read-only RP2040 archive: all 101 record addresses, rejected out-of-range records, no guard/IRQ/NOR writes");
 }
 '''
 (O/'main.c').write_text(main)
@@ -48,4 +49,9 @@ p=subprocess.run(cmd,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
 out=p.stdout
 if p.returncode==0:
  p=subprocess.run([str(O/'backend')],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True);out+=p.stdout
+ if p.returncode==0:
+  symbols=subprocess.check_output(['nm','--defined-only',str(O/'backend')],text=True)
+  assert all(name not in symbols for name in ('sm62_cache_flash_erase','sm62_cache_flash_program'))
+  (O/'symbols.txt').write_text(symbols)
+  out+='PASS production archive exports no erase/program entrypoints\n'
 (O/'result.log').write_text(out+f'EXIT={p.returncode}\n');print(out);raise SystemExit(p.returncode)

@@ -40,8 +40,7 @@ static bool sticky[2];
 static unsigned writes;
 static uint16_t now, mode_pressed_at;
 static pointing_mode_t pointing_mode;
-static bool split_pointing_mode_override_active[2];
-static pointing_mode_t split_pointing_mode_override[2];
+
 static bool get_sticky_mode(void) { return sticky[0]; }
 static void set_sticky_mode(bool enabled) { sticky[0] = enabled; writes++; }
 static bool get_split_pointing_side_sticky_mode(split_pointing_side_t side) { return sticky[side]; }
@@ -105,10 +104,11 @@ class StickyKeys(unittest.TestCase):
         source = (ROOT / "keyboards/ergohaven/src/eh_pointing.c").read_text()
         header = (ROOT / "keyboards/ergohaven/src/eh_pointing.h").read_text()
         codes = re.search(r"enum \{\s*EH_L_SNP.*?\n\};", header, re.S).group()
-        helpers = "\n".join(function(source, name) for name in (
-            "sanitize_split_pointing_mode", "set_split_pointing_side_mode_override",
-            "clear_split_pointing_side_mode_override", "restore_split_pointing_side_mode_override",
-            "toggle_split_pointing_side_sticky_override"))
+        # Keep the production state/type/helper together after per-action hold
+        # ownership replaced the old shared switch-group timer/snapshot.
+        runtime = source[source.index('#ifdef EH_KEYBOARD_SPLIT_POINTING_V2\n// split-mode-restore'):
+                         source.index('\npointing_mode_t get_split_pointing_side_mode')]
+        helpers = function(source, "sanitize_split_pointing_mode") + "\n" + runtime
         handlers = "\n".join(function(source, name) for name in (
             "process_pointing_sticky_key", "process_record_pointing"))
         for split in (False, True):
@@ -136,7 +136,10 @@ class StickyKeys(unittest.TestCase):
                              ["EH_SNP", "EH_SCR", "EH_TXT", "EH_USR1", "EH_USR2", "EH_USR3"])
             self.assertEqual([entry["name"] for entry in codes[64:67]],
                              ["EH_STK_TG", "EH_STK_ON", "EH_STK_OFF"])
-            self.assertEqual(len(codes), 73 if suffix else 67)
+            self.assertEqual(len(codes), 76 if suffix else 67)
+            if suffix:
+                self.assertEqual([entry["name"] for entry in codes[73:76]],
+                                 ["EH_L_NORMAL", "EH_NORMAL", "EH_R_NORMAL"])
 
 
 if __name__ == "__main__":

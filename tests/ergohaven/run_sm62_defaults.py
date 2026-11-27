@@ -65,9 +65,9 @@ static void set_hold(uint8_t i,uint16_t value) {
 }
 int main(void) {
     memset(eeprom,0xff,sizeof(eeprom));kb_settings_extra_init();
-    check(get_hold(0)==350 && get_hold(1)==350,"blank EEPROM initializes both QSIDs to 350 milliseconds");
+    check(get_hold(0)==500 && get_hold(1)==500,"blank EEPROM initializes both QSIDs to 500 milliseconds");
     for(side=0;side<2;side++)
-        check(sm62_local_keymap_hold_ms()==350,"local display consumes milliseconds unchanged");
+        check(sm62_local_keymap_hold_ms()==500,"local display consumes milliseconds unchanged");
     unsigned before=writes;kb_settings_extra_init();
     check(writes==before,"fresh-record reload does not write EEPROM");
     /* Existing users, including an old default of 300, retain their values.
@@ -89,7 +89,7 @@ int main(void) {
     for(unsigned version=1;version<=2;version++) {
         saved.version=version;saved.keymap_hold_ms[0]=0xffff;saved.keymap_hold_ms[1]=0xffff;
         persist();kb_settings_extra_init();
-        check(get_hold(0)==350 && get_hold(1)==350,"v1-v2 absent hold fields initialize to 350 milliseconds");
+        check(get_hold(0)==500 && get_hold(1)==500,"v1-v2 absent hold fields initialize to 500 milliseconds");
         check(saved.side[0].mode==1 && saved.side[1].mode==3,"old-format extension preserves unrelated modes");
     }
     before=writes;set_hold(0,175);set_hold(1,925);

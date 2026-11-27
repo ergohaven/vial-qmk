@@ -9,7 +9,18 @@ R=Path(__file__).resolve().parents[2];O=a.output;O.mkdir(parents=True,exist_ok=T
 import sys
 sys.path.insert(0,str(R/'tests/ergohaven'))
 from native_vial_firewall import firewall_source
-def source(path):return subprocess.check_output(['git','show',f'{a.ref}:{path}'],cwd=R,text=True) if a.ref else (R/path).read_text()
+from resident_legacy_source import PIN, historical_source, receipt
+def source(path):
+ if a.ref == PIN:return historical_source(R,path)
+ return subprocess.check_output(['git','show',f'{a.ref}:{path}'],cwd=R,text=True) if a.ref else (R/path).read_text()
+# A historical HID body must never include mutable shipping compact/journal
+# headers. Snapshot only its small include closure, not an alternate checkout.
+include=R/'keyboards/ergohaven'
+if a.ref:
+ include=O/'historical-headers';(include/'sm62').mkdir(parents=True,exist_ok=True)
+ for name in ('application_geometry.h','compact_usb.h','resident_cache.h','resident_cache_flash.h'):
+  (include/'sm62'/name).write_text(source('keyboards/ergohaven/sm62/'+name))
+ if a.ref == PIN:receipt(O/'historical-source.json')
 h=source('keyboards/ergohaven/hid.c');v=source('quantum/via.c')
 prod=h[h.index('#    define EH_APP_LAYOUT_PROTOCOL_VERSION'):h.index('\nhid_data_t *get_hid_data')].rsplit('#endif',1)[0]
 prefix=(R/'tests/ergohaven/run_sm62_layout.py').read_text().split("text = r'''",1)[1].split('PRODUCTION',1)[0]
@@ -77,7 +88,7 @@ int main(int argc,char**argv){
 '''
 text=prefix+prod+boundaries+callback+'\nstatic void raw_hid_receive(uint8_t *data,uint8_t length) {\n'+gate+'\n raw_hid_receive_kb(data,length);\nskip:\n'+tail+main
 src=O/'compact_receiver.c';src.write_text(text);exe=O/'compact_receiver'
-cmd=['gcc','-std=gnu11','-O1','-g','-Wall','-Wextra','-Werror','-fsanitize=undefined','-fno-sanitize-recover=all','-DKEYBOARD_ergohaven_sm62','-DSM62_RAW_HID_FRAME_GATE','-I'+str(R/'keyboards/ergohaven'),str(src),'-o',str(exe)]
+cmd=['gcc','-std=gnu11','-O1','-g','-Wall','-Wextra','-Werror','-fsanitize=undefined','-fno-sanitize-recover=all','-DKEYBOARD_ergohaven_sm62','-DSM62_RAW_HID_FRAME_GATE','-I'+str(include),str(src),'-o',str(exe)]
 # Baseline mode compiles query-only to establish actual missing capability RED.
 if a.ref:
  text=text[:text.index('int main(')]+r'''int main(void){uint8_t q[32]={0xeb,8,0xa5,1,1,2,3,4};receive(q);assert(replies==1&&response[2]==0x5a&&response[8]==3);return 0;}'''

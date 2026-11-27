@@ -53,12 +53,8 @@ static os_variant_t detected_host_os(void){return test_os;}
 #include <stdbool.h>
 #include "quantum/keycodes.h"
 #include "quantum/quantum_keycodes.h"
+// Match quantum.h's real HID report dependency (also provides modifiers).
+#include "tmk_core/protocol/report.h"
 #define PROGMEM
-#define MOD_MASK_CTRL 0x11
-#define MOD_MASK_SHIFT 0x22
-#define MOD_MASK_ALT 0x44
-#define MOD_MASK_GUI 0x88
-#define MOD_LSFT 2
-#define MOD_LCTL 1
 typedef struct keyrecord keyrecord_t;
 ''')
