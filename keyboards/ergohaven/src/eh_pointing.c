@@ -21,9 +21,14 @@ pointing_mode_t                pointing_mode = POINTING_MODE_NORMAL;
 
 #define PHENOM_AUTO_MOUSE_SUPPORTED_MODES_MASK ((1u << POINTING_MODE_NORMAL) | (1u << POINTING_MODE_SNIPER) | (1u << POINTING_MODE_SCROLL) | (1u << POINTING_MODE_TEXT))
 #ifdef EH_KEYBOARD_SPLIT_POINTING_V2
-#    define PHENOM_AUTO_MOUSE_TIMEOUT_IDX_COUNT 14
 #    define PHENOM_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX 10
+#if defined(KEYBOARD_ergohaven_phenom_rev1) || defined(KEYBOARD_ergohaven_phenom_mini_rev1) || defined(KEYBOARD_ergohaven_phenom_micro_rev1)
+#    define PHENOM_AUTO_MOUSE_TIMEOUT_IDX_COUNT 20
+static const uint16_t phenom_auto_mouse_timeout_ms[] = {50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500, 2750, 3000};
+#else
+#    define PHENOM_AUTO_MOUSE_TIMEOUT_IDX_COUNT 14
 static const uint16_t phenom_auto_mouse_timeout_ms[] = {50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 750, 1000, 1250, 1500};
+#endif
 #else
 #    define PHENOM_AUTO_MOUSE_TIMEOUT_IDX_COUNT 6
 #    define PHENOM_AUTO_MOUSE_TIMEOUT_DEFAULT_IDX 2
@@ -43,7 +48,6 @@ static const uint16_t phenom_auto_mouse_timeout_ms[] = {50, 100, 150, 200, 250, 
 #    define PHENOM_SPLIT_POINTING_SETTINGS_VERSION 8
 #endif
 
-static const uint8_t phenom_encoder_interval_ms_table[PHENOM_ENCODER_INTERVAL_IDX_COUNT] = {0, 5, 10, 15, 20, 30, 40, 60, 80, 100};
 static const uint8_t module_encoder_interval_ms_table[MODULE_ENCODER_INTERVAL_IDX_COUNT] = {0, 5, 10, 15, 20, 30, 40, 60, 80, 100};
 
 static uint8_t phenom_auto_mouse_mode_mask(pointing_mode_t mode) {
@@ -347,6 +351,7 @@ static pointing_mode_t sanitize_split_pointing_mode(pointing_mode_t mode) {
 
 #ifdef EH_KEYBOARD_SPLIT_POINTING_V2
 // split-mode-restore-v0.0.11: mode keys are temporary overrides, not saved settings.
+static uint32_t split_pointing_normal_epoch[SPLIT_POINTING_SIDE_COUNT];
 static bool            split_pointing_mode_override_active[SPLIT_POINTING_SIDE_COUNT] = {false, false};
 static pointing_mode_t split_pointing_mode_override[SPLIT_POINTING_SIDE_COUNT]        = {POINTING_MODE_NORMAL, POINTING_MODE_NORMAL};
 
@@ -733,7 +738,15 @@ void set_split_pointing_side_encoder_interval_idx(split_pointing_side_t side, ui
 }
 
 uint8_t get_split_pointing_side_encoder_interval_ms(split_pointing_side_t side) {
+#if defined(KEYBOARD_ergohaven_phenom_rev1) || defined(KEYBOARD_ergohaven_phenom_mini_rev1) || defined(KEYBOARD_ergohaven_phenom_micro_rev1)
+    // Phenom exposes only encoder steps. Ignore legacy saved intervals without
+    // changing their packed storage or the legacy settings wire contract.
+    (void)side;
+    return 0;
+#else
+    static const uint8_t phenom_encoder_interval_ms_table[PHENOM_ENCODER_INTERVAL_IDX_COUNT] = {0, 5, 10, 15, 20, 30, 40, 60, 80, 100};
     return phenom_encoder_interval_ms_table[get_split_pointing_side_encoder_interval_idx(side)];
+#endif
 }
 
 uint8_t get_split_pointing_side_encoder_steps(split_pointing_side_t side) {
@@ -1088,6 +1101,9 @@ bool auto_mouse_should_reset_on_key(uint16_t keycode, keyrecord_t *record) {
 #    endif
 
 bool is_mouse_record_kb(uint16_t keycode, keyrecord_t *record) {
+#if defined(KEYBOARD_ergohaven_phenom_rev1) || defined(KEYBOARD_ergohaven_phenom_mini_rev1) || defined(KEYBOARD_ergohaven_phenom_micro_rev1)
+    if (keycode >= EH_L_NORMAL && keycode <= EH_R_NORMAL) return true;
+#endif
     switch (keycode) {
         case EH_SCR:
         case EH_SNP:
@@ -1262,11 +1278,24 @@ static bool process_pointing_sticky_key(uint16_t keycode, keyrecord_t *record) {
 
 bool process_record_pointing(uint16_t keycode, keyrecord_t *record) {
     if (!process_pointing_sticky_key(keycode, record)) return false;
+#if defined(KEYBOARD_ergohaven_phenom_rev1) || defined(KEYBOARD_ergohaven_phenom_mini_rev1) || defined(KEYBOARD_ergohaven_phenom_micro_rev1)
+    if (keycode >= EH_L_NORMAL && keycode <= EH_R_NORMAL) {
+        if (record->event.pressed) {
+            for (split_pointing_side_t side = SPLIT_POINTING_SIDE_LEFT; side < SPLIT_POINTING_SIDE_COUNT; side++) {
+                if (keycode != EH_NORMAL && keycode != (side == SPLIT_POINTING_SIDE_LEFT ? EH_L_NORMAL : EH_R_NORMAL)) continue;
+                ++split_pointing_normal_epoch[side];
+                set_split_pointing_side_mode_override(side, POINTING_MODE_NORMAL);
+            }
+        }
+        return false;
+    }
+#endif
     switch (keycode) {
 #ifdef EH_KEYBOARD_SPLIT_POINTING_V2
         case EH_SCR:
         case EH_TXT:
         case EH_SNP: {
+            static uint32_t epoch[2];
             static uint16_t        press_timer                 = 0;
             static bool            prev_override_active_left   = false;
             static bool            prev_override_active_right  = false;
@@ -1275,6 +1304,8 @@ bool process_record_pointing(uint16_t keycode, keyrecord_t *record) {
             const pointing_mode_t  NEW_MODE                   = POINTING_MODE_SNIPER + (keycode - EH_SNP);
 
             if (record->event.pressed) {
+                epoch[0] = split_pointing_normal_epoch[0];
+                epoch[1] = split_pointing_normal_epoch[1];
                 prev_override_active_left  = split_pointing_mode_override_active[SPLIT_POINTING_SIDE_LEFT];
                 prev_override_active_right = split_pointing_mode_override_active[SPLIT_POINTING_SIDE_RIGHT];
                 prev_override_mode_left    = split_pointing_mode_override[SPLIT_POINTING_SIDE_LEFT];
@@ -1284,13 +1315,17 @@ bool process_record_pointing(uint16_t keycode, keyrecord_t *record) {
                 press_timer = timer_read();
             } else {
                 bool tapped = timer_elapsed(press_timer) < get_tapping_term(keycode, record);
-                if (get_split_pointing_side_sticky_mode(SPLIT_POINTING_SIDE_LEFT) && tapped) {
+                if (epoch[0] != split_pointing_normal_epoch[0]) {
+                    // A later explicit Normal supersedes this held key.
+                } else if (get_split_pointing_side_sticky_mode(SPLIT_POINTING_SIDE_LEFT) && tapped) {
                     restore_split_pointing_side_mode_override(SPLIT_POINTING_SIDE_LEFT, prev_override_active_left, prev_override_mode_left);
                     toggle_split_pointing_side_sticky_override(SPLIT_POINTING_SIDE_LEFT, NEW_MODE);
                 } else {
                     restore_split_pointing_side_mode_override(SPLIT_POINTING_SIDE_LEFT, prev_override_active_left, prev_override_mode_left);
                 }
-                if (get_split_pointing_side_sticky_mode(SPLIT_POINTING_SIDE_RIGHT) && tapped) {
+                if (epoch[1] != split_pointing_normal_epoch[1]) {
+                    // A later explicit Normal supersedes this held key.
+                } else if (get_split_pointing_side_sticky_mode(SPLIT_POINTING_SIDE_RIGHT) && tapped) {
                     restore_split_pointing_side_mode_override(SPLIT_POINTING_SIDE_RIGHT, prev_override_active_right, prev_override_mode_right);
                     toggle_split_pointing_side_sticky_override(SPLIT_POINTING_SIDE_RIGHT, NEW_MODE);
                 } else {
@@ -1305,6 +1340,7 @@ bool process_record_pointing(uint16_t keycode, keyrecord_t *record) {
         case EH_USR1:
         case EH_USR2:
         case EH_USR3: {
+            static uint32_t epoch[2];
             static uint16_t        press_timer_left             = 0;
             static uint16_t        press_timer_right            = 0;
             static bool            prev_override_active_left    = false;
@@ -1320,12 +1356,15 @@ bool process_record_pointing(uint16_t keycode, keyrecord_t *record) {
             const pointing_mode_t NEW_MODE          = POINTING_MODE_SNIPER + (left_side ? (keycode - EH_L_SNP) : (keycode - EH_USR1));
 
             if (record->event.pressed) {
+                epoch[side] = split_pointing_normal_epoch[side];
                 *prev_override_active = split_pointing_mode_override_active[side];
                 *prev_override_mode   = split_pointing_mode_override[side];
                 set_split_pointing_side_mode_override(side, NEW_MODE);
                 *press_timer = timer_read();
             } else {
-                if (get_split_pointing_side_sticky_mode(side) && timer_elapsed(*press_timer) < get_tapping_term(keycode, record)) {
+                if (epoch[side] != split_pointing_normal_epoch[side]) {
+                    // A later explicit Normal supersedes this held key.
+                } else if (get_split_pointing_side_sticky_mode(side) && timer_elapsed(*press_timer) < get_tapping_term(keycode, record)) {
                     restore_split_pointing_side_mode_override(side, *prev_override_active, *prev_override_mode);
                     toggle_split_pointing_side_sticky_override(side, NEW_MODE);
                 } else {

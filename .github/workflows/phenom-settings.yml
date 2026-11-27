@@ -1,0 +1,50 @@
+name: Phenom settings regressions
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'keyboards/ergohaven/src/eh_pointing.c'
+      - 'keyboards/ergohaven/src/eh_pointing.h'
+      - 'keyboards/ergohaven/src/json/*phenom*.json'
+      - 'keyboards/ergohaven/phenom*/**'
+      - 'tests/ergohaven/test_phenom_encoder_step_only.py'
+      - 'tests/ergohaven/test_phenom_normal_actions.py'
+      - 'tests/ergohaven/test_phenom_timeout20.py'
+      - '.github/workflows/phenom-settings.yml'
+  pull_request:
+    paths:
+      - 'keyboards/ergohaven/src/eh_pointing.c'
+      - 'keyboards/ergohaven/src/eh_pointing.h'
+      - 'keyboards/ergohaven/src/json/*phenom*.json'
+      - 'keyboards/ergohaven/phenom*/**'
+      - 'tests/ergohaven/test_phenom_encoder_step_only.py'
+      - 'tests/ergohaven/test_phenom_normal_actions.py'
+      - 'tests/ergohaven/test_phenom_timeout20.py'
+      - '.github/workflows/phenom-settings.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phenom-settings-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  focused:
+    name: Phenom encoder, timeout and Normal actions
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Run focused production-owner regressions
+        env:
+          AGENT_BUILD_CACHE: ${{ runner.temp }}/phenom-host-regressions
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          mkdir -p "$AGENT_BUILD_CACHE"
+          cd tests/ergohaven
+          python3 -m unittest -v test_phenom_encoder_step_only test_phenom_normal_actions test_phenom_timeout20

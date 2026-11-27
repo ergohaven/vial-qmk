@@ -34,6 +34,9 @@ enum {
     EH_R_STK_TG,
     EH_R_STK_ON,
     EH_R_STK_OFF,
+    EH_L_NORMAL,
+    EH_NORMAL,
+    EH_R_NORMAL,
 };
 
 typedef enum { ROT_0, ROT_90, ROT_180, ROT_270 } orientation_t;

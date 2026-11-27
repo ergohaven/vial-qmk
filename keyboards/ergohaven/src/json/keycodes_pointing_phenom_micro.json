@@ -20,3 +20,6 @@
 ,{"name": "EH_R_STK_TG", "shortName": "R Sticky\nToggle", "title": "Toggle sticky mode for the right pointing device"}
 ,{"name": "EH_R_STK_ON", "shortName": "R Sticky\nOn", "title": "Enable sticky mode for the right pointing device"}
 ,{"name": "EH_R_STK_OFF", "shortName": "R Sticky\nOff", "title": "Disable sticky mode for the right pointing device"}
+,{"name": "EH_L_NORMAL", "shortName": "Left\nNormal", "title": "Set left pointing device to normal mode"}
+,{"name": "EH_NORMAL", "shortName": "Normal\nmode", "title": "Set both pointing devices to normal mode"}
+,{"name": "EH_R_NORMAL", "shortName": "Right\nNormal", "title": "Set right pointing device to normal mode"}
